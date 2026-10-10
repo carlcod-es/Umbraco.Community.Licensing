@@ -28,8 +28,8 @@ Builds products on this library and sells licenses for them.
 
 - **Issues licenses** when a site owner buys one. Keys are sent to the site owner, typically by
   email, so a key must survive being pasted into an email and back out.
-- **Builds products** that use the library for licensing. Each product has its own private key,
-  which the vendor must keep safe. It is never shipped inside the product.
+- **Builds products** that use the library for licensing. Signs with a private key per product,
+  or one shared across their products, which the vendor must keep safe. It is never shipped inside the product.
 - **Gates features at runtime.** Uses license features as feature flags, including limits such
   as `max-orders`, and decides what the product does when a license is missing or invalid.
 

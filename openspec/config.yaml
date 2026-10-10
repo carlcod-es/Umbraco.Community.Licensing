@@ -1,32 +1,25 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Product: an offline license key library for .NET (issue, validate, signing-key management).
+  Roles, hats, decision records and project constraints: CLAUDE.md. Personas and their
+  priority order: docs/personas.md.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  proposal:
+    - No implementation or technology content; that belongs in design.md or an ADR.
+  design:
+    - Name the bar (throwaway / prototype / production) and the test strategy that follows.
+    - Each technology decision has a matching ADR, cross-referenced from the section that made it.
+  specs:
+    - Behaviour only; no technology, no ADR citations.
+    - Every requirement has at least one "#### Scenario:" block with WHEN/THEN.
+  tasks:
+    - Sections follow component boundaries and the worker ownership map in CLAUDE.md.
+    - Each section notes the sections it depends on.
+    - Every task ends with an "and verify…" clause naming an automated check or a human observation.
 
-# Per-operation guidance (optional)
-# Add advisory guidance for how apply and archive work should be conducted.
-# This is separate from artifact rules above.
-# Example:
-#   operations:
-#     apply:
-#       guidance:
-#         - Keep test summaries concise
-#     archive:
-#       guidance:
-#         - Summarize the archive outcome before finishing
+operations:
+  apply:
+    guidance:
+      - Follow the "Apply-phase team" section of CLAUDE.md. Read openspec/changes/<change>/follow-ups.md first if it exists.

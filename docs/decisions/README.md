@@ -1,50 +1,64 @@
-# Product decision records
+# Product decision records (PDR)
 
-Why the library behaves as it does. One file per decision: what was decided, why, what was
-rejected and why, and who it serves. Written for vendors, implementors and site owners asking
-"why does it work like this?", and as source material for the library's documentation.
+A PDR records how the library behaves as a site owner, implementor or vendor experiences it.
+Test: if the technology stack changed, the PDR would still hold. Technology decisions are ADRs
+(`docs/adrs/`). The reasons and rejected options are source material for the library's user
+documentation.
 
-Technology choices (algorithms, formats, packaging) are ADRs in [`../adrs/`](../adrs/). Product
-decisions are PDRs here. Cite as PDR-0011, never a bare number.
+Cite as PDR-NNNN. Statuses: Decided, Dropped, Superseded by PDR-NNNN, Amended by PDR-NNNN,
+Deferred. Update this index in the same change as any status line.
 
-A PDR is the full record of its decision. Its source line names the requirement or question
-(R-number, Q-number) in the exploration section of
-`openspec/changes/license-key-management/design.md`, which indexes every requirement and
-question and holds the open ones. The chronological write-up is in git history. A decided PDR
-is not yet a spec requirement until the specs are revised.
+## Index
 
-| PDR | Decision | Status |
+| PDR | Title | Status |
 |---|---|---|
-| [0001](0001-primary-customer-is-the-site-owner.md) | The site owner is the primary customer | Decided |
-| [0002](0002-shared-license-store.md) | One license store per site, shared by all vendors | Decided |
-| [0003](0003-inventory-is-a-product-view.md) | The inventory has one row per product; packages register | Decided |
-| [0004](0004-package-registration-declarations.md) | What a package declares when it registers | Decided |
-| [0005](0005-core-signs-only.md) | The core issuing API signs only and keeps no records | Decided |
-| [0006](0006-issuing-add-on-without-personal-data.md) | Optional issuing add-on; no customer personal data | Decided |
-| [0007](0007-signing-secrets-stored-apart.md) | Signing secrets are stored apart from issued keys | Decided |
-| [0008](0008-a-key-stands-for-one-purchase.md) | A license key stands for one purchase | Decided |
-| [0009](0009-license-reference.md) | License reference: same reference supersedes, different ones combine | Decided |
-| [0010](0010-product-features.md) | Product features are switches and numbers | Decided; amended by PDR-0018 |
-| [0011](0011-base-and-add-on-licenses.md) | Base and add-on licenses, and how licenses combine | Decided |
-| [0012](0012-umbraco-version-range.md) | Umbraco version range: base licenses only, majors, inclusive | Decided |
-| [0013](0013-feature-names.md) | Feature names are restricted; lookups ignore case | Decided |
-| [0014](0014-dropped-kind-of-license.md) | No kind of license (trial / standard) | Dropped |
-| [0015](0015-dropped-release-date-gating.md) | No release-date gating | Dropped |
-| [0016](0016-dates-and-times.md) | Issue and expiry dates are UTC; the core sets the issue time | Decided |
-| [0017](0017-identifier-formats.md) | Identifier formats: `vendor.product` and `LIC-XXXXX-XXXXX` | Decided |
-| [0018](0018-text-feature-values.md) | Product features may carry text; text never combines | Decided |
+| [PDR-0001](0001-one-key-per-product.md) | One key per product | Decided |
+| [PDR-0002](0002-evaluation-states-and-claims.md) | Evaluation states and what a result reports | Amended by PDR-0018, PDR-0020 |
+| [PDR-0003](0003-empty-key-is-missing.md) | An empty or whitespace-only key is missing | Decided |
+| [PDR-0004](0004-product-id-reference-identifier.md) | Product ID, license reference and key identifier | Amended by PDR-0020, PDR-0023 |
+| [PDR-0005](0005-random-key-part.md) | Random key part at every issue | Decided |
+| [PDR-0006](0006-issue-time-informational.md) | Issue time is informational | Decided |
+| [PDR-0007](0007-expiry-to-the-second.md) | Expiry is a stated UTC date and time to the second | Decided |
+| [PDR-0008](0008-display-name.md) | Display name | Decided |
+| [PDR-0009](0009-vendor-tag.md) | Vendor tag | Decided |
+| [PDR-0010](0010-feature-types-and-names.md) | Feature types, name rule and lookup | Amended by PDR-0019 |
+| [PDR-0011](0011-numbers-not-additive.md) | Numbers are not additive-only | Decided |
+| [PDR-0012](0012-text-is-opaque.md) | Text values are opaque; no text set | Decided |
+| [PDR-0013](0013-reissue-from-presented-key.md) | Reissue from the presented key | Amended by PDR-0021 |
+| [PDR-0014](0014-personal-data-by-guidance.md) | Personal data kept out by vendor guidance | Decided |
+| [PDR-0015](0015-signing-keys-and-rotation.md) | Signing keys, trusted set and rotation | Decided |
+| [PDR-0016](0016-feature-definitions-at-issue.md) | Feature definitions at issue | Decided |
+| [PDR-0017](0017-length-limits.md) | Length limits | Decided |
+| [PDR-0018](0018-not-supported-state.md) | Not supported state; empty trusted set at setup | Decided |
+| [PDR-0019](0019-typed-lookups-only.md) | Typed feature lookups only | Decided |
+| [PDR-0020](0020-identifier-required.md) | A key without a valid identifier is unreadable | Amended by PDR-0023 |
+| [PDR-0021](0021-reissue-fixes-product-and-reference.md) | A reissue keeps its product and reference | Decided |
+| [PDR-0022](0022-evaluation-per-request.md) | Evaluation on every request | Decided |
+| [PDR-0023](0023-key-identifier-prefix.md) | Vendor-chosen key identifier prefix | Decided |
 
 ## Template
 
-```
-# PDR-NNNN: <decision as a statement>
+```markdown
+# PDR-NNNN: <title>
 
-- **Status:** Decided | Dropped | Superseded by PDR-NNNN, <date> | Decided, <date>. Amended by PDR-NNNN, <date>: <what changed>
-- **Source:** design.md <R-number or Q-number>, or the document that raised it
-- **Serves:** <personas>; **Cost to:** <personas, if any>
+- Status: Decided
+- Date: YYYY-MM-DD
+- Source: <change> design.md R<n> / Q<n>
+- Personas: <who it serves; who it could harm and why it does not>
+
+## Context
+<the problem, in product terms>
 
 ## Decision
-## Why
-## Rejected
+<the behaviour>
+
+## Reasons
+<why; these feed the user documentation>
+
+## Rejected options
+| Option | Why rejected |
+|---|---|
+
 ## Consequences
+<costs accepted, documentation it requires>
 ```
