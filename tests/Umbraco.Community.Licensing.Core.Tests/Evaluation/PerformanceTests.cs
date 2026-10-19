@@ -107,12 +107,13 @@ public class PerformanceTests
     }
 
     /// <summary>Evaluates repeatedly and sums the states, so every result is consumed and none can be optimised away.</summary>
+    private static readonly System.Collections.Generic.List<object> Held = new();
     private static long Run(LicenseEvaluator evaluator, string key, int count)
     {
         long checksum = 0;
         for (var i = 0; i < count; i++)
         {
-            checksum += (int)evaluator.Evaluate(key).State;
+            var r = evaluator.Evaluate(key); Held.Add(r); checksum += (int)r.State;
         }
 
         return checksum;
