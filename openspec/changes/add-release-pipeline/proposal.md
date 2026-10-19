@@ -52,7 +52,7 @@ None. The library's behaviour does not change.
 - New: release command and its tests, version file, release log, two active workflows
   (change checks, release) and a disabled all-platform workflow, releasing guide.
 - Changed: the library project takes its version from the version file instead of a hand-typed
-  value; README gains the per-release testing line.
+  value; README gains the per-release testing line; on Windows, parsing a public key whose point is not on the curve fails with the documented format error (found in the release rehearsal).
 - Records: PDR-0029 (new, amends PDR-0027); ADR-0008 and ADR-0009 (new); ADR-0006 amended by
   ADR-0009. PDR-0027 and PDR-0028 source lines name this change's design.md Q-numbers.
   `docs/feature-requests.md` FR-6 is taken into this change.
