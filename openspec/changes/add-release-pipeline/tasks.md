@@ -52,7 +52,7 @@ approved with this change (ADR-0008). Spec requirements: Change checks, Release 
 only tested packages, Release refusals, Test coverage per release.
 
 - [x] 5.1 Add `ci.yml` per ADR-0008 (pull requests to `main` and pushes to `main`; `ubuntu-latest`; `contents: read`; platform line; tool tests; Release build; `dotnet test --solution`), and verify by Carl's observation that this change's pull request shows the check passing (deferred to PO until pushed)
-- [ ] 5.2 Add `release.yml` per ADR-0008 (tag `release-*` and `workflow_dispatch`; runs-on `self-hosted` (label `licensing-release` dropped, Carl 2026-10-19); full-history checkout; `check.mjs` and publish only on a tag push; tool tests; Release build with `ContinuousIntegrationBuild`; test; pack; `NuGet/login` with `vars.NUGET_USER`; `dotnet nuget push` without `--skip-duplicate`; `contents: read`, `id-token: write`; `concurrency: release`), and verify by Carl's observation of a rehearsal run on his runner: tests pass, the platform line names his machine, a package is produced and nothing is published (deferred to PO)
+- [x] 5.2 Add `release.yml` per ADR-0008 (tag `release-*` and `workflow_dispatch`; runs-on `self-hosted` (label `licensing-release` dropped, Carl 2026-10-19); full-history checkout; `check.mjs` and publish only on a tag push; tool tests; Release build with `ContinuousIntegrationBuild`; test; pack; `NuGet/login` with `vars.NUGET_USER`; `dotnet nuget push` without `--skip-duplicate`; `contents: read`, `id-token: write`; `concurrency: release`), and verify by Carl's observation of a rehearsal run on his runner: tests pass, the platform line names his machine, a package is produced and nothing is published (deferred to PO)
 - [x] 5.3 Disable `all-platforms.yml` (ADR-0008, Carl 2026-10-18): add `if: false` to the `build-test` job with a comment that it was deliberately disabled and Carl runs the full suite manually on each OS when needed, and verify by reading the file: the job has `if: false`, the comment is present, nothing else changed
 
 ## 6. Documentation
@@ -60,14 +60,14 @@ only tested packages, Release refusals, Test coverage per release.
 Depends on: 4, 5. Owner: Architect.
 
 - [x] 6.1 Add the PDR-0028 pre-1.0 line to `README.md` verbatim, and a link to `RELEASES.md`, and verify the line matches PDR-0028 character for character
-- [ ] 6.2 Write `docs/releasing.md`: one-time setup (register a self-hosted runner available to this repository, and its prerequisites; "Require approval for all external contributors"; nuget.org Trusted Publishing policy owned by the nuget.org organisation `Carlcod-es` for `release.yml`; `NUGET_USER` repository variable `CarlCod_es`, per ADR-0008), rehearsal, the release command, changing the line, what each refusal means, failed releases and when a re-run is allowed, the pre-1.0 all-platform step (Carl runs the validation commands by hand on Windows, Linux and macOS; `all-platforms.yml` is disabled, dispatching it gives a skipped run, not a check, and how to re-enable it; the "All-platform check" scenario is checked at the pre-1.0 step per PDR-0028, not in this change, tracked by follow-ups.md item 31); link it from the README Documentation table, and verify by Carl following it in 7.1
+- [x] 6.2 Write `docs/releasing.md`: one-time setup (register a self-hosted runner available to this repository, and its prerequisites; "Require approval for all external contributors"; nuget.org Trusted Publishing policy owned by the nuget.org organisation `Carlcod-es` for `release.yml`; `NUGET_USER` repository variable `CarlCod_es`, per ADR-0008), rehearsal, the release command, changing the line, what each refusal means, failed releases and when a re-run is allowed, the pre-1.0 all-platform step (Carl runs the validation commands by hand on Windows, Linux and macOS; `all-platforms.yml` is disabled, dispatching it gives a skipped run, not a check, and how to re-enable it; the "All-platform check" scenario is checked at the pre-1.0 step per PDR-0028, not in this change, tracked by follow-ups.md item 31); link it from the README Documentation table, and verify by Carl following it in 7.1
 - [ ] 6.3 Update `docs/feature-requests.md` FR-6 status to closed by this change once 7.2 passes, and verify the row names the change and the first published version
 
 ## 7. First release
 
 Depends on: 5, 6, 8, and this change merged to `main`. Owner: Carl.
 
-- [ ] 7.1 Carl completes the `docs/releasing.md` one-time setup and runs a rehearsal on `main`, and verify by Carl's observation that it passes on his runner
+- [x] 7.1 Carl completes the `docs/releasing.md` one-time setup and runs a rehearsal on `main`, and verify by Carl's observation that it passes on his runner
 - [ ] 7.2 Carl runs `node tools/release/release.mjs` with note "First beta", and verify by Carl's observation that `RELEASES.md` has the `0.1.0-beta.1` row, the release run passes, and nuget.org lists `Umbraco.Community.Licensing.Core` `0.1.0-beta.1` as a prerelease owned by `Carlcod-es`, whose repository commit is the tagged commit
 
 ## 8. Windows fix from the rehearsal
@@ -75,4 +75,4 @@ Depends on: 5, 6, 8, and this change merged to `main`. Owner: Carl.
 Depends on: none. Owner: worker-backend. Path: `src/Umbraco.Community.Licensing.Core/Signing/SigningPublicKey.cs`.
 Found in the task 7.1 rehearsal on MINIDEV (Windows), 2026-10-19; approved by Carl, 2026-10-19.
 
-- [ ] 8.1 Make `SigningPublicKey.FromSpki` turn `PlatformNotSupportedException` from the platform import into `FormatException`, as it does `CryptographicException` (Windows CNG throws `PlatformNotSupportedException` for a point not on the curve; `SigningPrivateKey` already catches both), and verify `SigningKeyTests.PublicKeyParse_RejectsPointNotOnCurve` passes unchanged on Linux and on Carl's Windows runner in the task 7.1 rehearsal
+- [x] 8.1 Make `SigningPublicKey.FromSpki` turn `PlatformNotSupportedException` from the platform import into `FormatException`, as it does `CryptographicException` (Windows CNG throws `PlatformNotSupportedException` for a point not on the curve; `SigningPrivateKey` already catches both), and verify `SigningKeyTests.PublicKeyParse_RejectsPointNotOnCurve` passes unchanged on Linux and on Carl's Windows runner in the task 7.1 rehearsal

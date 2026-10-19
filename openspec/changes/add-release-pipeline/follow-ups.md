@@ -25,6 +25,7 @@ Minors and nits from reviews. Read at the start of each apply session.
 - Carl 2026-10-19: PR #2 merged to `main` (1fe4c08); CI run passed. `add-release-pipeline` task 5.1 met, ticked (14/20). Task 5.2: `release.yml` now on `main`; accept during task 7.1 rehearsal.
 - 2026-10-19: task 6.1 done and ticked (15/20). Task 6.2 `docs/releasing.md` written; acceptance is Carl following it in task 7.1, so unticked. Task 6.3 waits for task 7.2.
 - 2026-10-19: task 7.1 rehearsal on MINIDEV: runner fixes (runner group public repos, DOTNET_INSTALL_DIR, Git + .path); dotnet test failed on Windows (item 32); section 8 added.
+- Carl 2026-10-19: CI and release rehearsal passed on `main`, same commit (task 8.1 fix included), rehearsal on MINIDEV. Acceptance met, ticked: task 5.2 (tests pass, platform line, package produced, nothing published), task 6.2 (Carl followed `docs/releasing.md`), task 7.1, task 8.1 (Linux CI and Windows runner). Next: task 7.2 (first release), then task 6.3.
 - Next was: section 6 (Architect) when Carl says go. Task 6.2 must cover items 5, 23, 26, 28, 29,
   30, 31. Then section 7 (Carl).
 
