@@ -45,10 +45,10 @@ the beta-status refusal (PDR-0024 stays visible on every beta).
 |---|---|---|---|
 | Q1 | How a release starts, where the version comes from, how it is numbered and logged | Release command run by Carl; version line in a file; log of every attempt; five refusals (Carl, 2026-10-14, FR-6 explore) | PDR-0027 |
 | Q2 | What each release is tested on | Once, on whichever test machine is available; all three OSes before 1.0; README line (Carl, 2026-10-14, FR-6 explore) | PDR-0028 |
-| Q3 | Where builds run, and who may run code on Carl's machines | GitHub Actions; hosted runners for pull requests and the all-platform check, Carl's self-hosted runners for releases; approval required for all external contributors (Carl, 2026-10-14) | ADR-0008 |
+| Q3 | Where builds run, and who may run code on Carl's machines | GitHub Actions; hosted runners for pull requests and the all-platform check, Carl's self-hosted runners for releases; approval required for all external contributors (Carl, 2026-10-14); all-platform check disabled 2026-10-18, see Q6 | ADR-0008 |
 | Q4 | How the release authenticates to nuget.org | Trusted Publishing; no stored API key (Carl, 2026-10-14) | ADR-0008 |
 | Q5 | A tag pushed without the release command (e.g. Carl's shared release-tag command) | Refused: the log row for the version must name the tag (Carl, 2026-10-14) | PDR-0029 |
-| Q6 | Means for PDR-0028's pre-1.0 check on all three OSes | Manually started all-platform workflow, built now (Carl, 2026-10-14) | ADR-0008 |
+| Q6 | Means for PDR-0028's pre-1.0 check on all three OSes | Manually started all-platform workflow, built now (Carl, 2026-10-14); kept but disabled with `if: false`, Carl runs the suite by hand on each OS (Carl, 2026-10-18) | ADR-0008 |
 | Q7 | Release command language, version file and log format | Node.js `tools/release/`, `Version.props`, `RELEASES.md` table (Architect; Node.js by project constraint) | ADR-0009 |
 | Q8 | Release command guards PDR-0027 leaves open | Refuses with no TTY, off `main`, out of step with `origin/main`, or uncommitted edits to its two files; asks for confirmation before writing; rehearsal run without a tag (Architect, for Carl's review of this change) | ADR-0009, ADR-0008 |
 | Q9 | Where the repository lives when the first package is published | `https://github.com/carlcod-es/Umbraco.Community.Licensing`; transferred by Carl, remote, `RepositoryUrl` and README links updated (Carl, 2026-10-14) | ADR-0008 |
@@ -69,7 +69,7 @@ the beta-status refusal (PDR-0024 stays visible on every beta).
           tools/release/check.mjs <─────────┼─ tag release-* ───────────> release.yml (Carl's runner)
                                             │                              checks → build → test
                                             │                              → pack → NuGet/login → push
-                                            └─ manual ──────────────────> all-platforms.yml (hosted ×3)
+                                            └─ manual ──────────────────> all-platforms.yml (hosted ×3, disabled)
 
   Version.props ──imported by──> Umbraco.Community.Licensing.Core.csproj ──> package version
 ```
@@ -109,7 +109,8 @@ New top-level paths, added to the CLAUDE.md ownership table in tasks.md 1.1:
 | Integration | `check.mjs` against temporary repos: commit on `main` passes; commit only on a branch refused; each refusal message; exit codes | `node:test`, real `git` |
 | Integration | No-TTY refusal | Spawn `release.mjs` with piped stdin; expect refusal and no change |
 | Build | Package version comes from `Version.props`; no pack warnings | `dotnet pack`, nuspec inspected |
-| Observed | `ci.yml` on this change's pull request; `release.yml` rehearsal on Carl's runner; `all-platforms.yml` on three OSes; first release `0.1.0-beta.1` | Carl's observation, recorded in tasks.md |
+| Observed | `ci.yml` on this change's pull request; `release.yml` rehearsal on Carl's runner; first release `0.1.0-beta.1` | Carl's observation, recorded in tasks.md |
+| Deferred | "All-platform check" scenario: Carl runs the validation commands by hand on Windows, a Linux machine and macOS per `docs/releasing.md`, one result per OS. Not checked in this change; checked at the pre-1.0 step (PDR-0028), tracked by follow-ups.md item 31 (Carl, 2026-10-19) | Carl's observation at the pre-1.0 step |
 
 Validation commands for every block: `node --test "tools/release/*.test.mjs"`,
 `dotnet build Umbraco.Community.Licensing.slnx`,
@@ -123,8 +124,9 @@ Validation commands for every block: `node --test "tools/release/*.test.mjs"`,
   ran (ADR-0008). Releasing guide says so.
 - [First release fails on an untested runner and burns `0.1.0-beta.1`] → Rehearsal on the runner
   before the first tag (tasks.md 7.1). A burnt number is harmless (PDR-0027).
-- [Tests fail on Linux or Windows on first run] → The all-platform run (tasks.md 5.3) surfaces
-  it before release; fixes are a new block or a follow-up, not hidden.
+- [Tests fail on Linux or Windows on first run] → `ci.yml` runs every pull request on Linux;
+  Carl runs the suite by hand on each OS before 1.0 (PDR-0028). Windows is untested until then
+  (all-platform workflow disabled, Carl, 2026-10-18); failures become a follow-up, not hidden.
 - [Trusted Publishing for a package ID that does not exist yet] → Policy is per repository and
   workflow, not per package; if nuget.org refuses the first push, Carl publishes `0.1.0-beta.1`
   from a short-lived API key and records it in follow-ups.md.

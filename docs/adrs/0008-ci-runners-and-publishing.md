@@ -3,6 +3,7 @@
 - Status: Decided
 - Date: 2026-10-14
 - Source: `add-release-pipeline` design.md Q3, Q4, Q6, Q9, Q10
+- Revised: 2026-10-18 (Carl): `all-platforms.yml` disabled; Q6
 
 ## Context
 
@@ -22,13 +23,12 @@ Microsoft.Testing.Platform and need `dotnet test --solution` (ADR-0006).
   |---|---|---|---|
   | `ci.yml` | `pull_request` to `main`, `push` to `main` | GitHub-hosted `ubuntu-latest` | Tool tests, build, test |
   | `release.yml` | `push` of tags `release-*`; `workflow_dispatch` (rehearsal) | Self-hosted, labels `self-hosted`, `licensing-release` | Checks, tool tests, build, test, pack, publish (tag only) |
-  | `all-platforms.yml` | `workflow_dispatch` | GitHub-hosted matrix `windows-latest`, `ubuntu-latest`, `macos-latest`, `fail-fast: false` | Tool tests, build, test; publishes nothing |
+  | `all-platforms.yml` | `workflow_dispatch` | GitHub-hosted matrix `windows-latest`, `ubuntu-latest`, `macos-latest`, `fail-fast: false` | Tool tests, build, test; publishes nothing. **Disabled** (Carl, 2026-10-18): `if: false` on the job, with a comment saying it was disabled on purpose |
 
-- **Runners** (Carl, 2026-10-14): pull requests and the all-platform check on GitHub-hosted
-  runners; releases on Carl's own machines registered as self-hosted runners with the label
-  `licensing-release`. Any online machine with the label takes the job ("whichever test machine
-  is available", PDR-0028). Every workflow prints the runner's operating system, version and
-  architecture before testing.
+- **Runners** (Carl, 2026-10-14): pull requests on GitHub-hosted runners; releases on Carl's own
+  machines registered as self-hosted runners with the label `licensing-release`. Any online
+  machine with the label takes the job ("whichever test machine is available", PDR-0028). Every
+  workflow prints the runner's operating system, version and architecture before testing.
 - **Pull request trust**: fork pull requests run on GitHub-hosted runners with a read-only token
   and no secrets. The repository setting "Require approval for all external contributors" is on,
   because a fork pull request runs its own copy of the workflow files and could retarget a job
@@ -70,7 +70,8 @@ Microsoft.Testing.Platform and need `dotnet test --solution` (ADR-0006).
 | `--skip-duplicate` on push | Hides a republish of a released version as success |
 | Separate build and publish jobs | The package would cross jobs as an artifact; one job keeps tested and pushed the same file |
 | All-platform matrix on every release | PDR-0028 chose one test run per release |
-| Leave the all-platform check to the 1.0 change | Carl chose to build it now; it also closes the `add-license-core` Windows/Linux follow-ups |
+| Leave the all-platform check to the 1.0 change | Carl chose to build it now (2026-10-14); disabled 2026-10-18, so the `add-license-core` Windows/Linux follow-ups close on Carl's manual run instead |
+| Delete `all-platforms.yml` | Carl chose to keep it, disabled, so it can be re-enabled by removing one line |
 | Actions pinned by tag | A moved tag changes the code the release runs |
 | Package owned by Carl's nuget.org user `CarlCod_es` | Carl created the organisation `Carlcod-es` to own it |
 | Keep the repository under Carl's personal account | Carl chose his organisation |
@@ -79,8 +80,12 @@ Microsoft.Testing.Platform and need `dotnet test --solution` (ADR-0006).
 ## Consequences
 
 - The release tooling's tests (ADR-0009), which drive real Git in temporary repositories, run on
-  Windows, Linux and macOS in `all-platforms.yml`; `ci.yml` runs them on Linux only (Carl,
-  2026-10-14).
+  Linux in `ci.yml` and on Carl's runner at each release. With `all-platforms.yml` disabled, they
+  run on Windows and macOS only when Carl runs the suite by hand (Carl, 2026-10-18). Re-enabling
+  the workflow is deleting its `if: false` line.
+- Manual all-platform runs use Carl's own machines: Windows, a Linux machine and macOS (Carl,
+  2026-10-19). Dispatching `all-platforms.yml` while disabled gives a run with a skipped job, not
+  a check.
 - A release needs one of Carl's runner machines online. A queued job waits and GitHub fails it
   after 24 hours. Re-running a release run that never reached its tests is allowed (same tag,
   same version); a run that failed its tests is a failed release (PDR-0027), and the next release

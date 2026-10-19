@@ -2,11 +2,13 @@
 
 Minors and nits from reviews. Read at the start of each apply session.
 
-## Handover (2026-10-15)
+## Handover (2026-10-19)
 
-- Branch `feature/release-pipeline`. Sections 1–4 committed (last: 32d77d3). Section 5 reviewer-
-  and supervisor-approved and staged, awaiting Carl's commit.
-- tasks.md: 12/20 ticked. Tasks 5.1–5.3 left unticked: acceptance is Carl observing runs on
+- Branch `feature/release-pipeline`. Sections 1–4 and the section 5 workflows committed
+  (f4a422f). Staged, awaiting Carl's commit: plan revision disabling `all-platforms.yml` (Carl,
+  2026-10-18; item 31), task 5.3 (reviewer-approved) and the section 5 supervisor re-review fixes.
+  Section 5 supervisor-approved 2026-10-19.
+- tasks.md: 13/20 ticked. Tasks 5.1 and 5.2 left unticked: acceptance is Carl observing runs on
   GitHub (deferred to PO). Local validation: 94 tool tests pass; dotnet build 0 warnings;
   dotnet test 816 passed, 1 skipped.
 - Action pins (looked up 2026-10-15, all `node24`): checkout v7.0.1 `3d3c42e5`, setup-dotnet
@@ -14,13 +16,13 @@ Minors and nits from reviews. Read at the start of each apply session.
   NuGet/login v1.2.0 `8d196754`.
 - Deviation accepted: `tools/release/platform.mjs` (+ test) added in section 5 to print the
   ADR-0008 platform line with a single `node` command.
-- Open questions for Carl: item 14 (platform line wording; recommend keep), item 29 (tag
-  ruleset for `release-*` as optional setup step in `docs/releasing.md`; recommend yes).
-- Verifying 5.2 and 5.3 needs the workflows on `main` (`workflow_dispatch` lists only
-  default-branch workflows); 5.1 can be observed on this change's pull request. Option: accept
-  5.2/5.3 during section 7.
-- Next: section 6 (Architect) when Carl says go. Task 6.2 must cover items 5, 23, 26, 28, 30
-  (and 29 if Carl agrees). Then section 7 (Carl).
+- Carl 2026-10-18: item 14 keep; item 29 yes (optional tag ruleset step in `docs/releasing.md`).
+- Release runner: organisation-wide runner MINIDEV; needs label `licensing-release` and the
+  runner group to allow this repository (public repositories allowed).
+- Verifying 5.2 needs `release.yml` on `main` (`workflow_dispatch` lists only default-branch
+  workflows); 5.1 can be observed on this change's pull request. Option: accept 5.2 during 7.1.
+- Next: section 6 (Architect) when Carl says go. Task 6.2 must cover items 5, 23, 26, 28, 29,
+  30, 31. Then section 7 (Carl).
 
 | # | Source | Severity | Item | Status |
 |---|---|---|---|---|
@@ -37,7 +39,7 @@ Minors and nits from reviews. Read at the start of each apply session.
 | 11 | Section 4 block B reviewer | nit | `release.test.mjs:322-343`: main-push-rejected test does not assert the hook's text in the message (state assertions already prove the hook ran). | Open |
 | 12 | Section 4 block B reviewer | nit | `release.test.mjs`: no test with other files already staged before the release (`git commit --only` covers it by design). | Open |
 | 13 | Section 4 block B reviewer | nit | `release.test.mjs:210-250`: loop cleanup removes `work` and `remote.git` by name; `afterEach` cleanup would be cleaner. | Open |
-| 14 | Section 4 block A reviewer | minor | Platform line is `os.type() os.release() os.arch()` (kernel versions, e.g. `Darwin 25.6.0`, `Linux 6.8.0-azure`), meets the spec; friendlier names (e.g. `RUNNER_OS`) would be a PO call. | Raised with Carl |
+| 14 | Section 4 block A reviewer | minor | Platform line is `os.type() os.release() os.arch()` (kernel versions, e.g. `Darwin 25.6.0`, `Linux 6.8.0-azure`), meets the spec; friendlier names (e.g. `RUNNER_OS`) would be a PO call. | Carl 2026-10-18: keep as is |
 | 15 | Section 4 block A reviewer | note | `release.yml` (`add-release-pipeline` task 5.2) needs `actions/checkout` with `fetch-depth: 0` so `origin/main` exists, and runs `node tools/release/check.mjs "${{ github.ref_name }}"` from the repo root. | Folded into section 5 brief |
 | 16 | Section 4 block A re-review, block B2 review | minor | The "unnormalised path" CLI tests in `check.test.mjs` and `release.test.mjs` cannot fail: Node resolves `process.argv[1]` before the script runs, so `..` never reaches the guard (B2 reviewer probed it; passes on the pre-fix guard too). The symlink tests cover the real defect. Drop the `..` tests or rename them as spawn-path smoke tests. | Open |
 | 17 | Section 4 block B2 review | nit | `release.mjs` `questioner`: after Ctrl-D the shell prompt may land on the "Cancelled. Nothing changed." line; print a leading newline. | Open |
@@ -52,5 +54,7 @@ Minors and nits from reviews. Read at the start of each apply session.
 | 26 | Section 5 Architect / reviewer | note | All four pinned actions run on `node24`: the self-hosted runner needs a runner version that supports it; Git on PATH. | Folded into task 6.2 |
 | 27 | Section 5 worker | nit | On a tag push the platform line prints twice (platform step and `check.mjs`). Platform step also covers the rehearsal. | Open |
 | 28 | Section 5 supervisor | minor | `release.yml:25-28`: setup-dotnet installs to the machine-wide dotnet directory by default; a runner service account (Windows: NETWORK SERVICE) usually cannot write there. `docs/releasing.md` runner prerequisites: set `DOTNET_INSTALL_DIR` in the runner's `.env` to a writable directory, or preinstall the SDK `global.json` resolves to. Task 7.1 rehearsal would catch it. | Folded into task 6.2 |
-| 29 | Section 5 supervisor | nit | Any writer can push a `release-*` tag; `check.mjs` is the gate. A GitHub tag ruleset restricting `release-*` creation to Carl would also cover most of item 24. Repository setting: Carl's call. | Raised with Carl |
+| 29 | Section 5 supervisor | nit | Any writer can push a `release-*` tag; `check.mjs` is the gate. A GitHub tag ruleset restricting `release-*` creation to Carl would also cover most of item 24. Repository setting: Carl's call. | Carl 2026-10-18: yes, optional setup step. Folded into task 6.2 |
 | 30 | Section 5 supervisor | note | `docs/releasing.md` says a rehearsal (`workflow_dispatch`) never publishes, whichever ref it runs on; re-running a failed tag run re-checks against current `origin/main` and still passes. | Folded into task 6.2 |
+| 31 | Carl 2026-10-18 | note | `all-platforms.yml` disabled (`add-release-pipeline` task 5.3 revised). The `add-license-core` Windows/Linux follow-ups (signing-key import cost, off-curve key rejection), the Windows/macOS run of the release tool tests and the spec scenario "All-platform check" stay open until Carl runs the suite by hand on Windows, a Linux machine and macOS. Deferred to the pre-1.0 step (PDR-0028; Carl, 2026-10-19). | Open; pre-1.0 |
+| 32 | Section 5 supervisor re-review | risk | Windows and macOS have no CI run; an OS-specific failure may first show on the release runner and burn a version number (PDR-0027). Running the suite by hand on MINIDEV's OS before the task 7.1 rehearsal reduces it; the rehearsal itself also catches it before any tag. | Open; Carl's call |

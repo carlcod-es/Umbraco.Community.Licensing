@@ -8,6 +8,9 @@ permissions:
 
 jobs:
   build-test:
+    # Deliberately disabled (Carl, 2026-10-18). Carl runs the full test suite by hand
+    # on Windows, Linux and macOS when needed. To re-enable, delete the `if: false` line (ADR-0008).
+    if: false
     strategy:
       fail-fast: false
       matrix:

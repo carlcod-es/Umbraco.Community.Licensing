@@ -29,7 +29,8 @@ rules (PDR-0027, PDR-0028); this change builds them.
   Pull requests from anyone are checked without running on Carl's machines.
 - **All-platform check on demand**: Carl can run the full test suite on Windows, Linux and macOS
   at any time. Required once before 1.0 (PDR-0028); the first run also settles the
-  `add-license-core` follow-ups left open for Windows and Linux.
+  `add-license-core` follow-ups left open for Windows and Linux. The all-platform workflow is kept
+  but disabled; Carl runs the suite by hand on each operating system (Carl, 2026-10-18).
 - **README** states which operating systems each release is tested on (PDR-0028).
 - **Releasing guide** for Carl: one-time setup and the release steps.
 - **First release**: `0.1.0-beta.1`, started by Carl after the change is built.
@@ -48,8 +49,8 @@ None. The library's behaviour does not change.
 
 ## Impact
 
-- New: release command and its tests, version file, release log, three automated workflows
-  (change checks, release, all-platform check), releasing guide.
+- New: release command and its tests, version file, release log, two active workflows
+  (change checks, release) and a disabled all-platform workflow, releasing guide.
 - Changed: the library project takes its version from the version file instead of a hand-typed
   value; README gains the per-release testing line.
 - Records: PDR-0029 (new, amends PDR-0027); ADR-0008 and ADR-0009 (new); ADR-0006 amended by
