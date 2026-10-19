@@ -51,7 +51,7 @@ dependencies `actions/checkout`, `actions/setup-dotnet`, `actions/setup-node`, `
 approved with this change (ADR-0008). Spec requirements: Change checks, Release run publishes
 only tested packages, Release refusals, Test coverage per release.
 
-- [ ] 5.1 Add `ci.yml` per ADR-0008 (pull requests to `main` and pushes to `main`; `ubuntu-latest`; `contents: read`; platform line; tool tests; Release build; `dotnet test --solution`), and verify by Carl's observation that this change's pull request shows the check passing (deferred to PO until pushed)
+- [x] 5.1 Add `ci.yml` per ADR-0008 (pull requests to `main` and pushes to `main`; `ubuntu-latest`; `contents: read`; platform line; tool tests; Release build; `dotnet test --solution`), and verify by Carl's observation that this change's pull request shows the check passing (deferred to PO until pushed)
 - [ ] 5.2 Add `release.yml` per ADR-0008 (tag `release-*` and `workflow_dispatch`; runs-on `self-hosted`, `licensing-release`; full-history checkout; `check.mjs` and publish only on a tag push; tool tests; Release build with `ContinuousIntegrationBuild`; test; pack; `NuGet/login` with `vars.NUGET_USER`; `dotnet nuget push` without `--skip-duplicate`; `contents: read`, `id-token: write`; `concurrency: release`), and verify by Carl's observation of a rehearsal run on his runner: tests pass, the platform line names his machine, a package is produced and nothing is published (deferred to PO)
 - [x] 5.3 Disable `all-platforms.yml` (ADR-0008, Carl 2026-10-18): add `if: false` to the `build-test` job with a comment that it was deliberately disabled and Carl runs the full suite manually on each OS when needed, and verify by reading the file: the job has `if: false`, the comment is present, nothing else changed
 
