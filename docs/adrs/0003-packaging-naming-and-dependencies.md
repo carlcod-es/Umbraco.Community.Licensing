@@ -1,6 +1,6 @@
 # ADR-0003: Packaging, naming, clock and dependencies
 
-- Status: Decided
+- Status: Amended by ADR-0006
 - Date: 2026-10-09
 - Source: `add-license-core` design.md Q3 (`CLEAN-PROJECT-PROMPT.md` section 10, technology
   item 3)
@@ -24,7 +24,7 @@ Umbraco package authors and search for Umbraco community packages.
 - **Clock**: `System.TimeProvider` injected into issuer and evaluator, defaulting to
   `TimeProvider.System`.
 - **Dependencies**: library, none beyond the shared framework. Tests: `xunit.v3`,
-  `xunit.runner.visualstudio`, `Microsoft.NET.Test.Sdk` (approved by Carl, 2026-10-09), latest
+  `xunit.runner.visualstudio`, `Microsoft.NET.Test.Sdk` (approved by Carl, 2026-10-09; test runner and the two VSTest packages superseded by ADR-0006), latest
   stable versions at least two weeks old at apply time, pinned in the test project file. No `FakeTimeProvider` package: a
   fixed-time `TimeProvider` subclass in the test project (a few lines).
 

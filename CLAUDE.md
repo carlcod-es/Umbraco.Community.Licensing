@@ -120,6 +120,10 @@ agents cannot delegate.
 | `Umbraco.Community.Licensing.slnx` | worker that adds the project, for its own project entry only |
 | `Directory.Build.props`, `global.json`, `.gitignore`, `LICENSE`, CI, package manifests, lockfiles, public API contracts, end-to-end tests | Shared: changed only when the Architect assigns it in a brief |
 | `docs/`, `openspec/`, `.claude/`, `CLAUDE.md`, `README.md` | Architect |
+| `tools/**` | worker-backend |
+| `.github/**` | Shared (CI): assigned to worker-backend in the brief |
+| `Version.props` | Shared: assigned in the brief; `VersionLine` changed only by Carl, `Version` only by the release command after `add-release-pipeline` |
+| `RELEASES.md` | Architect creates it; rows added only by the release command |
 
 A new top-level path gets an owner in this table before work starts on it.
 

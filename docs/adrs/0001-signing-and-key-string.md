@@ -1,6 +1,6 @@
 # ADR-0001: Signing algorithm, key string envelope and signing key ID
 
-- Status: Decided
+- Status: Amended by ADR-0007
 - Date: 2026-10-09
 - Source: `add-license-core` design.md R6, R7, Q15, Q17, Q20. Carried from the pre-reset signing ADR
   (`CLEAN-PROJECT-PROMPT.md` section 4); not reopened.

@@ -1,6 +1,6 @@
 # PDR-0002: Evaluation states and what a result reports
 
-- Status: Amended by PDR-0018, PDR-0020
+- Status: Amended by PDR-0018, PDR-0020, PDR-0026
 - Date: 2026-10-09
 - Source: `add-license-core` design.md R4, Q10
 - Personas: implementor (which key, why, first action), site owner (what lapsed), site visitor

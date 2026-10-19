@@ -1,6 +1,6 @@
 # PDR-0017: Length limits
 
-- Status: Decided
+- Status: Amended by PDR-0025
 - Date: 2026-10-09
 - Source: `add-license-core` design.md Q12
 - Personas: implementor (any key the library reads can be deployed through an environment

@@ -12,6 +12,7 @@ Cite as FR-N.
 | FR-3 | Example product package | Carl, 2026-10-09 | Open; possible later change |
 | FR-4 | Standby signing key | Carl, 2026-10-10 | Open; with or after FR-2 |
 | FR-5 | Responding to a compromised signing key | Carl, 2026-10-10 | Open; after FR-2 |
+| FR-6 | CI and release pipeline | Carl, 2026-10-14 | Taken into `add-release-pipeline` (design.md Q1 to Q10; PDR-0027, PDR-0028, PDR-0029, ADR-0008, ADR-0009) |
 
 ## FR-1: Vendor-chosen key identifier prefix
 
@@ -110,6 +111,11 @@ both optional (Carl, 2026-10-10). Held only in the tool's database, never in a k
 A non-personal order reference may also go in the key's vendor tag (PDR-0009); that is the
 vendor's choice.
 
+**Cross-platform testing (Carl, 2026-10-12).** The change that builds the tool runs the full
+test suite (library and tool) on macOS and Linux, on Carl's machines, before it is archived.
+The library has run only on macOS so far (`add-license-core`); this closes that gap until CI
+exists. Windows is not covered by these machines.
+
 **Personas.** Vendor: issue and reissue from records instead of from the key a site owner
 presents. Site owner: unaffected; keys are the same.
 
@@ -179,3 +185,22 @@ export by signing key) for a leaked private key.
 less manual work after a leak.
 
 **Related.** FR-4 (a standby key removes FR-2 step 2), PDR-0013, PDR-0015.
+
+## FR-6: CI and release pipeline
+
+**Request.** Automated build, test and package publishing for the library, closing the
+release notes left open by `add-license-core` (its `follow-ups.md`).
+
+**Raised from `add-license-core` follow-ups.**
+1. The package version is hard-coded in the project. Supply it from CI, or add a release
+   checklist step (ADR-0006).
+2. The package records the HEAD commit. Pack and publish only from a clean commit.
+3. Run tests on Microsoft.Testing.Platform with `dotnet test --solution` (ADR-0006).
+
+**Also open.** The library has run only on macOS. Windows and Linux test runs, including
+signing-key import cost and off-curve key rejection on each platform, are unconfirmed
+(`add-license-core` follow-ups, section 3). FR-2 covers Linux manually until CI exists;
+Windows has no coverage.
+
+**Personas.** Vendor and implementor: a published package that is built, tested and versioned
+the same way every time.

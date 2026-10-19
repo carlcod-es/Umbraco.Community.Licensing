@@ -33,11 +33,25 @@ HmbukDPiKdRh9m/7CBSjbx0CCXmw4wMXkZl+hPY/79QSQsBFG9igrT90
 Generated 2026-10-09 with Node.js `crypto` (P-256, PKCS#8, SPKI) to the ADR-0001 export formats.
 A test checks the public key imports, its ID is `Nb_sm4Fxh5c`, and it matches the private key.
 
+**Second throwaway pair `MoA_5TxIpJs`**, test-only, for the examples that need another signer
+(11 uat: signed by an untrusted key; 16: rotation with both keys trusted). Both halves are
+committed in the test project (`ExampleKeys.SecondPublicKey`, `ExampleKeys.SecondPrivateKeyPem`)
+so regeneration is reproducible; the public key is also printed in `docs/license-examples.md`.
+The same rule applies: never trust it in a product. (Amended 2026-10-13 before archiving
+`add-license-core`.)
+
 **Generating examples.** An explicit (not run by default) xUnit test issues every worked
 example with the example private key and a fixed clock, through an internal seam that fixes the
 random key part, so identifiers match the document (`LIC-8F3AK-M7RXB-7Q2D`). It prints the key
 strings; the Architect pastes them into `docs/license-examples.md` and into the test project's
-example constants.
+example constants. Microsoft.Testing.Platform hides the output of passing tests, so the generator
+is run explicitly with live output, from the repository root:
+
+```
+dotnet run --project tests/Umbraco.Community.Licensing.Core.Tests -- -explicit only -method "*ExampleKeyGenerator*" -showLiveOutput
+```
+
+(Amended 2026-10-13 before archiving `add-license-core`.)
 
 **Example tests** (run always) evaluate each committed key string with the example public key
 and a fixed clock and assert the documented state and contents. A test asserts every committed
