@@ -1,8 +1,8 @@
 # ADR-0002: Payload format and strict read
 
-- Status: Decided
+- Status: Amended by ADR-0007
 - Date: 2026-10-09
-- Source: `add-license-core` design.md R7, Q5, Q12, Q13, Q20 (`CLEAN-PROJECT-PROMPT.md` section 10,
+- Source: `add-license-core` design.md R7, Q5, Q12, Q13, Q20, Q21, Q25 (`CLEAN-PROJECT-PROMPT.md` section 10,
   technology item 1)
 
 ## Context
@@ -41,6 +41,8 @@ object, array: not supported.
 at most 15 digits in total; no sign, exponent or leading zero. Issue takes a `decimal`, strips
 trailing fractional zeros and writes the invariant text as a raw JSON value (`2.50` → `2.5`).
 Read checks the raw token bytes against the grammar, then parses `decimal`; never `double`.
+Read does not require the normalised form: a verified `2.50` reads as 2.5. Only a vendor's own
+faulty tool could sign it, the signature protects it, and the value is exact (Carl, 2026-10-11).
 
 **Text and lengths.** Lengths are counted in Unicode scalar values (`Rune`). Strings with
 unpaired surrogates are rejected at issue (they cannot round-trip through UTF-8). "Control
@@ -52,6 +54,13 @@ A verified payload fails if it has an unknown field; a repeated field
 or feature name (the reader tracks names itself, as `System.Text.Json` does not); a date-time
 not in its exact format; any value breaking an issue rule. Unknown feature *names* are accepted.
 No version field: an unknown field being refused already guards format changes.
+
+**Expiry before issue time** (Q25). Not checked on read. Issue already prevents it: expiry may
+not be earlier than the current second (PDR-0007), and the issue time is that second (PDR-0006).
+A verified key with `expires` earlier than `issued` can come only from another tool signing
+with the vendor's key; it reads, and evaluates as *expired*. That state's first action (a new
+key from the vendor) fits; *not supported* would send the site owner to update the product,
+which cannot help (Carl, 2026-10-12).
 
 **Vendor tag on read.** The decoded string must match `^[A-Za-z0-9_.#/-]{1,64}\z` (ordinal;
 `\z`, not `$`, which matches before a trailing `\n`). Escaped forms of allowed characters are
@@ -76,6 +85,7 @@ PDR-0023) and signature about 125, so about 22,425: inside the cap.
 | A version field | Redundant with unknown-field refusal |
 | Expiry as Unix seconds | Not readable when decoded |
 | Lengths in UTF-16 code units | An emoji would count as 2; people count it as 1 |
+| Refuse non-normalised numbers on read (*not supported*) | A key with an exact value would stop working on a formatting detail, with no gain in safety |
 
 ## Consequences
 

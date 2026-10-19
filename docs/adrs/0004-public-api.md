@@ -28,7 +28,7 @@ public sealed class SigningKeyPair : IDisposable
 }
 public sealed class SigningPrivateKey : IDisposable
 {
-    public static SigningPrivateKey FromPem(string pem);   // FormatException if not P-256 PKCS#8
+    public static SigningPrivateKey FromPem(string pem);   // FormatException if not P-256 PKCS#8, or more than one PEM block
     public string ExportPem();
     public SigningPublicKey PublicKey { get; }
     public string SigningKeyId { get; }
@@ -83,14 +83,18 @@ public sealed record SwitchFeature(bool IsOn) : FeatureValue; // read side alway
 public sealed record NumberFeature(decimal Value) : FeatureValue;
 public sealed record TextFeature(string Value) : FeatureValue;
 public sealed record LicenseFeature(string Name, FeatureValue Value);
-public sealed class FeatureList : IReadOnlyList<LicenseFeature>   // immutable, keeps order
+public sealed class FeatureList : IReadOnlyList<LicenseFeature>, IEquatable<FeatureList>   // immutable, keeps order
 {
     public static FeatureList Empty { get; }
-    public static FeatureList Of(IEnumerable<LicenseFeature> features); // keeps duplicates, so issue reports them
+    public static FeatureList Of(IEnumerable<LicenseFeature> features); // keeps duplicates, so issue reports them; ArgumentException on a null entry
     public FeatureList With(string name, bool on);        // replaces a same-name entry, else appends
     public FeatureList With(string name, decimal value);
     public FeatureList With(string name, string text);
     public FeatureList Without(string name);
+    public bool Equals(FeatureList? other);               // same features, same order; names compared exactly
+    public override bool Equals(object? obj);
+    public override int GetHashCode();
+    public override string ToString();                    // "FeatureList(n)": count only, never values
 }
 public enum FeatureType { Switch, Number, Text }
 public sealed class FeatureDefinitions : IReadOnlyCollection<KeyValuePair<string, FeatureType>>  // immutable
@@ -106,6 +110,7 @@ public sealed record KeyPrefix                              // private construct
     public static KeyPrefix None { get; }                   // identifier without prefix
     public static KeyPrefix Of(string prefix);              // ArgumentException unless 1-16 of A-Z 0-9
     public string Value { get; }                            // "" for None
+    public override string ToString();                      // Value
 }
 public sealed class LicenseIssuer(KeyPrefix? prefix = null, // null: KeyPrefix.Default
     TimeProvider? timeProvider = null)
@@ -126,6 +131,17 @@ public sealed record LicenseProblem(string Field, string Message);
 
 `Reference` and `KeyIdentifier` are returned in display form with the issuer's prefix
 (`LIC-8F3AK-M7RXB`, `LIC-8F3AK-M7RXB-7Q2D`; `8F3AK-M7RXB` with `KeyPrefix.None`). `With`/`Without` match names with the lookup rule (ignore `a`-`z` case).
+
+`FeatureList` equality compares names exactly, while `With`, `Without` and the lookups ignore
+`a`-`z` case: two request lists differing only in name case are unequal. A verified list holds
+lowercase names only, so verified licenses compare as expected. (Amended 2026-10-13 during
+`add-license-core` section 6.)
+
+`SigningPrivateKey.FromPem` reads one PEM block; text holding a second block is refused rather
+than silently using the first, so a file pasted with two keys fails at load. Text around a single
+block is ignored. `KeyPrefix.ToString()` returns `Value`, and `FeatureList.Of` refuses a null
+entry with `ArgumentException` (a programming error, not a request problem). (Amended 2026-10-13
+before archiving `add-license-core`.)
 
 `ReissueRequest` keeps the product and reference of the verified license (PDR-0021): neither has
 a setter, so a changed reference cannot be expressed. A new reference is a fresh `LicenseRequest`.
@@ -158,7 +174,7 @@ public sealed class LicenseResult
 {
     public LicenseState State { get; }
     public bool IsLicensed { get; }                       // State == Valid
-    public string? ClaimedProduct { get; }                // failed states only, when readable
+    public string? ClaimedProduct { get; }                // failed states only, when readable and a valid product ID (PDR-0026)
     public string? ClaimedKeyIdentifier { get; }          // failed states only, when readable
     public VerifiedLicense? License { get; }              // Valid and Expired only
     public bool HasSwitch(string name);                   // false unless Valid and a switch

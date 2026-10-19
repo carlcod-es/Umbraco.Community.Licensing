@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Print platform
+        run: node tools/release/platform.mjs
+      - name: Tool tests
+        run: node --test "tools/release/*.test.mjs"
+      - name: Build
+        run: dotnet build Umbraco.Community.Licensing.slnx -c Release
+      - name: Test
+        run: dotnet test --solution Umbraco.Community.Licensing.slnx -c Release --no-build
