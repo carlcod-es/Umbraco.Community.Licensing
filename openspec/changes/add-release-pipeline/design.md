@@ -54,6 +54,7 @@ the beta-status refusal (PDR-0024 stays visible on every beta).
 | Q9 | Where the repository lives when the first package is published | `https://github.com/carlcod-es/Umbraco.Community.Licensing`; transferred by Carl, remote, `RepositoryUrl` and README links updated (Carl, 2026-10-14) | ADR-0008 |
 | Q10 | Which nuget.org account owns the package | nuget.org organisation `Carlcod-es`; policy created by Carl's user `CarlCod_es`, which is `NUGET_USER` (Carl, 2026-10-14) | ADR-0008 |
 | Q11 | A tag whose version has no release log row | Refused, as a row naming a different tag (Carl, 2026-10-14) | PDR-0029 |
+| Q12 | A tag run whose tests passed but whose NuGet login or push failed, with the version not on nuget.org | Re-run allowed: same tag, same version; the re-run rebuilds and retests the same commit (Carl, 2026-10-19) | ADR-0008 |
 
 ## Decisions
 
@@ -122,6 +123,8 @@ Validation commands for every block: `node --test "tools/release/*.test.mjs"`,
   all external contributors; Carl reads workflow diffs before approving (ADR-0008).
 - [No release runner online] → Job queues, fails after 24 hours; re-run allowed when tests never
   ran (ADR-0008). Releasing guide says so.
+- [NuGet login or push fails after tests pass] → Nothing published; re-run allowed while nuget.org
+  does not list the version (Q12, ADR-0008). Releasing guide says so.
 - [First release fails on an untested runner and burns `0.1.0-beta.1`] → Rehearsal on the runner
   before the first tag (tasks.md 7.1). A burnt number is harmless (PDR-0027).
 - [Tests fail on Linux or Windows on first run] → `ci.yml` runs every pull request on Linux;

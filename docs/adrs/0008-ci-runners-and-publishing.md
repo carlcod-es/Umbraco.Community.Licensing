@@ -2,8 +2,9 @@
 
 - Status: Decided
 - Date: 2026-10-14
-- Source: `add-release-pipeline` design.md Q3, Q4, Q6, Q9, Q10
-- Revised: 2026-10-18 (Carl): `all-platforms.yml` disabled; Q6
+- Source: `add-release-pipeline` design.md Q3, Q4, Q6, Q9, Q10, Q12
+- Revised: 2026-10-18 (Carl): `all-platforms.yml` disabled; Q6. 2026-10-19 (Carl): re-run after a
+  publish failure; Q12
 
 ## Context
 
@@ -89,7 +90,9 @@ Microsoft.Testing.Platform and need `dotnet test --solution` (ADR-0006).
 - A release needs one of Carl's runner machines online. A queued job waits and GitHub fails it
   after 24 hours. Re-running a release run that never reached its tests is allowed (same tag,
   same version); a run that failed its tests is a failed release (PDR-0027), and the next release
-  takes a new number.
+  takes a new number. A run whose tests passed but whose NuGet login or push failed may be re-run
+  (same tag, same version) while nuget.org does not list the version: nothing was published, and
+  the re-run rebuilds and retests the same commit (Carl, 2026-10-19).
 - Self-hosted runners keep state between jobs (tool cache, NuGet cache); `actions/checkout` cleans
   the working copy.
 - Trusted Publishing policies on nuget.org are set by Carl outside the repository.

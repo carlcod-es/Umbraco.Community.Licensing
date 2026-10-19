@@ -9,6 +9,11 @@ product, and manage the signing keys behind them.
 > From 1.0 the key format is permanent.
 > ([PDR-0024](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/decisions/0024-beta-without-stability-promise.md))
 
+Runs on Windows, Linux and macOS. Each release is tested on one of them; all three will be checked before 1.0.
+([PDR-0028](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/decisions/0028-test-coverage-per-release.md))
+Every release and what changed:
+[`RELEASES.md`](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/RELEASES.md).
+
 ## Why
 
 Umbraco package vendors have no shared way to license their work. Each vendor builds its own
@@ -303,6 +308,7 @@ These come with checking keys entirely on the site:
 | [`docs/personas.md`](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/personas.md) | Who the library serves, in priority order |
 | [`docs/decisions/`](https://github.com/carlcod-es/Umbraco.Community.Licensing/tree/main/docs/decisions) | Product decision records (PDR) |
 | [`docs/adrs/`](https://github.com/carlcod-es/Umbraco.Community.Licensing/tree/main/docs/adrs) | Architecture decision records (ADR) |
+| [`docs/releasing.md`](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/releasing.md) | How a release is set up, rehearsed, started and recovered |
 | [`openspec/`](https://github.com/carlcod-es/Umbraco.Community.Licensing/tree/main/openspec) | Specifications and changes (source of truth for behaviour) |
 
 ## License

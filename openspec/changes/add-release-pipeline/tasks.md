@@ -59,7 +59,7 @@ only tested packages, Release refusals, Test coverage per release.
 
 Depends on: 4, 5. Owner: Architect.
 
-- [ ] 6.1 Add the PDR-0028 pre-1.0 line to `README.md` verbatim, and a link to `RELEASES.md`, and verify the line matches PDR-0028 character for character
+- [x] 6.1 Add the PDR-0028 pre-1.0 line to `README.md` verbatim, and a link to `RELEASES.md`, and verify the line matches PDR-0028 character for character
 - [ ] 6.2 Write `docs/releasing.md`: one-time setup (register a runner with label `licensing-release` and its prerequisites; "Require approval for all external contributors"; nuget.org Trusted Publishing policy owned by the nuget.org organisation `Carlcod-es` for `release.yml`; `NUGET_USER` repository variable `CarlCod_es`, per ADR-0008), rehearsal, the release command, changing the line, what each refusal means, failed releases and when a re-run is allowed, the pre-1.0 all-platform step (Carl runs the validation commands by hand on Windows, Linux and macOS; `all-platforms.yml` is disabled, dispatching it gives a skipped run, not a check, and how to re-enable it; the "All-platform check" scenario is checked at the pre-1.0 step per PDR-0028, not in this change, tracked by follow-ups.md item 31); link it from the README Documentation table, and verify by Carl following it in 7.1
 - [ ] 6.3 Update `docs/feature-requests.md` FR-6 status to closed by this change once 7.2 passes, and verify the row names the change and the first published version
 
