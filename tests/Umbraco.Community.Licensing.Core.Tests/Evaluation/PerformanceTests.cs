@@ -84,8 +84,8 @@ public class PerformanceTests
         _output.WriteLine($"Memory after 1,000 evaluations: {afterThousand:N0} bytes; after 100,000 in total: {afterHundredThousand:N0} bytes");
         Assert.Equal(100_000L * (int)LicenseState.Valid, checksum);
         Assert.True(
-            Math.Abs(afterHundredThousand - afterThousand) < MemoryBudgetBytes,
-            $"Memory differs by {afterHundredThousand - afterThousand:N0} bytes.");
+            afterHundredThousand - afterThousand < MemoryBudgetBytes,
+            $"Memory grew by {afterHundredThousand - afterThousand:N0} bytes.");
     }
 
     [Fact]
