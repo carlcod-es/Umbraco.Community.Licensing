@@ -21,6 +21,7 @@ Minors and nits from reviews. Read at the start of each apply session.
   runner group to allow this repository (public repositories allowed).
 - Verifying 5.2 needs `release.yml` on `main` (`workflow_dispatch` lists only default-branch
   workflows); 5.1 can be observed on this change's pull request. Option: accept 5.2 during 7.1.
+- Carl 2026-10-19: PR #2 merged to `main` (1fe4c08); CI run passed. `add-release-pipeline` task 5.1 met, ticked (14/20). Task 5.2: `release.yml` now on `main`; accept during task 7.1 rehearsal.
 - Next: section 6 (Architect) when Carl says go. Task 6.2 must cover items 5, 23, 26, 28, 29,
   30, 31. Then section 7 (Carl).
 
