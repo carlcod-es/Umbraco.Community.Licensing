@@ -45,7 +45,7 @@ the beta-status refusal (PDR-0024 stays visible on every beta).
 |---|---|---|---|
 | Q1 | How a release starts, where the version comes from, how it is numbered and logged | Release command run by Carl; version line in a file; log of every attempt; five refusals (Carl, 2026-10-14, FR-6 explore) | PDR-0027 |
 | Q2 | What each release is tested on | Once, on whichever test machine is available; all three OSes before 1.0; README line (Carl, 2026-10-14, FR-6 explore) | PDR-0028 |
-| Q3 | Where builds run, and who may run code on Carl's machines | GitHub Actions; hosted runners for pull requests and the all-platform check, Carl's self-hosted runners for releases; approval required for all external contributors (Carl, 2026-10-14); all-platform check disabled 2026-10-18, see Q6 | ADR-0008 |
+| Q3 | Where builds run, and who may run code on Carl's machines | GitHub Actions; hosted runners for pull requests and the all-platform check, Carl's self-hosted runners for releases; approval required for all external contributors (Carl, 2026-10-14); all-platform check disabled 2026-10-18, see Q6; release runner label `licensing-release` dropped for now, any self-hosted runner takes a release (Carl, 2026-10-19) | ADR-0008 |
 | Q4 | How the release authenticates to nuget.org | Trusted Publishing; no stored API key (Carl, 2026-10-14) | ADR-0008 |
 | Q5 | A tag pushed without the release command (e.g. Carl's shared release-tag command) | Refused: the log row for the version must name the tag (Carl, 2026-10-14) | PDR-0029 |
 | Q6 | Means for PDR-0028's pre-1.0 check on all three OSes | Manually started all-platform workflow, built now (Carl, 2026-10-14); kept but disabled with `if: false`, Carl runs the suite by hand on each OS (Carl, 2026-10-18) | ADR-0008 |
@@ -136,6 +136,9 @@ Validation commands for every block: `node --test "tools/release/*.test.mjs"`,
 - [Push of `main` succeeds, tag push fails] → Command stops and prints the exact `git push`
   command for the tag; the release has not started, nothing is published.
 - [Carl's shared release-tag command used here] → Refused by PDR-0029 before the build.
+- [A self-hosted runner added to the organisation for other work takes a release] → Runner group
+  repository access limits which runners serve this repository; restoring the `licensing-release`
+  label is one line (Q3, ADR-0008).
 - [Self-hosted runner state between jobs] → Clean checkout per job; caches only.
 
 ## Migration Plan

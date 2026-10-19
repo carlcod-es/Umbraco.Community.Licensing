@@ -12,7 +12,7 @@ match the log), ADR-0008 (CI, runners, publishing), ADR-0009 (release command an
 | `RELEASES.md` | Repository root | One row per release attempt, newest first. Rows added only by the release command |
 | Release command | `node tools/release/release.mjs` | Works out the next version and tag, asks for a note, commits both files, pushes `main`, pushes the tag |
 | `ci.yml` | GitHub-hosted `ubuntu-latest` | Tool tests, build, test on every pull request to `main` and push to `main` |
-| `release.yml` | Self-hosted, label `licensing-release` | On a `release-*` tag: checks, tool tests, build, test, pack, publish. On manual dispatch: rehearsal, publishes nothing |
+| `release.yml` | Any self-hosted runner available to this repository | On a `release-*` tag: checks, tool tests, build, test, pack, publish. On manual dispatch: rehearsal, publishes nothing |
 | `all-platforms.yml` | GitHub-hosted Windows, Linux, macOS | Disabled. See [Pre-1.0 all-platform step](#pre-10-all-platform-step) |
 
 The package version comes only from `Version.props` at the tagged commit. One job builds, tests,
@@ -22,15 +22,15 @@ packs and pushes, so the published package is the tested one.
 
 ### Release runner
 
-Any online machine with the label `licensing-release` takes a release job. The current runner is
-the organisation-wide runner MINIDEV.
+Any online self-hosted runner available to this repository takes a release job (ADR-0008). The
+current runner is the organisation-wide runner MINIDEV. Every self-hosted runner the repository
+can use is a release machine: limit the runner group's repository access to machines you trust
+to publish.
 
 1. In the `carlcod-es` organisation: **Settings → Actions → Runner groups**. The runner's group
    must allow `Umbraco.Community.Licensing`. If the group is limited to private repositories,
    tick **Allow public repositories**.
-2. Add the label `licensing-release` to the runner (**Settings → Actions → Runners → MINIDEV →
-   labels**).
-3. Runner prerequisites:
+2. Runner prerequisites:
    - A runner version that runs `node24` actions. All four pinned actions use it. Keep the
      runner's auto-update on.
    - Git on the `PATH` of the account the runner service runs as.
