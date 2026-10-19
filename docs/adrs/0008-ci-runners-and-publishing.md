@@ -4,7 +4,7 @@
 - Date: 2026-10-14
 - Source: `add-release-pipeline` design.md Q3, Q4, Q6, Q9, Q10, Q12
 - Revised: 2026-10-18 (Carl): `all-platforms.yml` disabled; Q6. 2026-10-19 (Carl): re-run after a
-  publish failure; Q12
+  publish failure; Q12. 2026-10-19 (Carl): `licensing-release` label dropped for now; Q3
 
 ## Context
 
@@ -23,13 +23,15 @@ Microsoft.Testing.Platform and need `dotnet test --solution` (ADR-0006).
   | Workflow | Trigger | Runner | Does |
   |---|---|---|---|
   | `ci.yml` | `pull_request` to `main`, `push` to `main` | GitHub-hosted `ubuntu-latest` | Tool tests, build, test |
-  | `release.yml` | `push` of tags `release-*`; `workflow_dispatch` (rehearsal) | Self-hosted, labels `self-hosted`, `licensing-release` | Checks, tool tests, build, test, pack, publish (tag only) |
+  | `release.yml` | `push` of tags `release-*`; `workflow_dispatch` (rehearsal) | Self-hosted, label `self-hosted` | Checks, tool tests, build, test, pack, publish (tag only) |
   | `all-platforms.yml` | `workflow_dispatch` | GitHub-hosted matrix `windows-latest`, `ubuntu-latest`, `macos-latest`, `fail-fast: false` | Tool tests, build, test; publishes nothing. **Disabled** (Carl, 2026-10-18): `if: false` on the job, with a comment saying it was disabled on purpose |
 
 - **Runners** (Carl, 2026-10-14): pull requests on GitHub-hosted runners; releases on Carl's own
-  machines registered as self-hosted runners with the label `licensing-release`. Any online
-  machine with the label takes the job ("whichever test machine is available", PDR-0028). Every
-  workflow prints the runner's operating system, version and architecture before testing.
+  machines registered as self-hosted runners. Any online self-hosted runner available to this
+  repository takes the job ("whichever test machine is available", PDR-0028). The dedicated label
+  `licensing-release` was dropped for now (Carl, 2026-10-19): he did not want to add a label to
+  the organisation-wide runner MINIDEV. Every workflow prints the runner's operating system,
+  version and architecture before testing.
 - **Pull request trust**: fork pull requests run on GitHub-hosted runners with a read-only token
   and no secrets. The repository setting "Require approval for all external contributors" is on,
   because a fork pull request runs its own copy of the workflow files and could retarget a job
@@ -64,6 +66,7 @@ Microsoft.Testing.Platform and need `dotnet test --solution` (ADR-0006).
 | Option | Why not |
 |---|---|
 | GitHub-hosted runners for releases too | Recommended; Carl chose his own machines for releases |
+| Dedicated label `licensing-release` on release runners | Chosen 2026-10-14; dropped for now by Carl, 2026-10-19, to avoid adding a label to the organisation-wide runner. Restoring it is the label on the runner plus one line in `release.yml` |
 | Self-hosted runners for pull requests | Fork pull requests would run code on Carl's machines |
 | Azure Pipelines | A second service and project for a GitHub repository; Carl's other repositories use tag-triggered GitHub Actions |
 | Publish from Carl's machine with a local script | No clean checkout guaranteed; the API key would live on the machine |
@@ -93,6 +96,9 @@ Microsoft.Testing.Platform and need `dotnet test --solution` (ADR-0006).
   takes a new number. A run whose tests passed but whose NuGet login or push failed may be re-run
   (same tag, same version) while nuget.org does not list the version: nothing was published, and
   the re-run rebuilds and retests the same commit (Carl, 2026-10-19).
+- Any self-hosted runner the organisation makes available to this repository can take a release
+  job and publish from it. Runner group repository access is the only control on which machines
+  release (Carl, 2026-10-19).
 - Self-hosted runners keep state between jobs (tool cache, NuGet cache); `actions/checkout` cleans
   the working copy.
 - Trusted Publishing policies on nuget.org are set by Carl outside the repository.

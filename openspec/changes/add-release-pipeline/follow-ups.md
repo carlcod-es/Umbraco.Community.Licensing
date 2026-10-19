@@ -17,8 +17,9 @@ Minors and nits from reviews. Read at the start of each apply session.
 - Deviation accepted: `tools/release/platform.mjs` (+ test) added in section 5 to print the
   ADR-0008 platform line with a single `node` command.
 - Carl 2026-10-18: item 14 keep; item 29 yes (optional tag ruleset step in `docs/releasing.md`).
-- Release runner: organisation-wide runner MINIDEV; needs label `licensing-release` and the
-  runner group to allow this repository (public repositories allowed).
+- Release runner: organisation-wide runner MINIDEV; label `licensing-release` dropped from
+  `release.yml` (Carl, 2026-10-19; ADR-0008); needs the runner group to allow this repository
+  (public repositories allowed).
 - Verifying 5.2 needs `release.yml` on `main` (`workflow_dispatch` lists only default-branch
   workflows); 5.1 can be observed on this change's pull request. Option: accept 5.2 during 7.1.
 - Carl 2026-10-19: PR #2 merged to `main` (1fe4c08); CI run passed. `add-release-pipeline` task 5.1 met, ticked (14/20). Task 5.2: `release.yml` now on `main`; accept during task 7.1 rehearsal.
