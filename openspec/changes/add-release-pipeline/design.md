@@ -129,7 +129,7 @@ Validation commands for every block: `node --test "tools/release/*.test.mjs"`,
   before the first tag (tasks.md 7.1). A burnt number is harmless (PDR-0027).
 - [Tests fail on Linux or Windows on first run] → `ci.yml` runs every pull request on Linux;
   Carl runs the suite by hand on each OS before 1.0 (PDR-0028). Windows is untested until then
-  (all-platform workflow disabled, Carl, 2026-10-18); failures become a follow-up, not hidden.
+  (all-platform workflow disabled, Carl, 2026-10-18); failures become a follow-up, not hidden. Happened 2026-10-19: the task 7.1 rehearsal on Windows found an off-curve public key rejected with the wrong exception type; fixed by tasks.md 8.1.
 - [Trusted Publishing for a package ID that does not exist yet] → Policy is per repository and
   workflow, not per package; if nuget.org refuses the first push, Carl publishes `0.1.0-beta.1`
   from a short-lived API key and records it in follow-ups.md.

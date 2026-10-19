@@ -123,7 +123,7 @@ public sealed class SigningPublicKey : IEquatable<SigningPublicKey>
 
             return new SigningPublicKey(canonical);
         }
-        catch (CryptographicException ex)
+        catch (Exception ex) when (ex is CryptographicException or PlatformNotSupportedException)
         {
             throw new FormatException("The text is not an ECDSA P-256 public key.", ex);
         }

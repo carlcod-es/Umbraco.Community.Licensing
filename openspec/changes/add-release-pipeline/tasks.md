@@ -65,7 +65,14 @@ Depends on: 4, 5. Owner: Architect.
 
 ## 7. First release
 
-Depends on: 5, 6, and this change merged to `main`. Owner: Carl.
+Depends on: 5, 6, 8, and this change merged to `main`. Owner: Carl.
 
 - [ ] 7.1 Carl completes the `docs/releasing.md` one-time setup and runs a rehearsal on `main`, and verify by Carl's observation that it passes on his runner
 - [ ] 7.2 Carl runs `node tools/release/release.mjs` with note "First beta", and verify by Carl's observation that `RELEASES.md` has the `0.1.0-beta.1` row, the release run passes, and nuget.org lists `Umbraco.Community.Licensing.Core` `0.1.0-beta.1` as a prerelease owned by `Carlcod-es`, whose repository commit is the tagged commit
+
+## 8. Windows fix from the rehearsal
+
+Depends on: none. Owner: worker-backend. Path: `src/Umbraco.Community.Licensing.Core/Signing/SigningPublicKey.cs`.
+Found in the task 7.1 rehearsal on MINIDEV (Windows), 2026-10-19; approved by Carl, 2026-10-19.
+
+- [ ] 8.1 Make `SigningPublicKey.FromSpki` turn `PlatformNotSupportedException` from the platform import into `FormatException`, as it does `CryptographicException` (Windows CNG throws `PlatformNotSupportedException` for a point not on the curve; `SigningPrivateKey` already catches both), and verify `SigningKeyTests.PublicKeyParse_RejectsPointNotOnCurve` passes unchanged on Linux and on Carl's Windows runner in the task 7.1 rehearsal
