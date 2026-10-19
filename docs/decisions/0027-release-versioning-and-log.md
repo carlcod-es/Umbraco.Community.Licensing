@@ -17,7 +17,9 @@ PDR-0024: 0.x and prerelease until 1.0.
 ## Decision
 
 - **Scope.** Releases are built, tested and published to the public package feed. The first
-  published release is a beta, `0.1.0-beta.1`.
+  published release is a beta, `0.1.0-beta.1`. (2026-10-20: the `0.1.0-beta.1` release failed
+  its tool tests before anything was published; under this record's rule that a failed number is
+  not reused, the first published release is `0.1.0-beta.2`. `add-release-pipeline` tasks.md 8.3.)
 - **Start.** Carl starts a release with a release command held in this repository. It is never
   started by Claude or by anyone else. The command:
   1. bumps the version in a repository file;

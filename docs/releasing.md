@@ -191,7 +191,7 @@ A refused tag stays on the remote. Delete it (`git push origin :refs/tags/<tag>`
 | Job queued, no runner online | GitHub fails it after 24 hours. Bring a runner online and re-run the run: same tag, same version |
 | Run failed before its tests, in a step other than **Release check** (checkout, toolchain setup) | Fix the runner and re-run the run. A re-run uses the workflow files at the tagged commit: if the fix is a workflow change, commit it and release again with the release command |
 | Tests passed, **NuGet login** or **Push to NuGet** failed, and nuget.org does not list the version | Fix the cause (policy, `NUGET_USER`) and re-run the run. It rebuilds and retests the same commit (ADR-0008) |
-| nuget.org refuses the very first push of the package ID under Trusted Publishing | Publish `0.1.0-beta.1` once from a short-lived API key scoped to the package, then delete the key; record it in the change's `follow-ups.md` |
+| nuget.org refuses the very first push of the package ID under Trusted Publishing | Publish that version once from a short-lived API key scoped to the package, then delete the key; record it in the change's `follow-ups.md` |
 
 Re-running a tag run re-checks against the current `origin/main`. Commits added to `main` since
 do not affect it: the tagged commit is still on `main`, so the check still passes.

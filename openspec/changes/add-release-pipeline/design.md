@@ -109,8 +109,9 @@ New top-level paths, added to the CLAUDE.md ownership table in tasks.md 1.1:
 | Integration | Release command against a temporary bare remote and clone: every "Release started by Carl" and "Release log" scenario, tag `-N` against remote tags, failure after commit | `node:test`, scripted prompt and fixed clock; real `git` |
 | Integration | `check.mjs` against temporary repos: commit on `main` passes; commit only on a branch refused; each refusal message; exit codes | `node:test`, real `git` |
 | Integration | No-TTY refusal | Spawn `release.mjs` with piped stdin; expect refusal and no change |
+| Unit | Tests that read repository files (`RELEASES.md`, `Version.props`) assert they are valid, never their current content, so a release commit cannot break them (tasks.md 8.3) | `node:test` |
 | Build | Package version comes from `Version.props`; no pack warnings | `dotnet pack`, nuspec inspected |
-| Observed | `ci.yml` on this change's pull request; `release.yml` rehearsal on Carl's runner; first release `0.1.0-beta.1` | Carl's observation, recorded in tasks.md |
+| Observed | `ci.yml` on this change's pull request; `release.yml` rehearsal on Carl's runner; first published release `0.1.0-beta.2` (`0.1.0-beta.1` failed its tool tests, tasks.md 8.3) | Carl's observation, recorded in tasks.md |
 | Deferred | "All-platform check" scenario: Carl runs the validation commands by hand on Windows, a Linux machine and macOS per `docs/releasing.md`, one result per OS. Not checked in this change; checked at the pre-1.0 step (PDR-0028), tracked by follow-ups.md item 31 (Carl, 2026-10-19) | Carl's observation at the pre-1.0 step |
 
 Validation commands for every block: `node --test "tools/release/*.test.mjs"`,
@@ -126,12 +127,12 @@ Validation commands for every block: `node --test "tools/release/*.test.mjs"`,
 - [NuGet login or push fails after tests pass] → Nothing published; re-run allowed while nuget.org
   does not list the version (Q12, ADR-0008). Releasing guide says so.
 - [First release fails on an untested runner and burns `0.1.0-beta.1`] → Rehearsal on the runner
-  before the first tag (tasks.md 7.1). A burnt number is harmless (PDR-0027).
+  before the first tag (tasks.md 7.1). A burnt number is harmless (PDR-0027). Happened 2026-10-20 for a reason the rehearsal could not see: two tool tests asserted `RELEASES.md` had no rows, so the release commit failed them (tasks.md 8.3). A rehearsal after any release commit runs against a non-empty log and catches this class.
 - [Tests fail on Linux or Windows on first run] → `ci.yml` runs every pull request on Linux;
   Carl runs the suite by hand on each OS before 1.0 (PDR-0028). Windows is untested until then
   (all-platform workflow disabled, Carl, 2026-10-18); failures become a follow-up, not hidden. Happened 2026-10-19: the task 7.1 rehearsal on Windows found an off-curve public key rejected with the wrong exception type; fixed by tasks.md 8.1.
 - [Trusted Publishing for a package ID that does not exist yet] → Policy is per repository and
-  workflow, not per package; if nuget.org refuses the first push, Carl publishes `0.1.0-beta.1`
+  workflow, not per package; if nuget.org refuses the first push, Carl publishes the first version
   from a short-lived API key and records it in follow-ups.md.
 - [Push of `main` succeeds, tag push fails] → Command stops and prints the exact `git push`
   command for the tag; the release has not started, nothing is published.
@@ -146,7 +147,9 @@ Validation commands for every block: `node --test "tools/release/*.test.mjs"`,
 1. Merge this change to `main` after its blocks pass review.
 2. Carl does the one-time setup in `docs/releasing.md`: runner, approval setting, Trusted
    Publishing policy owned by `Carlcod-es`, `NUGET_USER` variable `CarlCod_es`.
-3. Rehearsal on the runner, then `node tools/release/release.mjs` → `0.1.0-beta.1`.
+3. Rehearsal on the runner, then `node tools/release/release.mjs` → `0.1.0-beta.1` (failed its tool
+   tests, 2026-10-20). After section 8: rehearsal on `main`, then the release command →
+   `0.1.0-beta.2`.
 
 Rollback: delete the workflows; restore `Version` in the project file. An already published
 version cannot be removed from nuget.org, only unlisted.

@@ -33,7 +33,8 @@ rules (PDR-0027, PDR-0028); this change builds them.
   but disabled; Carl runs the suite by hand on each operating system (Carl, 2026-10-18).
 - **README** states which operating systems each release is tested on (PDR-0028).
 - **Releasing guide** for Carl: one-time setup and the release steps.
-- **First release**: `0.1.0-beta.1`, started by Carl after the change is built.
+- **First release**: started by Carl after the change is built. `0.1.0-beta.1` failed before
+  publishing (2026-10-20); the first published release is `0.1.0-beta.2` (PDR-0027).
 
 ## Capabilities
 

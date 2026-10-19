@@ -269,16 +269,53 @@ test('parseLog throws naming the line for malformed input', () => {
   assert.throws(() => parseLog(`${HEADER}\n${SEP}\n| a | b | c | d | e |\n`), /line 3/);
 });
 
-test("Repository RELEASES.md parses with zero rows", () => {
-  assert.deepEqual(parseLog(repoFile('RELEASES.md')).rows, []);
+// Assertions that hold for any log text; run on the repository file and on logs built here.
+function assertLogParsesAndRowsAreValid(text) {
+  for (const r of parseLog(text).rows) {
+    const m = /^(\d+)\.(\d+)\./.exec(r.version);
+    assert.ok(m, `version ${r.version}`);
+    const line = r.version.includes('-beta') ? `${m[1]}.${m[2]}-beta` : m[1];
+    assert.deepEqual(checkVersionAgainstLine(r.version, line), [], `version ${r.version}`);
+    assert.ok(isValidTag(r.tag), `tag ${r.tag}`);
+    assert.match(r.date, /^\d{4}-\d{2}-\d{2}$/, `date of ${r.version}`);
+  }
+}
+
+function assertInsertRowPutsNewRowFirst(text) {
+  const before = parseLog(text).rows;
+  const r = { version: '9.9.9', tag: 'release-29991231', date: '2999-12-31', note: 'Inserted by test' };
+  const out = insertRow(text, r);
+  assert.deepEqual(parseLog(out).rows, [r, ...before]);
+  assert.ok(out.length > text.length);
+}
+
+const twoRows = logText([
+  row('0.1.0-beta.2', 'release-20261021', '2026-10-21', 'Second'),
+  row('0.1.0-beta.1', 'release-20261020', '2026-10-20', 'First'),
+]);
+
+test('Repository RELEASES.md parses and every row is valid', () => {
+  assertLogParsesAndRowsAreValid(repoFile('RELEASES.md'));
 });
 
-test('insertRow on the repository RELEASES.md parses back to one row', () => {
-  const text = repoFile('RELEASES.md');
-  const r = { version: '0.1.0-beta.1', tag: 'release-20261020', date: '2026-10-20', note: 'First beta' };
-  const out = insertRow(text, r);
-  assert.deepEqual(parseLog(out).rows, [r]);
-  assert.ok(out.length > text.length);
+test('Log with zero rows parses and every row is valid', () => {
+  assertLogParsesAndRowsAreValid(logText([]));
+});
+
+test('Log with two rows parses and every row is valid', () => {
+  assertLogParsesAndRowsAreValid(twoRows);
+});
+
+test('insertRow on the repository RELEASES.md puts the new row first and keeps the rest', () => {
+  assertInsertRowPutsNewRowFirst(repoFile('RELEASES.md'));
+});
+
+test('insertRow on a log with zero rows puts the new row first and keeps the rest', () => {
+  assertInsertRowPutsNewRowFirst(logText([]));
+});
+
+test('insertRow on a log with two rows puts the new row first and keeps the rest', () => {
+  assertInsertRowPutsNewRowFirst(twoRows);
 });
 
 // ---- 3.4 ----
@@ -305,12 +342,14 @@ test('readVersionFile throws when an element is missing or repeated', () => {
 
 test('Round trip of the repository Version.props', () => {
   const text = repoFile('Version.props');
-  assert.deepEqual(readVersionFile(text), { line: '0.1-beta', version: '0.1.0-beta.1' });
-  assert.equal(writeVersion(text, '0.1.0-beta.1'), text);
-  const out = writeVersion(text, '0.1.0-beta.2');
-  assert.equal(out, text.replace('<Version>0.1.0-beta.1</Version>', '<Version>0.1.0-beta.2</Version>'));
+  const { line, version } = readVersionFile(text);
+  assert.deepEqual(checkVersionAgainstLine(version, line), []);
+  assert.equal(writeVersion(text, version), text);
+  const other = '99.99.99-test.1';
+  const out = writeVersion(text, other);
+  assert.equal(out, text.replace(`<Version>${version}</Version>`, `<Version>${other}</Version>`));
   assert.notEqual(out, text);
-  assert.deepEqual(readVersionFile(out), { line: '0.1-beta', version: '0.1.0-beta.2' });
+  assert.deepEqual(readVersionFile(out), { line, version: other });
 });
 
 test('writeVersion leaves every other byte unchanged (LF and CRLF)', () => {
