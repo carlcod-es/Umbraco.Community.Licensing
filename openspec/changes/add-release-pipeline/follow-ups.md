@@ -26,6 +26,7 @@ Minors and nits from reviews. Read at the start of each apply session.
 - 2026-10-19: task 6.1 done and ticked (15/20). Task 6.2 `docs/releasing.md` written; acceptance is Carl following it in task 7.1, so unticked. Task 6.3 waits for task 7.2.
 - 2026-10-19: task 7.1 rehearsal on MINIDEV: runner fixes (runner group public repos, DOTNET_INSTALL_DIR, Git + .path); dotnet test failed on Windows (item 32); section 8 added.
 - Carl 2026-10-19: CI and release rehearsal passed on `main`, same commit (task 8.1 fix included), rehearsal on MINIDEV. Acceptance met, ticked: task 5.2 (tests pass, platform line, package produced, nothing published), task 6.2 (Carl followed `docs/releasing.md`), task 7.1, task 8.1 (Linux CI and Windows runner). Next: task 7.2 (first release), then task 6.3.
+- 2026-10-20: task 7.2 attempt `0.1.0-beta.1` failed (item 36). Section 8 gains tasks 8.2 (item 37) and 8.3; task 7.2 now expects `0.1.0-beta.2` after a rehearsal.
 - Next was: section 6 (Architect) when Carl says go. Task 6.2 must cover items 5, 23, 26, 28, 29,
   30, 31. Then section 7 (Carl).
 
@@ -66,3 +67,5 @@ Minors and nits from reviews. Read at the start of each apply session.
 | 33 | Section 6 reviewer | major | `docs/releasing.md` allowed a re-run after a NuGet login or push failure with tests passed; ADR-0008 only allowed one when tests never ran. | Carl 2026-10-19: re-run allowed. design.md Q12, ADR-0008 revised; guide cites ADR-0008 |
 | 34 | Section 6 reviewer | minor | `docs/releasing.md`: pre-test re-run row now excludes Release check and says a workflow fix needs a new release; catch-all row for unlisted release-run reasons; cancel message described as Ctrl-D only; `Declined. Nothing changed.` named; where to record pre-1.0 results named. | Done |
 | 35 | Section 6 reviewer | note | Ctrl-C at a release command prompt is untested; confirm what it prints during task 7.1 and add it to the guide if it differs. | Open; task 7.1 |
+| 36 | Task 7.2, Carl 2026-10-20 | blocker | Release `0.1.0-beta.1` (tag `release-20261020`, commit `fd2d26d`, note "Initial release") failed at Tool tests: `release-rules.test.mjs:272` and `:276` asserted the repository `RELEASES.md` had zero rows (task 3.3 acceptance as written). Nothing published. Failed release per PDR-0027; row kept, number not reused. | Tasks 8.3, 7.2 revised; PDR-0027 note |
+| 37 | Task 8.1 worker / reviewer, 2026-10-19 | major | `PerformanceTests.cs:86` uses `Math.Abs`, so a memory drop over the 1 MB budget fails a test about growth; failed on Carl's dev machine (-1,103,912 bytes), passed on MINIDEV. Can fail a release run on noise. | Task 8.2 |

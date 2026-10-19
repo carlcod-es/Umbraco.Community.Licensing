@@ -27,7 +27,7 @@ numbering from the version line, Release tag, Release log, Release refusals.
 
 - [x] 3.1 Implement line parsing (`0.M-beta`, M ≥ 1; `X`, X ≥ 1; no leading zeros), next version from line and log versions, and the beta-status/belongs-to-line check, and verify by tests for every "Version numbering from the version line" scenario and the "Beta status disagrees" scenario
 - [x] 3.2 Implement the tag format check (`release-yyyymmdd`, optional `-N`, N ≥ 2) and next tag from a local date and existing tag names, and verify by the "First release of the day", "Third release of the day" and "Malformed tag" scenarios
-- [x] 3.3 Implement release log parsing (rows of the first table, newest first), row insert at the top with `|` escaped and single-line notes enforced, version occurrence count and row lookup by version, and verify by the "Row added", "Failed release keeps its row", "Version already in the log" and "Duplicate version in the log" scenarios, and a test that the repository's `RELEASES.md` parses with zero rows
+- [x] 3.3 Implement release log parsing (rows of the first table, newest first), row insert at the top with `|` escaped and single-line notes enforced, version occurrence count and row lookup by version, and verify by the "Row added", "Failed release keeps its row", "Version already in the log" and "Duplicate version in the log" scenarios, and a test that the repository's `RELEASES.md` parses (any number of valid rows; revised by task 8.3, 2026-10-20: the zero-rows form failed the first release)
 - [x] 3.4 Implement `Version.props` read (line, version) and version write that leaves every other byte unchanged, and verify by tests including a round trip of the repository's `Version.props`
 - [x] 3.5 Implement the release check over tag, version file and log (PDR-0027 refusals 1, 3, 4; PDR-0029) returning every reason, and verify by the "Malformed tag", "Duplicate version in the log", "Beta status disagrees" and "Tag pushed without the release command" and "Tag with no log row" scenarios, plus a passing case
 
@@ -68,11 +68,16 @@ Depends on: 4, 5. Owner: Architect.
 Depends on: 5, 6, 8, and this change merged to `main`. Owner: Carl.
 
 - [x] 7.1 Carl completes the `docs/releasing.md` one-time setup and runs a rehearsal on `main`, and verify by Carl's observation that it passes on his runner
-- [ ] 7.2 Carl runs `node tools/release/release.mjs` with note "First beta", and verify by Carl's observation that `RELEASES.md` has the `0.1.0-beta.1` row, the release run passes, and nuget.org lists `Umbraco.Community.Licensing.Core` `0.1.0-beta.1` as a prerelease owned by `Carlcod-es`, whose repository commit is the tagged commit
+- [ ] 7.2 After a rehearsal on `main` with section 8 merged passes, Carl runs `node tools/release/release.mjs`, and verify by Carl's observation that `RELEASES.md` has the `0.1.0-beta.2` row above the failed `0.1.0-beta.1` row, the release run passes, and nuget.org lists `Umbraco.Community.Licensing.Core` `0.1.0-beta.2` as a prerelease owned by `Carlcod-es`, whose repository commit is the tagged commit (revised 2026-10-20: the `0.1.0-beta.1` attempt failed its tool tests, task 8.3; its number is not reused, PDR-0027)
 
 ## 8. Windows fix from the rehearsal
 
-Depends on: none. Owner: worker-backend. Path: `src/Umbraco.Community.Licensing.Core/Signing/SigningPublicKey.cs`.
-Found in the task 7.1 rehearsal on MINIDEV (Windows), 2026-10-19; approved by Carl, 2026-10-19.
+Depends on: none. Owner: worker-backend. Paths: `src/Umbraco.Community.Licensing.Core/Signing/SigningPublicKey.cs` (8.1),
+`tests/Umbraco.Community.Licensing.Core.Tests/Evaluation/PerformanceTests.cs` (8.2),
+`tools/release/release-rules.test.mjs` (8.3). Task 8.1 found in the task 7.1 rehearsal on MINIDEV
+(Windows), 2026-10-19; tasks 8.2 and 8.3 found 2026-10-20 (8.3 failed the `0.1.0-beta.1`
+release). Approved by Carl, 2026-10-19 and 2026-10-20.
 
 - [x] 8.1 Make `SigningPublicKey.FromSpki` turn `PlatformNotSupportedException` from the platform import into `FormatException`, as it does `CryptographicException` (Windows CNG throws `PlatformNotSupportedException` for a point not on the curve; `SigningPrivateKey` already catches both), and verify `SigningKeyTests.PublicKeyParse_RejectsPointNotOnCurve` passes unchanged on Linux and on Carl's Windows runner in the task 7.1 rehearsal
+- [ ] 8.2 Make `PerformanceTests.NoMemoryGrowth_AfterManyEvaluations_HeldMemoryDoesNotGrowWithCalls` fail only when held memory grows by the budget or more (drop `Math.Abs`; message says "grew by"), and verify the test passes on this machine and still fails when an evaluation is made to hold memory (temporary local change, not committed)
+- [ ] 8.3 Make the two tests in `tools/release/release-rules.test.mjs` that read the repository `RELEASES.md` independent of how many rows it holds: it parses and every row has a valid version, tag and date; `insertRow` on it puts the new row first and keeps every existing row in order. Tests that read repository files assert they are valid, never their current content. Verify the tool tests pass against the current `RELEASES.md` (one row) and against a copy with zero rows and with two rows
