@@ -269,13 +269,23 @@ test('parseLog throws naming the line for malformed input', () => {
   assert.throws(() => parseLog(`${HEADER}\n${SEP}\n| a | b | c | d | e |\n`), /line 3/);
 });
 
+// The line a version belongs to, derived from the version alone (null if it has no M.m. prefix).
+function lineOfVersion(version) {
+  const m = /^(\d+)\.(\d+)\./.exec(version);
+  if (!m) return null;
+  return version.includes('-beta') ? `${m[1]}.${m[2]}-beta` : m[1];
+}
+
+function assertVersionIsValid(version) {
+  const line = lineOfVersion(version);
+  assert.ok(line, `version ${version}`);
+  assert.deepEqual(checkVersionAgainstLine(version, line), [], `version ${version}`);
+}
+
 // Assertions that hold for any log text; run on the repository file and on logs built here.
 function assertLogParsesAndRowsAreValid(text) {
   for (const r of parseLog(text).rows) {
-    const m = /^(\d+)\.(\d+)\./.exec(r.version);
-    assert.ok(m, `version ${r.version}`);
-    const line = r.version.includes('-beta') ? `${m[1]}.${m[2]}-beta` : m[1];
-    assert.deepEqual(checkVersionAgainstLine(r.version, line), [], `version ${r.version}`);
+    assertVersionIsValid(r.version);
     assert.ok(isValidTag(r.tag), `tag ${r.tag}`);
     assert.match(r.date, /^\d{4}-\d{2}-\d{2}$/, `date of ${r.version}`);
   }
@@ -340,16 +350,41 @@ test('readVersionFile throws when an element is missing or repeated', () => {
   assert.throws(() => readVersionFile(propsText('1', '1.0.0') + '<VersionLine>2</VersionLine>'), /more than one <VersionLine>/);
 });
 
-test('Round trip of the repository Version.props', () => {
-  const text = repoFile('Version.props');
+// Assertions that hold for any Version.props text, including one whose VersionLine was changed
+// ahead of the next release (Version not yet on the new line); run on the repository file and on text built here.
+function assertVersionFileIsValidAndRoundTrips(text) {
   const { line, version } = readVersionFile(text);
-  assert.deepEqual(checkVersionAgainstLine(version, line), []);
+  assert.notEqual(parseLine(line), null, `VersionLine ${line}`);
+  assertVersionIsValid(version);
   assert.equal(writeVersion(text, version), text);
   const other = '99.99.99-test.1';
   const out = writeVersion(text, other);
   assert.equal(out, text.replace(`<Version>${version}</Version>`, `<Version>${other}</Version>`));
   assert.notEqual(out, text);
   assert.deepEqual(readVersionFile(out), { line, version: other });
+}
+
+test('Round trip of the repository Version.props', () => {
+  assertVersionFileIsValidAndRoundTrips(repoFile('Version.props'));
+});
+
+test('Version.props checks do not require Version to belong to VersionLine (line changed before release)', () => {
+  for (const eol of ['\n', '\r\n']) {
+    const text = propsText('1', '0.1.0-beta.2', eol);
+    assert.ok(checkVersionAgainstLine('0.1.0-beta.2', '1').length >= 1);
+    assertVersionFileIsValidAndRoundTrips(text);
+  }
+});
+
+test('Version.props checks reject an invalid VersionLine or Version', () => {
+  assert.throws(() => assertVersionFileIsValidAndRoundTrips(propsText('abc', '1.0.0')));
+  assert.throws(() => assertVersionFileIsValidAndRoundTrips(propsText('1', 'not-a-version')));
+});
+
+test('lineOfVersion derives the line from the version alone', () => {
+  assert.equal(lineOfVersion('0.1.0-beta.2'), '0.1-beta');
+  assert.equal(lineOfVersion('1.2.3'), '1');
+  assert.equal(lineOfVersion('nope'), null);
 });
 
 test('writeVersion leaves every other byte unchanged (LF and CRLF)', () => {
