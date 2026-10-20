@@ -34,7 +34,7 @@ Built first for the **site owner** who buys licenses, then the implementor who i
 then the vendor who issues them
 ([personas](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/personas.md)).
 
-The package is called `Umbraco.Community.Licensing.Core` because its audience is Umbraco
+The package is called `Umbraco.Community.Licensing` because its audience is Umbraco
 package vendors. It has no Umbraco or host dependency and uses only the .NET base class library.
 
 ## How it works
@@ -87,7 +87,9 @@ The string survives being pasted into an email and fits in an environment variab
 is removed before the key is read, including Unicode whitespace such as non-breaking spaces
 (U+00A0) and line separators (U+2028, U+0085) that editors and mail clients insert.
 
-Full schema and worked examples, with real key strings:
+The format byte for byte, with a key decoded and verified step by step:
+[`docs/key-format.md`](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/key-format.md).
+Behaviour and worked scenarios, with real key strings:
 [`docs/license-examples.md`](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/license-examples.md).
 
 ### Features
@@ -125,7 +127,7 @@ Only `Valid` is licensed.
 ### Create a signing key pair (vendor, once)
 
 ```csharp
-using Umbraco.Community.Licensing.Core;
+using Umbraco.Community.Licensing;
 
 using var pair = SigningKeyPair.Create();
 
@@ -266,6 +268,22 @@ key ([PDR-0015](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/m
   your private signing key and the trusted set shipped in your product; an edited prefix reads
   `NotVerified`
   ([PDR-0023](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/decisions/0023-key-identifier-prefix.md)).
+- **Grace after expiry is yours to add.** The library has no grace period (FR-9 in
+  [`docs/feature-requests.md`](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/feature-requests.md)).
+  An `Expired` result still carries the verified license, but its lookups answer "not granted",
+  so read `License.Features` directly:
+
+  ```csharp
+  var grace = TimeSpan.FromDays(14);
+  var inGrace = result.State == LicenseState.Expired
+      && result.License!.Expires is { } expires
+      && timeProvider.GetUtcNow() <= expires + grace;
+
+  bool HasSwitch(string name) => result.HasSwitch(name)
+      || (inGrace && result.License!.Features.Any(f => f.Name == name && f.Value is SwitchFeature { IsOn: true }));
+  ```
+
+  Tell the site owner while a key is in grace; it is still `Expired`.
 - **Evaluate on every request; no cache is needed.** A result is a snapshot: a cached result does
   not expire on its own, so a product that caches must re-evaluate once the clock passes the
   reported expiry.
@@ -304,6 +322,7 @@ These come with checking keys entirely on the site:
 
 | Path | Contents |
 |---|---|
+| [`docs/key-format.md`](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/key-format.md) | Key string format, encoding and signature, with a decoded example |
 | [`docs/license-examples.md`](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/license-examples.md) | Key schema and worked examples |
 | [`docs/personas.md`](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/personas.md) | Who the library serves, in priority order |
 | [`docs/decisions/`](https://github.com/carlcod-es/Umbraco.Community.Licensing/tree/main/docs/decisions) | Product decision records (PDR) |
