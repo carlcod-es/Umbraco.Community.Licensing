@@ -6,7 +6,7 @@ Q-number in a change and is settled by a PDR or ADR; record that change in its S
 
 Cite as `pre-1.0-considerations.md` C1 and so on.
 
-Product items from the same review are feature requests: FR-7 (standard first-action text),
+Product items from the same review are feature requests: FR-7 (standard first-action text; withdrawn),
 FR-8 (same status wording across vendors' screens), FR-9 (grace period), in
 [`feature-requests.md`](feature-requests.md). The key format is documented in
 [`key-format.md`](key-format.md).
