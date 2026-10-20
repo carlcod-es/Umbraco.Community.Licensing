@@ -13,6 +13,9 @@ Cite as FR-N.
 | FR-4 | Standby signing key | Carl, 2026-10-10 | Open; with or after FR-2 |
 | FR-5 | Responding to a compromised signing key | Carl, 2026-10-10 | Open; after FR-2 |
 | FR-6 | CI and release pipeline | Carl, 2026-10-14 | Taken into `add-release-pipeline` (design.md Q1 to Q10; PDR-0027, PDR-0028, PDR-0029, ADR-0008, ADR-0009) |
+| FR-7 | Standard first-action text per state | Library review, 2026-10-20 | Withdrawn for now (Carl, 2026-10-20): the library supplies the state only; vendors write all message text. PDR-0002 unchanged |
+| FR-8 | Same status wording across vendors' screens | Library review, 2026-10-20 | Open. Screens stay out of the library (Carl, 2026-10-20) |
+| FR-9 | Grace period after expiry | Library review, 2026-10-20 | Open. Until then vendors implement grace themselves (Carl, 2026-10-20) |
 
 ## FR-1: Vendor-chosen key identifier prefix
 
@@ -204,3 +207,94 @@ Windows has no coverage.
 
 **Personas.** Vendor and implementor: a published package that is built, tested and versioned
 the same way every time.
+
+## FR-7: Standard first-action text per state
+
+**Request.** The library supplies one fixed English text per `LicenseState`: what the state means
+and its first action, as in the README states table. Vendors show it as is, or replace or
+translate it. Today PDR-0002 leaves all message text to the host, so each vendor words
+`Expired` or `NotVerified` differently.
+
+**Status.** Withdrawn for now (Carl, 2026-10-20): the library supplies the state only; vendors
+write all message text. PDR-0002 ("the library supplies the state, not message text") is
+unchanged. Approved earlier the same day, then withdrawn after the explore below.
+
+**Personas.** Site owner (primary): keys from several vendors give the same instruction for the
+same state. Implementor: one set of fixes to learn. Vendor: no text to write; can still replace
+it.
+
+**Explored before withdrawal (Carl, 2026-10-20).** Starting point if this FR is revisited:
+- Audience: one text per state, written for whoever reads it. Rejected: separate site owner and
+  implementor texts (double the text; the vendor must know who is looking).
+- Content: generic; no product, vendor or claim named. Observed fact, then the first action
+  naming who acts in plain words ("the site's developer", "the site owner", "the product's
+  vendor"). `Valid` has a text, no first action.
+- Language: English only; library-shipped translations would be a separate FR.
+- Replacement: per state, whole text, 0 to 8 states, set once per product at setup; blank is a
+  setup error; states not replaced keep the standard text.
+- Access: standard text and product text for any state, with or without a result. `ToString()`
+  unchanged.
+- Stability: meaning and first action fixed from 1.0; wording may improve, noted in the release
+  log; vendors must not parse it.
+
+**Issues to settle** (as raised; issues 1 to 4 were answered in the explore above).
+1. Where the text lives: a lookup by state, a property on `LicenseResult`, or both.
+2. Whether the text is part of the stability promise from 1.0 (changing wording is not a key
+   format change).
+3. Whether it may name the claimed key identifier or product (claims, not facts; PDR-0026).
+4. How vendors translate it: replace the whole text, or the library ships translations.
+
+**Out of scope.** Any screen or UI. Where and how the text is shown is the vendor's decision.
+
+## FR-8: Same status wording across vendors' screens
+
+**Request.** A site owner holding keys for several products from several vendors sees each
+product's license status in that vendor's own screens, in the same terms.
+
+**Not the library's.** The library has no screens and will not gain any, in the core package or
+an add-on. Whether a product shows license status, where (backoffice dashboard, health check,
+log, settings page) and how, is entirely the vendor's (Carl, 2026-10-20).
+
+**What the library contributes.** Only data: the state, the verified facts (`VerifiedLicense`),
+the claims. Message text is the vendor's (FR-7 withdrawn, Carl, 2026-10-20); the README states
+table is the shared reference for each state's meaning and first action.
+
+**Issues to settle.**
+1. Whether anything is needed. Candidate: a non-UI way for each product to report its evaluated
+   state on a site, so a vendor or third party could build an overview. Any such overview screen
+   would be a separate package, not part of this library.
+2. Whether consistent wording across vendors is still a goal now that FR-7 is withdrawn, or this
+   FR closes.
+
+**Personas.** Site owner: one vocabulary across products. Vendor: unchanged freedom over its own
+UI.
+
+**Related.** FR-3 (example product package shows one vendor's screen as an example only), FR-7.
+
+## FR-9: Grace period after expiry
+
+**Request.** Keep a license granting its features for a short period after its expiry, so a
+renewal installed a few days late does not switch features off.
+
+**Until taken up (Carl, 2026-10-20).** Vendors who want grace implement it themselves. An
+`Expired` result carries the verified license (`result.License`, with `Expires` and `Features`);
+feature lookups on the result answer "not granted", so the vendor reads `License.Features`
+directly. README vendor notes show the pattern.
+
+**Personas.** Site owner (primary): features do not stop on the morning of a late renewal
+(`docs/license-examples.md` example 4). Vendor: one shared rule instead of its own. Site visitor:
+no feature disappearing mid-renewal.
+
+**Issues to settle.**
+1. Where the grace period is set: by the product (evaluator option, no key change), or by the
+   vendor per key (a signed field; a key format change, so decided before 1.0 or not at all,
+   PDR-0024).
+2. Which state a key in grace reports: `Valid`, `Expired` with lookups answering, or a new state
+   (a new state changes PDR-0002 and every host's state table).
+3. Whether lookups answer during grace, and whether the product can tell grace from valid to warn
+   the site owner.
+4. `FeatureList` has no public lookup by name today (`Find` is internal); vendor-built grace
+   needs LINQ over the list. A public lookup may be worth adding regardless.
+
+**Related.** PDR-0002 (states and lookups), PDR-0007 (expiry to the second), PDR-0022 (cached
+results and expiry).

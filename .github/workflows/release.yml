@@ -41,7 +41,7 @@ jobs:
       - name: Test
         run: dotnet test --solution Umbraco.Community.Licensing.slnx -c Release --no-build
       - name: Pack
-        run: dotnet pack src/Umbraco.Community.Licensing.Core/Umbraco.Community.Licensing.Core.csproj -c Release --no-build -o "${{ runner.temp }}/packages"
+        run: dotnet pack src/Umbraco.Community.Licensing/Umbraco.Community.Licensing.csproj -c Release --no-build -o "${{ runner.temp }}/packages"
       - name: NuGet login
         if: github.event_name == 'push' && github.ref_type == 'tag'
         id: login
