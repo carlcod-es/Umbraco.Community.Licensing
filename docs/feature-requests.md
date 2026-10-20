@@ -13,7 +13,7 @@ Cite as FR-N.
 | FR-4 | Standby signing key | Carl, 2026-10-10 | Open; with or after FR-2 |
 | FR-5 | Responding to a compromised signing key | Carl, 2026-10-10 | Open; after FR-2 |
 | FR-6 | CI and release pipeline | Carl, 2026-10-14 | Taken into `add-release-pipeline` (design.md Q1 to Q10; PDR-0027, PDR-0028, PDR-0029, ADR-0008, ADR-0009) |
-| FR-7 | Standard first-action text per state | Library review, 2026-10-20 | Approved by Carl (2026-10-20); waits for a change. Amends PDR-0002 when taken up |
+| FR-7 | Standard first-action text per state | Library review, 2026-10-20 | Withdrawn for now (Carl, 2026-10-20): the library supplies the state only; vendors write all message text. PDR-0002 unchanged |
 | FR-8 | Same status wording across vendors' screens | Library review, 2026-10-20 | Open. Screens stay out of the library (Carl, 2026-10-20) |
 | FR-9 | Grace period after expiry | Library review, 2026-10-20 | Open. Until then vendors implement grace themselves (Carl, 2026-10-20) |
 
@@ -215,14 +215,29 @@ and its first action, as in the README states table. Vendors show it as is, or r
 translate it. Today PDR-0002 leaves all message text to the host, so each vendor words
 `Expired` or `NotVerified` differently.
 
-**Status.** Approved by Carl (2026-10-20). Taken up by a later change as a design.md Q-number;
-the PDR that settles it amends PDR-0002 ("the library supplies the state, not message text").
+**Status.** Withdrawn for now (Carl, 2026-10-20): the library supplies the state only; vendors
+write all message text. PDR-0002 ("the library supplies the state, not message text") is
+unchanged. Approved earlier the same day, then withdrawn after the explore below.
 
 **Personas.** Site owner (primary): keys from several vendors give the same instruction for the
 same state. Implementor: one set of fixes to learn. Vendor: no text to write; can still replace
 it.
 
-**Issues to settle.**
+**Explored before withdrawal (Carl, 2026-10-20).** Starting point if this FR is revisited:
+- Audience: one text per state, written for whoever reads it. Rejected: separate site owner and
+  implementor texts (double the text; the vendor must know who is looking).
+- Content: generic; no product, vendor or claim named. Observed fact, then the first action
+  naming who acts in plain words ("the site's developer", "the site owner", "the product's
+  vendor"). `Valid` has a text, no first action.
+- Language: English only; library-shipped translations would be a separate FR.
+- Replacement: per state, whole text, 0 to 8 states, set once per product at setup; blank is a
+  setup error; states not replaced keep the standard text.
+- Access: standard text and product text for any state, with or without a result. `ToString()`
+  unchanged.
+- Stability: meaning and first action fixed from 1.0; wording may improve, noted in the release
+  log; vendors must not parse it.
+
+**Issues to settle** (as raised; issues 1 to 4 were answered in the explore above).
 1. Where the text lives: a lookup by state, a property on `LicenseResult`, or both.
 2. Whether the text is part of the stability promise from 1.0 (changing wording is not a key
    format change).
@@ -241,14 +256,15 @@ an add-on. Whether a product shows license status, where (backoffice dashboard, 
 log, settings page) and how, is entirely the vendor's (Carl, 2026-10-20).
 
 **What the library contributes.** Only data: the state, the verified facts (`VerifiedLicense`),
-the claims, and the first-action text of FR-7. Every vendor rendering those gets consistent
-wording without a shared screen.
+the claims. Message text is the vendor's (FR-7 withdrawn, Carl, 2026-10-20); the README states
+table is the shared reference for each state's meaning and first action.
 
 **Issues to settle.**
-1. Whether anything beyond FR-7 is needed. Candidate: a non-UI way for each product to report
-   its evaluated state on a site, so a vendor or third party could build an overview. Any such
-   overview screen would be a separate package, not part of this library.
-2. If nothing beyond FR-7 is needed, close this FR when FR-7 is done.
+1. Whether anything is needed. Candidate: a non-UI way for each product to report its evaluated
+   state on a site, so a vendor or third party could build an overview. Any such overview screen
+   would be a separate package, not part of this library.
+2. Whether consistent wording across vendors is still a goal now that FR-7 is withdrawn, or this
+   FR closes.
 
 **Personas.** Site owner: one vocabulary across products. Vendor: unchanged freedom over its own
 UI.
