@@ -48,6 +48,11 @@ jobs:
         uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
         with:
           user: ${{ vars.NUGET_USER }}
+      - name: Fail if NuGet login returned no API key
+        if: github.event_name == 'push' && github.ref_type == 'tag' && steps.login.outputs.NUGET_API_KEY == ''
+        run: |
+          echo "::error::NuGet login returned no API key. Check the nuget.org Trusted Publishing policy and the NUGET_USER repository variable (docs/releasing.md, one-time setup)."
+          exit 1
       - name: Push to NuGet
         if: github.event_name == 'push' && github.ref_type == 'tag'
         run: dotnet nuget push "${{ runner.temp }}/packages/*.nupkg" --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
