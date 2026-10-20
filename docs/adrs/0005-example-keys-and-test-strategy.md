@@ -1,6 +1,6 @@
 # ADR-0005: Example key strings and test strategy
 
-- Status: Decided
+- Status: Amended by ADR-0010
 - Date: 2026-10-09
 - Source: `add-license-core` design.md R8, Q7, Q13, Q17 (`CLEAN-PROJECT-PROMPT.md` section 10, technology
   item 4)
