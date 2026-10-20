@@ -1,7 +1,9 @@
 ## Context
 
 See proposal.md (Why). Current state: no CI, no `.github/`; `Version` `0.1.0-beta.1` typed in
-`src/Umbraco.Community.Licensing.Core/Umbraco.Community.Licensing.Core.csproj` (ADR-0006); tests
+`src/Umbraco.Community.Licensing.Core/Umbraco.Community.Licensing.Core.csproj` (ADR-0006; renamed to
+`src/Umbraco.Community.Licensing/Umbraco.Community.Licensing.csproj` by `rename-to-bare-package-name`,
+ADR-0010); tests
 on Microsoft.Testing.Platform, run with `dotnet test --solution Umbraco.Community.Licensing.slnx`;
 library tested only on macOS. The repository is public on GitHub in Carl's organisation
 `carlcod-es` (Q9); `RepositoryUrl` and the README links already name it. Nothing is published yet.
@@ -72,7 +74,7 @@ the beta-status refusal (PDR-0024 stays visible on every beta).
                                             │                              → pack → NuGet/login → push
                                             └─ manual ──────────────────> all-platforms.yml (hosted ×3, disabled)
 
-  Version.props ──imported by──> Umbraco.Community.Licensing.Core.csproj ──> package version
+  Version.props ──imported by──> Umbraco.Community.Licensing.csproj ──> package version
 ```
 
 ### Workflows, runners, publishing — ADR-0008
@@ -111,7 +113,7 @@ New top-level paths, added to the CLAUDE.md ownership table in tasks.md 1.1:
 | Integration | No-TTY refusal | Spawn `release.mjs` with piped stdin; expect refusal and no change |
 | Unit | Tests that read repository files (`RELEASES.md`, `Version.props`) assert they are valid, never their current content, so a release commit cannot break them (tasks.md 8.3) | `node:test` |
 | Build | Package version comes from `Version.props`; no pack warnings | `dotnet pack`, nuspec inspected |
-| Observed | `ci.yml` on this change's pull request; `release.yml` rehearsal on Carl's runner; first published release `0.1.0-beta.2` (`0.1.0-beta.1` failed its tool tests, tasks.md 8.3) | Carl's observation, recorded in tasks.md |
+| Observed | `ci.yml` on this change's pull request; `release.yml` rehearsal on Carl's runner; first published release `0.1.0-beta.3` (`0.1.0-beta.1` failed its tool tests, tasks.md 8.3; `0.1.0-beta.2` was attempted as `.Core` and not published, ADR-0010) | Carl's observation, recorded in tasks.md |
 | Deferred | "All-platform check" scenario: Carl runs the validation commands by hand on Windows, a Linux machine and macOS per `docs/releasing.md`, one result per OS. Not checked in this change; checked at the pre-1.0 step (PDR-0028), tracked by follow-ups.md item 31 (Carl, 2026-10-19) | Carl's observation at the pre-1.0 step |
 
 Validation commands for every block: `node --test "tools/release/*.test.mjs"`,
@@ -149,7 +151,8 @@ Validation commands for every block: `node --test "tools/release/*.test.mjs"`,
    Publishing policy owned by `Carlcod-es`, `NUGET_USER` variable `CarlCod_es`.
 3. Rehearsal on the runner, then `node tools/release/release.mjs` → `0.1.0-beta.1` (failed its tool
    tests, 2026-10-20). After section 8: rehearsal on `main`, then the release command →
-   `0.1.0-beta.2`.
+   `0.1.0-beta.2` (attempted as `.Core`, not published). After `rename-to-bare-package-name`
+   (ADR-0010): rehearsal on `main`, then the release command → `0.1.0-beta.3`.
 
 Rollback: delete the workflows; restore `Version` in the project file. An already published
 version cannot be removed from nuget.org, only unlisted.
