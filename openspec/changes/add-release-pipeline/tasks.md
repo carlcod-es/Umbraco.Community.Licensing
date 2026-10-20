@@ -65,7 +65,7 @@ Depends on: 4, 5. Owner: Architect.
 
 ## 7. First release
 
-Depends on: 5, 6, 8, and this change and `rename-to-bare-package-name` merged to `main` (a
+Depends on: 5, 6, 8, 9, and this change and `rename-to-bare-package-name` merged to `main` (a
 release before the rename would use `0.1.0-beta.3` as `.Core`; PDR-0027 does not reuse numbers).
 Owner: Carl.
 
@@ -83,3 +83,12 @@ release). Approved by Carl, 2026-10-19 and 2026-10-20.
 - [x] 8.1 Make `SigningPublicKey.FromSpki` turn `PlatformNotSupportedException` from the platform import into `FormatException`, as it does `CryptographicException` (Windows CNG throws `PlatformNotSupportedException` for a point not on the curve; `SigningPrivateKey` already catches both), and verify `SigningKeyTests.PublicKeyParse_RejectsPointNotOnCurve` passes unchanged on Linux and on Carl's Windows runner in the task 7.1 rehearsal
 - [x] 8.2 Make `PerformanceTests.NoMemoryGrowth_AfterManyEvaluations_HeldMemoryDoesNotGrowWithCalls` fail only when held memory grows by the budget or more (drop `Math.Abs`; message says "grew by"), and verify the test passes on this machine and still fails when an evaluation is made to hold memory (temporary local change, not committed)
 - [x] 8.3 Make the two tests in `tools/release/release-rules.test.mjs` that read the repository `RELEASES.md` independent of how many rows it holds: it parses and every row has a valid version, tag and date; `insertRow` on it puts the new row first and keeps every existing row in order. Tests that read repository files assert they are valid, never their current content. Verify the tool tests pass against the current `RELEASES.md` (one row) and against a copy with zero rows and with two rows
+
+## 9. Clear failure when NuGet login gives no key
+
+Depends on: 5. Owner: worker-backend (shared CI, assigned). Paths: `.github/workflows/release.yml`.
+Found 2026-10-20: the `0.1.0-beta.2` run reached **Push to NuGet** with no API key (nuget.org
+account not yet set up) and failed with an unrelated glob message (follow-ups.md item 45).
+Approved by Carl, 2026-10-20.
+
+- [ ] 9.1 In `release.yml`, between **NuGet login** and **Push to NuGet**, add a step with the same tag-push condition that runs only when `steps.login.outputs.NUGET_API_KEY` is empty, prints an `::error::` line saying NuGet login returned no API key and to check the nuget.org Trusted Publishing policy and `NUGET_USER` (`docs/releasing.md` one-time setup), and exits 1; use only commands that work in every runner shell (`echo`, `exit 1`). Leave the other steps unchanged. Verify by reading that the step order and conditions match, that a rehearsal (`workflow_dispatch`) still skips login, guard and push, and by Carl's observation on the next tag run
