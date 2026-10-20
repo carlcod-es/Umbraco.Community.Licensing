@@ -1,6 +1,6 @@
 # ADR-0004: Public API surface
 
-- Status: Decided
+- Status: Amended by ADR-0010
 - Date: 2026-10-09
 - Source: `add-license-core` design.md Q6, Q10, Q11, Q13, Q14, Q16, Q19, Q20 (`CLEAN-PROJECT-PROMPT.md` section 10,
   technology item 2)

@@ -1,6 +1,6 @@
 # ADR-0005: Example key strings and test strategy
 
-- Status: Decided
+- Status: Amended by ADR-0010
 - Date: 2026-10-09
 - Source: `add-license-core` design.md R8, Q7, Q13, Q17 (`CLEAN-PROJECT-PROMPT.md` section 10, technology
   item 4)
@@ -52,6 +52,9 @@ dotnet run --project tests/Umbraco.Community.Licensing.Core.Tests -- -explicit o
 ```
 
 (Amended 2026-10-13 before archiving `add-license-core`.)
+
+(Amended 2026-10-20, ADR-0010: the test project is now `tests/Umbraco.Community.Licensing.Tests`;
+run `dotnet run --project tests/Umbraco.Community.Licensing.Tests -- -explicit only -method "*ExampleKeyGenerator*" -showLiveOutput`.)
 
 **Example tests** (run always) evaluate each committed key string with the example public key
 and a fixed clock and assert the documented state and contents. A test asserts every committed

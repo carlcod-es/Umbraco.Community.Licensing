@@ -65,15 +65,17 @@ Depends on: 4, 5. Owner: Architect.
 
 ## 7. First release
 
-Depends on: 5, 6, 8, and this change merged to `main`. Owner: Carl.
+Depends on: 5, 6, 8, and this change and `rename-to-bare-package-name` merged to `main` (a
+release before the rename would use `0.1.0-beta.3` as `.Core`; PDR-0027 does not reuse numbers).
+Owner: Carl.
 
 - [x] 7.1 Carl completes the `docs/releasing.md` one-time setup and runs a rehearsal on `main`, and verify by Carl's observation that it passes on his runner
-- [ ] 7.2 After a rehearsal on `main` with section 8 merged passes, Carl runs `node tools/release/release.mjs`, and verify by Carl's observation that `RELEASES.md` has the `0.1.0-beta.2` row above the failed `0.1.0-beta.1` row, the release run passes, and nuget.org lists `Umbraco.Community.Licensing.Core` `0.1.0-beta.2` as a prerelease owned by `Carlcod-es`, whose repository commit is the tagged commit (revised 2026-10-20: the `0.1.0-beta.1` attempt failed its tool tests, task 8.3; its number is not reused, PDR-0027)
+- [ ] 7.2 After a rehearsal on `main` with section 8 merged passes, Carl runs `node tools/release/release.mjs`, and verify by Carl's observation that `RELEASES.md` has the `0.1.0-beta.3` row above the unpublished `0.1.0-beta.2` and failed `0.1.0-beta.1` rows, the release run passes, and nuget.org lists `Umbraco.Community.Licensing` `0.1.0-beta.3` as a prerelease owned by `Carlcod-es`, whose repository commit is the tagged commit (revised 2026-10-20: the `0.1.0-beta.1` attempt failed its tool tests, task 8.3; its number is not reused, PDR-0027. Revised again 2026-10-20: package renamed, ADR-0010; `0.1.0-beta.2` attempted as `.Core`, not published)
 
 ## 8. Windows fix from the rehearsal
 
-Depends on: none. Owner: worker-backend. Paths: `src/Umbraco.Community.Licensing.Core/Signing/SigningPublicKey.cs` (8.1),
-`tests/Umbraco.Community.Licensing.Core.Tests/Evaluation/PerformanceTests.cs` (8.2),
+Depends on: none. Owner: worker-backend. Paths: `src/Umbraco.Community.Licensing/Signing/SigningPublicKey.cs` (8.1),
+`tests/Umbraco.Community.Licensing.Tests/Evaluation/PerformanceTests.cs` (8.2),
 `tools/release/release-rules.test.mjs` (8.3). Task 8.1 found in the task 7.1 rehearsal on MINIDEV
 (Windows), 2026-10-19; tasks 8.2 and 8.3 found 2026-10-20 (8.3 failed the `0.1.0-beta.1`
 release). Approved by Carl, 2026-10-19 and 2026-10-20.

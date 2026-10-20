@@ -1,6 +1,7 @@
 # License examples
 
-Schema and worked examples. An example that contradicts a PDR is a documentation bug.
+Schema and worked examples. An example that contradicts a PDR is a documentation bug. The key
+string format byte for byte: [`key-format.md`](key-format.md).
 
 Last checked against: PDR-0001 to PDR-0029, ADR-0001 to ADR-0009 (2026-10-20: PDR-0027 note on the first published version changes no schema or example. 2026-10-14; PDR-0027 to PDR-0029
 (PDR-0029 amended for design.md Q11) and ADR-0008, ADR-0009 from `add-release-pipeline` change no schema or example. Earlier: 2026-10-13, change `add-license-core`, explore

@@ -1,6 +1,6 @@
 # Releasing
 
-How `Umbraco.Community.Licensing.Core` is released to nuget.org. Only Carl starts a release.
+How `Umbraco.Community.Licensing` is released to nuget.org. Only Carl starts a release.
 Decisions: PDR-0027 (versioning, log, refusals), PDR-0028 (test coverage), PDR-0029 (tag must
 match the log), ADR-0008 (CI, runners, publishing), ADR-0009 (release command and files).
 
@@ -82,7 +82,7 @@ Run before the first release, after changing the runner, and whenever a release 
 2. Check the run:
    - **Print platform** names the runner machine's operating system.
    - Tool tests and the .NET tests pass.
-   - **Pack** produces `Umbraco.Community.Licensing.Core.<version>.nupkg`.
+   - **Pack** produces `Umbraco.Community.Licensing.<version>.nupkg`.
    - **Release check**, **NuGet login** and **Push to NuGet** are skipped.
 
 A rehearsal never publishes, whichever branch or ref it runs on: the publish steps run only on a
