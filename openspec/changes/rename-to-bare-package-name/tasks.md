@@ -19,10 +19,10 @@ Depends on: 1. Owner: Architect. Paths: `README.md`, `docs/releasing.md`, `RELEA
 
 - [x] 3.1 Replace the package name and `using` line in `README.md`, rewrite its naming sentence to drop "Core", and update the package name and `.nupkg` name in `docs/releasing.md`, and verify by grep that neither file contains `Licensing.Core`
 - [x] 3.2 Change the `RELEASES.md` header to name `Umbraco.Community.Licensing` and note that 0.1.0-beta.1 and 0.1.0-beta.2 were attempted as `Umbraco.Community.Licensing.Core` (ADR-0010), leaving rows unchanged, and verify `node --test "tools/release/*.test.mjs"` still reports 98 passed
-- [ ] 3.3 Run `opsx:update` on `add-release-pipeline` so its open task 7.2 and design.md name the new package ID and project path, and verify `openspec validate add-release-pipeline` passes
+- [x] 3.3 Run `opsx:update` on `add-release-pipeline` so its open task 7.2 and design.md name the new package ID and project path, and verify `openspec validate add-release-pipeline` passes
 
 ## 4. Final verification
 
 Depends on: 1, 2, 3. Owner: Architect (runs checks; no file edits).
 
-- [ ] 4.1 Run `node tools/release/platform.mjs`, a clean `dotnet build Umbraco.Community.Licensing.slnx -c Release --no-incremental`, `dotnet test --solution Umbraco.Community.Licensing.slnx -c Release --no-build`, `node --test "tools/release/*.test.mjs"` and `dotnet pack`, and verify results match the design.md baseline (0 warnings; 816 passed, 1 skipped, 0 failed; 98 passed; package `Umbraco.Community.Licensing`), and that `grep -r "Licensing\.Core"` outside `openspec/changes/archive/`, this change, `RELEASES.md` history note and ADR historical text returns nothing
+- [x] 4.1 Run `node tools/release/platform.mjs`, a clean `dotnet build Umbraco.Community.Licensing.slnx -c Release --no-incremental`, `dotnet test --solution Umbraco.Community.Licensing.slnx -c Release --no-build`, `node --test "tools/release/*.test.mjs"` and `dotnet pack`, and verify results match the design.md baseline (0 warnings; 816 passed, 1 skipped, 0 failed; 98 passed; package `Umbraco.Community.Licensing`), and that `grep -r "Licensing\.Core"` outside `openspec/changes/archive/`, this change, `RELEASES.md` history note and ADR historical text returns nothing
