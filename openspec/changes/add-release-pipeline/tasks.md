@@ -60,8 +60,8 @@ only tested packages, Release refusals, Test coverage per release.
 Depends on: 4, 5. Owner: Architect.
 
 - [x] 6.1 Add the PDR-0028 pre-1.0 line to `README.md` verbatim, and a link to `RELEASES.md`, and verify the line matches PDR-0028 character for character
-- [x] 6.2 Write `docs/releasing.md`: one-time setup (register a self-hosted runner available to this repository, and its prerequisites; "Require approval for all external contributors"; nuget.org Trusted Publishing policy owned by the nuget.org organisation `Carlcod-es` for `release.yml`; `NUGET_USER` repository variable `CarlCod_es`, per ADR-0008), rehearsal, the release command, changing the line, what each refusal means, failed releases and when a re-run is allowed, the pre-1.0 all-platform step (Carl runs the validation commands by hand on Windows, Linux and macOS; `all-platforms.yml` is disabled, dispatching it gives a skipped run, not a check, and how to re-enable it; the "All-platform check" scenario is checked at the pre-1.0 step per PDR-0028, not in this change, tracked by follow-ups.md item 31); link it from the README Documentation table, and verify by Carl following it in 7.1
-- [ ] 6.3 Update `docs/feature-requests.md` FR-6 status to closed by this change once 7.2 passes, and verify the row names the change and the first published version
+- [x] 6.2 Write `docs/releasing.md`: one-time setup (register a self-hosted runner available to this repository, and its prerequisites; "Require approval for all external contributors"; nuget.org Trusted Publishing policy owned by the nuget.org organisation `Carlcod-es` for `release.yml`; `NUGET_USER` repository variable `CarlCod_es`, per ADR-0008), rehearsal, the release command, changing the line, what each refusal means, failed releases and when a re-run is allowed, the pre-1.0 all-platform step (Carl runs the validation commands by hand on Windows, Linux and macOS; `all-platforms.yml` is disabled, dispatching it gives a skipped run, not a check, and how to re-enable it; the "All-platform check" scenario is checked at the pre-1.0 step per PDR-0028, not in this change, tracked by follow-ups.md item 31, now `pre-1.0-considerations.md` C11); link it from the README Documentation table, and verify by Carl following it in 7.1
+- [x] 6.3 Update `docs/feature-requests.md` FR-6 status to closed by this change once 7.2 passes, and verify the row names the change and the first published version
 
 ## 7. First release
 
@@ -70,7 +70,7 @@ release before the rename would use `0.1.0-beta.3` as `.Core`; PDR-0027 does not
 Owner: Carl.
 
 - [x] 7.1 Carl completes the `docs/releasing.md` one-time setup and runs a rehearsal on `main`, and verify by Carl's observation that it passes on his runner
-- [ ] 7.2 After a rehearsal on `main` with section 8 merged passes, Carl runs `node tools/release/release.mjs`, and verify by Carl's observation that `RELEASES.md` has the `0.1.0-beta.4` row above the failed `0.1.0-beta.3`, unpublished `0.1.0-beta.2` and failed `0.1.0-beta.1` rows, the release run passes, and nuget.org lists `Umbraco.Community.Licensing` `0.1.0-beta.4` as a prerelease owned by `Carlcod-es`, whose repository commit is the tagged commit (revised 2026-10-20: the `0.1.0-beta.1` attempt failed its tool tests, task 8.3; its number is not reused, PDR-0027. Revised again 2026-10-20: package renamed, ADR-0010; `0.1.0-beta.2` attempted as `.Core`, not published. Revised 2026-10-27: `0.1.0-beta.3` failed at Push to NuGet, task 10.1; number not reused, PDR-0027)
+- [x] 7.2 After a rehearsal on `main` with section 8 merged passes, Carl runs `node tools/release/release.mjs`, and verify by Carl's observation that `RELEASES.md` has the `0.1.0-beta.4` row above the failed `0.1.0-beta.3`, unpublished `0.1.0-beta.2` and failed `0.1.0-beta.1` rows, the release run passes, and nuget.org lists `Umbraco.Community.Licensing` `0.1.0-beta.4` as a prerelease owned by `Carlcod-es`, whose repository commit is the tagged commit (revised 2026-10-20: the `0.1.0-beta.1` attempt failed its tool tests, task 8.3; its number is not reused, PDR-0027. Revised again 2026-10-20: package renamed, ADR-0010; `0.1.0-beta.2` attempted as `.Core`, not published. Revised 2026-10-27: `0.1.0-beta.3` failed at Push to NuGet, task 10.1; number not reused, PDR-0027. No rehearsal preceded `0.1.0-beta.3` or `0.1.0-beta.4` (Carl, 2026-10-27; `pre-1.0-considerations.md` C14))
 
 ## 8. Windows fix from the rehearsal
 
@@ -91,7 +91,7 @@ Found 2026-10-20: the `0.1.0-beta.2` run reached **Push to NuGet** with no API k
 account not yet set up) and failed with an unrelated glob message (follow-ups.md item 45).
 Approved by Carl, 2026-10-20.
 
-- [ ] 9.1 In `release.yml`, between **NuGet login** and **Push to NuGet**, add a step with the same tag-push condition that runs only when `steps.login.outputs.NUGET_API_KEY` is empty, prints an `::error::` line saying NuGet login returned no API key and to check the nuget.org Trusted Publishing policy and `NUGET_USER` (`docs/releasing.md` one-time setup), and exits 1; use only commands that work in every runner shell (`echo`, `exit 1`). Leave the other steps unchanged. Verify by reading that the step order and conditions match, that a rehearsal (`workflow_dispatch`) still skips login, guard and push, and by Carl's observation on the next tag run
+- [x] 9.1 In `release.yml`, between **NuGet login** and **Push to NuGet**, add a step with the same tag-push condition that runs only when `steps.login.outputs.NUGET_API_KEY` is empty, prints an `::error::` line saying NuGet login returned no API key and to check the nuget.org Trusted Publishing policy and `NUGET_USER` (`docs/releasing.md` one-time setup), and exits 1; use only commands that work in every runner shell (`echo`, `exit 1`). Leave the other steps unchanged. Verify by reading that the step order and conditions match, that a rehearsal (`workflow_dispatch`) still skips login, guard and push, and by Carl's observation on the next tag run
 
 ## 10. Push path on the Windows runner
 
@@ -101,4 +101,14 @@ NuGet login, then **Push to NuGet** failed `File does not exist (C:\actions-runn
 on Windows `runner.temp` uses `\` and the appended `/packages/*.nupkg` uses `/`, and NuGet does not
 expand the wildcard in a mixed-separator path (follow-ups.md item 45). Approved by Carl, 2026-10-27.
 
-- [ ] 10.1 In `release.yml`, give **Push to NuGet** `working-directory: ${{ runner.temp }}/packages` and push `"*.nupkg"` with no directory in the path; keep its condition, key and source unchanged and leave every other step unchanged. Verify by reading that the push path holds no separator, that Pack still writes to `${{ runner.temp }}/packages`, that a rehearsal still skips the push, and by Carl's observation on the next tag run (task 7.2)
+- [x] 10.1 In `release.yml`, give **Push to NuGet** `working-directory: ${{ runner.temp }}/packages` and push `"*.nupkg"` with no directory in the path; keep its condition, key and source unchanged and leave every other step unchanged. Verify by reading that the push path holds no separator, that Pack still writes to `${{ runner.temp }}/packages`, that a rehearsal still skips the push, and by Carl's observation on the next tag run (task 7.2)
+
+## 11. Package icon
+
+Depends on: none. Owner: worker-backend (library project file, shared package manifest, assigned).
+Paths: `src/Umbraco.Community.Licensing/Umbraco.Community.Licensing.csproj`. Icon file
+`assets/icon.png` (635×635 PNG, Carl, 2026-10-27; credit in `README.md`, CC BY 3.0); `assets/**`
+ownership row added to CLAUDE.md. Requested by Carl, 2026-10-27; ships in the next release.
+design.md Q13, ADR-0006.
+
+- [x] 11.1 Embed `assets/icon.png` in the package: `<PackageIcon>icon.png</PackageIcon>` and a pack item for `../../assets/icon.png` at the package root, written like the README pack item; no `PackageIconUrl`. Verify `dotnet pack` reports no warnings, the nuspec has `<icon>icon.png</icon>`, the `.nupkg` holds `icon.png` at its root, and the validation commands pass

@@ -12,10 +12,11 @@ Cite as FR-N.
 | FR-3 | Example product package | Carl, 2026-10-09 | Open; possible later change |
 | FR-4 | Standby signing key | Carl, 2026-10-10 | Open; with or after FR-2 |
 | FR-5 | Responding to a compromised signing key | Carl, 2026-10-10 | Open; after FR-2 |
-| FR-6 | CI and release pipeline | Carl, 2026-10-14 | Taken into `add-release-pipeline` (design.md Q1 to Q10; PDR-0027, PDR-0028, PDR-0029, ADR-0008, ADR-0009) |
+| FR-6 | CI and release pipeline | Carl, 2026-10-14 | Closed by `add-release-pipeline` (design.md Q1 to Q10; PDR-0027, PDR-0028, PDR-0029, ADR-0008, ADR-0009); first published version `0.1.0-beta.4`, 2026-10-27 |
 | FR-7 | Standard first-action text per state | Library review, 2026-10-20 | Withdrawn for now (Carl, 2026-10-20): the library supplies the state only; vendors write all message text. PDR-0002 unchanged |
 | FR-8 | Same status wording across vendors' screens | Library review, 2026-10-20 | Open. Screens stay out of the library (Carl, 2026-10-20) |
 | FR-9 | Grace period after expiry | Library review, 2026-10-20 | Open. Until then vendors implement grace themselves (Carl, 2026-10-20) |
+| FR-10 | Version marker for each release | Carl, 2026-10-27 | Open |
 
 ## FR-1: Vendor-chosen key identifier prefix
 
@@ -298,3 +299,19 @@ no feature disappearing mid-renewal.
 
 **Related.** PDR-0002 (states and lookups), PDR-0007 (expiry to the second), PDR-0022 (cached
 results and expiry).
+
+## FR-10: Version marker for each release
+
+**Request.** When a release is made, mark it by version as well as by the `release-yyyymmdd` tag
+the release command already creates (Carl, 2026-10-27, during `add-release-pipeline` task 7.2).
+
+**Personas.** Vendor: finds the source of any published version from its number.
+
+**Issues to settle.**
+1. Which form: a git tag per version (e.g. `v0.1.0-beta.4`), a GitHub Release (version, note,
+   package attached), or both.
+2. A second tag must not start a release run; only `release-*` tags do (PDR-0029).
+3. Who creates it: the release command before the run, or the release run after a successful push
+   (a marker for a failed attempt would point at an unpublished version).
+
+**Related.** PDR-0027, PDR-0029, ADR-0009.

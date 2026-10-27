@@ -57,6 +57,7 @@ the beta-status refusal (PDR-0024 stays visible on every beta).
 | Q10 | Which nuget.org account owns the package | nuget.org organisation `Carlcod-es`; policy created by Carl's user `CarlCod_es`, which is `NUGET_USER` (Carl, 2026-10-14) | ADR-0008 |
 | Q11 | A tag whose version has no release log row | Refused, as a row naming a different tag (Carl, 2026-10-14) | PDR-0029 |
 | Q12 | A tag run whose tests passed but whose NuGet login or push failed, with the version not on nuget.org | Re-run allowed: same tag, same version; the re-run rebuilds and retests the same commit (Carl, 2026-10-19) | ADR-0008 |
+| Q13 | Package icon | Embedded `assets/icon.png` via `PackageIcon`, no `PackageIconUrl`; third-party icon under CC BY 3.0, credited with a licence link in `README.md` (Carl, 2026-10-27) | ADR-0006 |
 
 ## Decisions
 
@@ -94,7 +95,8 @@ is tested end to end against temporary Git repositories; only the TTY check sits
 
 ### Ownership
 
-New top-level paths, added to the CLAUDE.md ownership table in tasks.md 1.1:
+New top-level paths, added to the CLAUDE.md ownership table in tasks.md 1.1 (`assets/**` in
+tasks.md 11.1):
 
 | Path | Owner |
 |---|---|
@@ -102,6 +104,7 @@ New top-level paths, added to the CLAUDE.md ownership table in tasks.md 1.1:
 | `.github/**` | Shared (CI): assigned to worker-backend in the brief |
 | `Version.props` | Shared: assigned in the brief; `VersionLine` changed only by Carl, `Version` only by the release command after this change |
 | `RELEASES.md` | Architect creates it; rows added only by the release command |
+| `assets/**` | Architect. Files packed into the package are referenced from the library project by worker-backend |
 
 ## Test strategy
 
@@ -113,8 +116,8 @@ New top-level paths, added to the CLAUDE.md ownership table in tasks.md 1.1:
 | Integration | No-TTY refusal | Spawn `release.mjs` with piped stdin; expect refusal and no change |
 | Unit | Tests that read repository files (`RELEASES.md`, `Version.props`) assert they are valid, never their current content, so a release commit cannot break them (tasks.md 8.3) | `node:test` |
 | Build | Package version comes from `Version.props`; no pack warnings | `dotnet pack`, nuspec inspected |
-| Observed | `ci.yml` on this change's pull request; `release.yml` rehearsal on Carl's runner; first published release `0.1.0-beta.3` (`0.1.0-beta.1` failed its tool tests, tasks.md 8.3; `0.1.0-beta.2` was attempted as `.Core` and not published, ADR-0010) | Carl's observation, recorded in tasks.md |
-| Deferred | "All-platform check" scenario: Carl runs the validation commands by hand on Windows, a Linux machine and macOS per `docs/releasing.md`, one result per OS. Not checked in this change; checked at the pre-1.0 step (PDR-0028), tracked by follow-ups.md item 31 (Carl, 2026-10-19) | Carl's observation at the pre-1.0 step |
+| Observed | `ci.yml` on this change's pull request; `release.yml` rehearsal on Carl's runner; first published release `0.1.0-beta.4` (`0.1.0-beta.1` failed its tool tests, tasks.md 8.3; `0.1.0-beta.2` was attempted as `.Core` and not published, ADR-0010; `0.1.0-beta.3` failed at Push to NuGet, tasks.md 10.1) | Carl's observation, recorded in tasks.md |
+| Deferred | "All-platform check" scenario: Carl runs the validation commands by hand on Windows, a Linux machine and macOS per `docs/releasing.md`, one result per OS. Not checked in this change; checked at the pre-1.0 step (PDR-0028), tracked by follow-ups.md item 31, now `pre-1.0-considerations.md` C11 (Carl, 2026-10-19) | Carl's observation at the pre-1.0 step |
 
 Validation commands for every block: `node --test "tools/release/*.test.mjs"`,
 `dotnet build Umbraco.Community.Licensing.slnx`,
@@ -157,7 +160,8 @@ Validation commands for every block: `node --test "tools/release/*.test.mjs"`,
 3. Rehearsal on the runner, then `node tools/release/release.mjs` → `0.1.0-beta.1` (failed its tool
    tests, 2026-10-20). After section 8: rehearsal on `main`, then the release command →
    `0.1.0-beta.2` (attempted as `.Core`, not published). After `rename-to-bare-package-name`
-   (ADR-0010): rehearsal on `main`, then the release command → `0.1.0-beta.3`.
+   (ADR-0010): the release command → `0.1.0-beta.3` (failed at Push to NuGet, 2026-10-27,
+   tasks.md 10.1). After section 10: the release command → `0.1.0-beta.4`, published 2026-10-27.
 
 Rollback: delete the workflows; restore `Version` in the project file. An already published
 version cannot be removed from nuget.org, only unlisted.

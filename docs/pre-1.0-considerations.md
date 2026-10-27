@@ -6,6 +6,9 @@ Q-number in a change and is settled by a PDR or ADR; record that change in its S
 
 Cite as `pre-1.0-considerations.md` C1 and so on.
 
+C11 to C15 were carried from `add-release-pipeline` `follow-ups.md` when that change was archived
+(2026-10-27; item numbers given in each).
+
 Product items from the same review are feature requests: FR-7 (standard first-action text; withdrawn),
 FR-8 (same status wording across vendors' screens), FR-9 (grace period), in
 [`feature-requests.md`](feature-requests.md). The key format is documented in
@@ -22,11 +25,16 @@ importing the key per call is about 6.5 µs of that.
 | C3 | Symbols package | Packaging | No; cheap | Open |
 | C4 | Built-in code analysis | Build | No; cheap | Open |
 | C5 | API compatibility check from 1.0 | Build | Baseline is 1.0 | Open |
-| C6 | Package metadata and Marketplace listing | Packaging / product | No | Open |
+| C6 | Package metadata and Marketplace listing | Packaging / product | No | Open; icon added by `add-release-pipeline` (ADR-0006) |
 | C7 | Release runner exposure to other public repositories | Security | No; act soon | Open |
 | C8 | `VerifiedLicense` can be constructed and edited by callers | API | Breaking change | Open |
 | C9 | Unexplained index in `LicenseEvaluator` | Code | No | Open |
 | C10 | Oversized key string copied before refusal | Code | No | Open |
+| C11 | All-platform check before 1.0 | Test | Required by PDR-0028 | Open |
+| C12 | Release tag passed to the check through `env:` | Security | No | Open |
+| C13 | Performance tests on the release runner | Build | No | Open |
+| C14 | Rehearsal before every release | Process | No | Open |
+| C15 | Ctrl-C at a release command prompt | Tooling | No | Open |
 
 ## C1: Fields to settle before the format freezes
 
@@ -83,7 +91,7 @@ that releases 1.0.
 
 ## C6: Package metadata and Marketplace listing
 
-No `PackageIcon` or `PackageProjectUrl`; nuget.org shows the default icon. Whether to add the
+No `PackageProjectUrl`. (`PackageIcon` added 2026-10-27, `add-release-pipeline` tasks.md 11.1.) Whether to add the
 `umbraco-marketplace` tag, which lists the package in the Umbraco Marketplace, is a product call:
 the audience is package vendors, not site builders.
 
@@ -123,3 +131,40 @@ next to `ReferenceOf` would keep the identifier layout in one class.
 32,767-character check. A very large configuration value is copied once before it is refused.
 The implementor controls the value, so the risk is low. A first check against a generous raw bound
 would avoid the copy.
+
+## C11: All-platform check before 1.0
+
+PDR-0028: the full suite runs once on each of Windows, Linux and macOS before 1.0. Carl runs it by
+hand (`docs/releasing.md` "Pre-1.0 all-platform step"); `all-platforms.yml` is disabled. This also
+closes the `add-license-core` Windows and Linux follow-ups (signing-key import cost, off-curve key
+rejection) and the "All-platform check" scenario of the `release-process` spec. Windows and macOS
+have no CI run, so an OS-specific failure may first show on the release runner and burn a version
+number (PDR-0027). From `add-release-pipeline` `follow-ups.md` items 31 and 32.
+
+## C12: Release tag passed to the check through `env:`
+
+`release.yml` interpolates `${{ github.ref_name }}` into the **Release check** run line. A tag
+like `release-$(…)` would run in the shell before `check.mjs` refuses it. Only writers push tags,
+and the optional tag ruleset (`docs/releasing.md`) limits who. Hardening: pass the tag through
+`env:` and read it in `check.mjs` (changes its CLI contract). From `add-release-pipeline`
+`follow-ups.md` item 24. Related: C7.
+
+## C13: Performance tests on the release runner
+
+`PerformanceTests` timing (average under 1 ms) and memory budget run on the self-hosted release
+runner. A busy runner can fail a release and burn a version number (PDR-0027). Options:
+tolerances, or a test category the release run skips. From `add-release-pipeline`
+`follow-ups.md` item 42.
+
+## C14: Rehearsal before every release
+
+`docs/releasing.md` asks for a rehearsal "whenever a release run is in doubt", not before every
+release. `0.1.0-beta.3` and `0.1.0-beta.4` were released without one (Carl, 2026-10-27); a
+rehearsal cannot exercise login or push. Whether to require one is Carl's call. From
+`add-release-pipeline` `follow-ups.md` items 41 and 43.
+
+## C15: Ctrl-C at a release command prompt
+
+What the release command prints when interrupted with Ctrl-C at a prompt is untested and not in
+`docs/releasing.md`. Ctrl-D is covered ("Cancelled. Nothing changed."). Observe once and document,
+or handle it. From `add-release-pipeline` `follow-ups.md` item 35.

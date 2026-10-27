@@ -333,3 +333,5 @@ These come with checking keys entirely on the site:
 ## License
 
 MIT. See [`LICENSE`](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/LICENSE).
+
+Icon based on Document Lock by NurJannah from [Noun Project](https://thenounproject.com/browse/icons/term/document-lock/), licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). The icon is not covered by the MIT licence.

@@ -3,6 +3,7 @@
 - Status: Amended by ADR-0009
 - Date: 2026-10-11
 - Source: `add-license-core` design.md Q23, Q24. Amends ADR-0003.
+- Revised: 2026-10-27 (Carl): package icon; `add-release-pipeline` design.md Q13
 
 ## Context
 
@@ -24,6 +25,9 @@ release is a beta (PDR-0024), and the version, author, repository and package RE
   - `RepositoryUrl` `https://github.com/carlcod-es/Umbraco.Community.Licensing`,
     `RepositoryType` `git`. The https form, since package consumers cannot use the SSH remote.
   - `PackageReadmeFile` `README.md`, packed from the repository root.
+  - `PackageIcon` `icon.png`, packed from `assets/icon.png` to the package root; no
+    `PackageIconUrl` (deprecated). Third-party icon under CC BY 3.0, credited in `README.md`
+    (revised 2026-10-27).
 
 ## Alternatives Considered
 
@@ -40,6 +44,8 @@ release is a beta (PDR-0024), and the version, author, repository and package RE
 A solution is passed with `--solution` (`dotnet test --solution Umbraco.Community.Licensing.slnx`);
 the positional form is rejected under this runner, so scripts, CI and docs use the flag.
 Each later release bumps `Version`.
+The packed README carries the icon credit and a link to the CC BY 3.0 licence, stating the icon
+is not covered by MIT; both stay for as long as `icon.png` ships (licence condition).
 
 ## Reversal Cost
 

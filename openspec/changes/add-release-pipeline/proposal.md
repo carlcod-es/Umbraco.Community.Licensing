@@ -35,8 +35,10 @@ rules (PDR-0027, PDR-0028); this change builds them.
 - **Releasing guide** for Carl: one-time setup and the release steps.
 - **First release**: started by Carl after the change is built. `0.1.0-beta.1` failed
   before publishing and `0.1.0-beta.2` was attempted as `.Core` and not published (2026-10-20);
-  the first published release is
-  `0.1.0-beta.3` under `Umbraco.Community.Licensing` (PDR-0027, ADR-0010).
+  `0.1.0-beta.3` failed at the push (2026-10-27); the first published release is
+  `0.1.0-beta.4` under `Umbraco.Community.Licensing` (PDR-0027, ADR-0010).
+- **Package icon**: the package carries an icon on nuget.org from the next release (Carl,
+  2026-10-27).
 
 ## Capabilities
 
@@ -55,9 +57,9 @@ None. The library's behaviour does not change.
 - New: release command and its tests, version file, release log, two active workflows
   (change checks, release) and a disabled all-platform workflow, releasing guide.
 - Changed: the library project takes its version from the version file instead of a hand-typed
-  value; README gains the per-release testing line; on Windows, parsing a public key whose point is not on the curve fails with the documented format error (found in the release rehearsal).
+  value; README gains the per-release testing line; on Windows, parsing a public key whose point is not on the curve fails with the documented format error (found in the release rehearsal); the package carries an icon, credited in the README.
 - Records: PDR-0029 (new, amends PDR-0027); ADR-0008 and ADR-0009 (new); ADR-0006 amended by
-  ADR-0009. PDR-0027 and PDR-0028 source lines name this change's design.md Q-numbers.
+  ADR-0009 and revised for the package icon. PDR-0027 and PDR-0028 source lines name this change's design.md Q-numbers.
   `docs/feature-requests.md` FR-6 is taken into this change.
 - Outside the repository, done by Carl: register his test machines for releases, allow the
   release run to publish to the package feed, and require approval before workflows run for

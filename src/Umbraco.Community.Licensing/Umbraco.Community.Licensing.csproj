@@ -12,12 +12,14 @@
     <RepositoryUrl>https://github.com/carlcod-es/Umbraco.Community.Licensing</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>licensing;license-key;umbraco</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\assets\icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
