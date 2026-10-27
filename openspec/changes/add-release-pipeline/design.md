@@ -129,7 +129,10 @@ Validation commands for every block: `node --test "tools/release/*.test.mjs"`,
 - [NuGet login or push fails after tests pass] → Nothing published; re-run allowed while nuget.org
   does not list the version (Q12, ADR-0008). Releasing guide says so. An empty key from login
   fails at a guard step with an explicit message (tasks.md 9.1); happened 2026-10-20 at
-  `0.1.0-beta.2`, before nuget.org was set up, as an unrelated push error.
+  `0.1.0-beta.2`, before nuget.org was set up, as an unrelated push error. Happened again
+  2026-10-27 at `0.1.0-beta.3` with nuget.org set up: the push path mixed `\` and `/` on the
+  Windows runner and NuGet did not expand the wildcard (tasks.md 10.1). A rehearsal skips the
+  push, so only a tag run exercises it.
 - [First release fails on an untested runner and burns `0.1.0-beta.1`] → Rehearsal on the runner
   before the first tag (tasks.md 7.1). A burnt number is harmless (PDR-0027). Happened 2026-10-20 for a reason the rehearsal could not see: two tool tests asserted `RELEASES.md` had no rows, so the release commit failed them (tasks.md 8.3). A rehearsal after any release commit runs against a non-empty log and catches this class.
 - [Tests fail on Linux or Windows on first run] → `ci.yml` runs every pull request on Linux;

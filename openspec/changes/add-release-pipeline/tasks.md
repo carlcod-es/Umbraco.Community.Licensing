@@ -65,12 +65,12 @@ Depends on: 4, 5. Owner: Architect.
 
 ## 7. First release
 
-Depends on: 5, 6, 8, 9, and this change and `rename-to-bare-package-name` merged to `main` (a
+Depends on: 5, 6, 8, 9, 10, and this change and `rename-to-bare-package-name` merged to `main` (a
 release before the rename would use `0.1.0-beta.3` as `.Core`; PDR-0027 does not reuse numbers).
 Owner: Carl.
 
 - [x] 7.1 Carl completes the `docs/releasing.md` one-time setup and runs a rehearsal on `main`, and verify by Carl's observation that it passes on his runner
-- [ ] 7.2 After a rehearsal on `main` with section 8 merged passes, Carl runs `node tools/release/release.mjs`, and verify by Carl's observation that `RELEASES.md` has the `0.1.0-beta.3` row above the unpublished `0.1.0-beta.2` and failed `0.1.0-beta.1` rows, the release run passes, and nuget.org lists `Umbraco.Community.Licensing` `0.1.0-beta.3` as a prerelease owned by `Carlcod-es`, whose repository commit is the tagged commit (revised 2026-10-20: the `0.1.0-beta.1` attempt failed its tool tests, task 8.3; its number is not reused, PDR-0027. Revised again 2026-10-20: package renamed, ADR-0010; `0.1.0-beta.2` attempted as `.Core`, not published)
+- [ ] 7.2 After a rehearsal on `main` with section 8 merged passes, Carl runs `node tools/release/release.mjs`, and verify by Carl's observation that `RELEASES.md` has the `0.1.0-beta.4` row above the failed `0.1.0-beta.3`, unpublished `0.1.0-beta.2` and failed `0.1.0-beta.1` rows, the release run passes, and nuget.org lists `Umbraco.Community.Licensing` `0.1.0-beta.4` as a prerelease owned by `Carlcod-es`, whose repository commit is the tagged commit (revised 2026-10-20: the `0.1.0-beta.1` attempt failed its tool tests, task 8.3; its number is not reused, PDR-0027. Revised again 2026-10-20: package renamed, ADR-0010; `0.1.0-beta.2` attempted as `.Core`, not published. Revised 2026-10-27: `0.1.0-beta.3` failed at Push to NuGet, task 10.1; number not reused, PDR-0027)
 
 ## 8. Windows fix from the rehearsal
 
@@ -92,3 +92,13 @@ account not yet set up) and failed with an unrelated glob message (follow-ups.md
 Approved by Carl, 2026-10-20.
 
 - [ ] 9.1 In `release.yml`, between **NuGet login** and **Push to NuGet**, add a step with the same tag-push condition that runs only when `steps.login.outputs.NUGET_API_KEY` is empty, prints an `::error::` line saying NuGet login returned no API key and to check the nuget.org Trusted Publishing policy and `NUGET_USER` (`docs/releasing.md` one-time setup), and exits 1; use only commands that work in every runner shell (`echo`, `exit 1`). Leave the other steps unchanged. Verify by reading that the step order and conditions match, that a rehearsal (`workflow_dispatch`) still skips login, guard and push, and by Carl's observation on the next tag run
+
+## 10. Push path on the Windows runner
+
+Depends on: 5, 9. Owner: worker-backend (shared CI, assigned). Paths: `.github/workflows/release.yml`.
+Found 2026-10-27: release `0.1.0-beta.3` (tag `release-20261027`, commit `a2d03a1`) passed tests and
+NuGet login, then **Push to NuGet** failed `File does not exist (C:\actions-runner-carlcodes\_work\_temp/packages/*.nupkg)`:
+on Windows `runner.temp` uses `\` and the appended `/packages/*.nupkg` uses `/`, and NuGet does not
+expand the wildcard in a mixed-separator path (follow-ups.md item 45). Approved by Carl, 2026-10-27.
+
+- [ ] 10.1 In `release.yml`, give **Push to NuGet** `working-directory: ${{ runner.temp }}/packages` and push `"*.nupkg"` with no directory in the path; keep its condition, key and source unchanged and leave every other step unchanged. Verify by reading that the push path holds no separator, that Pack still writes to `${{ runner.temp }}/packages`, that a rehearsal still skips the push, and by Carl's observation on the next tag run (task 7.2)
