@@ -16,7 +16,7 @@ Cite as FR-N.
 | FR-7 | Standard first-action text per state | Library review, 2026-10-20 | Withdrawn for now (Carl, 2026-10-20): the library supplies the state only; vendors write all message text. PDR-0002 unchanged |
 | FR-8 | Same status wording across vendors' screens | Library review, 2026-10-20 | Open. Screens stay out of the library (Carl, 2026-10-20) |
 | FR-9 | Grace period after expiry | Library review, 2026-10-20 | Open. Until then vendors implement grace themselves (Carl, 2026-10-20) |
-| FR-10 | Version marker for each release | Carl, 2026-10-27 | Open |
+| FR-10 | Version marker for each release | Carl, 2026-10-27 | Taken into `add-github-release` (design.md Q1 to Q6; PDR-0037, ADR-0016) |
 | FR-11 | Private-key export from the vendor tool | `add-vendor-tool` explore, 2026-10-28 | Open |
 | FR-12 | Change the vendor tool passphrase | `add-vendor-tool` explore, 2026-10-28 | Open |
 | FR-13 | Richer console prompts in the vendor tool | Carl, 2026-10-28 | Open |

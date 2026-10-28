@@ -48,6 +48,7 @@ Deferred. Update this index in the same change as any status line.
 | [PDR-0034](0034-reissue-and-renewal-from-records.md) | Reissue and renewal from records | Decided |
 | [PDR-0035](0035-signing-key-switch-standby-and-trusted-keys.md) | Signing key switch, standby keys and trusted keys | Decided |
 | [PDR-0036](0036-feature-definitions-add-only.md) | Products and feature definitions are add-only | Decided |
+| [PDR-0037](0037-github-release-per-published-release.md) | A GitHub Release for each published release | Decided |
 
 ## Template
 
