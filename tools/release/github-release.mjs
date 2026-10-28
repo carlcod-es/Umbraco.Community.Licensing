@@ -1,5 +1,5 @@
 // GitHub Release page for a published release.
-//   node tools/release/github-release.mjs package-ids <folder> <version>
+//   node tools/release/github-release.mjs package-ids <folder>
 //   node tools/release/github-release.mjs create <tag> <ids>
 // See docs/adrs/0016-github-release-job.md.
 import { execFileSync } from 'node:child_process';
@@ -39,9 +39,19 @@ export function splitIds(ids) {
   return String(ids ?? '').split(/\s+/).filter((s) => s !== '');
 }
 
+// Version from Version.props at the repository root.
+function readVersion(root) {
+  try {
+    return readVersionFile(fs.readFileSync(path.join(root, 'Version.props'), 'utf8')).version;
+  } catch (e) {
+    throw new Error(`Cannot read Version.props at the repository root: ${e.message}`);
+  }
+}
+
 // ---- package-ids ----
 
-export function runPackageIds({ folder, version, env = process.env, out = console.log }) {
+export function runPackageIds({ folder, root, env = process.env, out = console.log }) {
+  const version = readVersion(root);
   const ids = packageIdsFromFiles(fs.readdirSync(folder), version);
   const joined = ids.join(' ');
   out(joined);
@@ -67,10 +77,11 @@ export async function runCreate({ tag, ids, root, env = process.env, fetch = glo
   const idList = splitIds(ids);
   if (idList.length === 0) throw new Error('No package IDs given.');
 
-  const { version } = readVersionFile(fs.readFileSync(path.join(root, 'Version.props'), 'utf8'));
+  const version = readVersion(root);
   const { rows } = parseLog(fs.readFileSync(path.join(root, 'RELEASES.md'), 'utf8'));
   const row = findRow(rows, version);
   if (!row) throw new Error(`The release log has no row for version '${version}'.`);
+  if (row.tag !== tag) throw new Error(`The release log row for version ${version} names tag ${row.tag}, not ${tag}.`);
 
   const token = env.GITHUB_TOKEN;
   if (!token) throw new Error('GITHUB_TOKEN is not set.');
@@ -120,15 +131,15 @@ function repoRoot(cwd) {
 async function main(argv) {
   const [command, ...args] = argv;
   try {
-    if (command === 'package-ids' && args.length === 2) {
-      runPackageIds({ folder: args[0], version: args[1] });
+    if (command === 'package-ids' && args.length === 1) {
+      runPackageIds({ folder: args[0], root: repoRoot(process.cwd()) });
       return 0;
     }
     if (command === 'create' && args.length === 2) {
       await runCreate({ tag: args[0], ids: args[1], root: repoRoot(process.cwd()) });
       return 0;
     }
-    console.error('Usage: node tools/release/github-release.mjs package-ids <folder> <version>\n       node tools/release/github-release.mjs create <tag> <ids>');
+    console.error('Usage: node tools/release/github-release.mjs package-ids <folder>\n       node tools/release/github-release.mjs create <tag> <ids>');
     return 1;
   } catch (e) {
     console.error(e.message);

@@ -10,16 +10,16 @@ Depends on: none. Owner: worker-backend. Path: `tools/release/github-release.mjs
 `tools/release/github-release.test.mjs`. Node 22+, ES modules, no npm packages; reuse
 `release-rules.mjs` parsing.
 
-- [ ] 1.1 Implement the pure functions: package IDs from `.nupkg` file names and a version (refusing an empty list or a name not ending `.<version>.nupkg`), the Release body (note, blank line, one nuget.org link per ID naming the version), and prerelease from the version, and verify by tests for "Page created", "One link per published package", "Release from 1.0", a dotted package ID and a mismatched file name
-- [ ] 1.2 Implement the `package-ids <folder> <version>` command, printing the IDs and appending `package-ids=<ids>` to `$GITHUB_OUTPUT` when set, and verify by a test running it against a temp folder with and without `GITHUB_OUTPUT`
-- [ ] 1.3 Implement the `create <tag> <ids>` command: read `Version.props` and the `RELEASES.md` row for the version, GET the Release for the tag, POST it on 404 with `tag_name`, `name`, `body`, `prerelease` and `make_latest`, leave an existing Release unchanged, and fail with status and GitHub's message on any other response; `fetch` injectable; and verify by tests for "Page already exists", "Release log note missing", the 404-then-POST payload, and a 403 reported with its message
+- [x] 1.1 Implement the pure functions: package IDs from `.nupkg` file names and a version (refusing an empty list or a name not ending `.<version>.nupkg`), the Release body (note, blank line, one nuget.org link per ID naming the version), and prerelease from the version, and verify by tests for "Page created", "One link per published package", "Release from 1.0", a dotted package ID and a mismatched file name
+- [x] 1.2 Implement the `package-ids <folder>` command, reading the version from `Version.props` at the repository root (revised 2026-10-28, supervisor: the workflow has no version to pass), printing the IDs and appending `package-ids=<ids>` to `$GITHUB_OUTPUT` when set, and verify by a test running it against a temp folder with and without `GITHUB_OUTPUT`
+- [x] 1.3 Implement the `create <tag> <ids>` command: read `Version.props` and the `RELEASES.md` row for the version (refusing a row that names a different tag; revised 2026-10-28, supervisor), GET the Release for the tag, POST it on 404 with `tag_name`, `name`, `body`, `prerelease` and `make_latest`, leave an existing Release unchanged, and fail with status and GitHub's message on any other response; `fetch` injectable; and verify by tests for "Page already exists", "Release log note missing", "Page creation fails after publishing" (by that name), a row naming a different tag, the 404-then-POST payload, and a 403 reported with its message
 
 ## 2. Release workflow
 
 Depends on: 1. Owner: worker-backend. Shared file assigned in the brief:
 `.github/workflows/release.yml`. Records: ADR-0016, ADR-0008.
 
-- [ ] 2.1 Move permissions to job level (`release`: `contents: read, id-token: write`; workflow level `contents: read`), add the `package-ids` step after **Push to NuGet** (tag push only, in the pack folder) and the `release` job output, and add the `github-release` job (`needs: release`, tag push only, `ubuntu-latest`, `contents: write`, checkout with `persist-credentials: false`, setup-node 22 at the pinned SHAs, `create` with `GITHUB_TOKEN` and `github.ref_name`), and verify by reading the workflow against ADR-0016 and running `package-ids` locally on a `dotnet pack` output folder; the live run is verified in section 4
+- [x] 2.1 Move permissions to job level (`release`: `contents: read, id-token: write`; workflow level `contents: read`), add the `package-ids` step after **Push to NuGet** (tag push only, run from the workspace root with the pack folder as its argument) and the `release` job output, and add the `github-release` job (`needs: release`, tag push only, `ubuntu-latest`, `contents: write`, checkout with `persist-credentials: false`, setup-node 22 at the pinned SHAs, `create` with `GITHUB_TOKEN` and `github.ref_name`), and verify by reading the workflow against ADR-0016 and running `package-ids` locally on a `dotnet pack` output folder; the live run is verified in section 4
 
 ## 3. Documentation
 
@@ -33,4 +33,4 @@ Depends on: 2. Owner: Architect.
 Depends on: 2, 3. Owner: Carl.
 
 - [ ] 4.1 Run a rehearsal, and verify it passes with `github-release` skipped ("Rehearsal has no page")
-- [ ] 4.2 Release `0.1.0-beta.5` with the release command, and verify the Releases page shows `0.1.0-beta.5` on its tag, marked prerelease, with the note and the nuget.org link, and nuget.org shows the package icon ("Page created")
+- [ ] 4.2 Make the next release with the release command (`0.1.0-beta.5` was released before this change and gets no Release, Carl, 2026-10-28), and verify the Releases page shows that version on its tag, marked prerelease, with the note and the nuget.org link ("Page created")

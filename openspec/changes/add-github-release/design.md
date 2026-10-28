@@ -63,11 +63,14 @@ ADR-0008's rule that a duplicate push fails. Alternatives in ADR-0016.
 
 `tools/release/github-release.mjs`, Node 22, no npm packages, two commands:
 
-- `package-ids <folder> <version>`: lists `*.nupkg` in the folder, strips `.<version>.nupkg`,
+- `package-ids <folder>`: reads the version from `Version.props` at the repository root (as
+  `create` does; the workflow has no version to pass), lists `*.nupkg` in the folder, strips
+  `.<version>.nupkg`,
   prints the IDs space-separated, and appends `package-ids=<ids>` to `$GITHUB_OUTPUT` when set.
   Fails when the folder has no package for the version, or a file does not end with the version.
 - `create <tag> <ids>`: reads `Version.props` and `RELEASES.md` from the repository root,
-  finds the row for the version (fails naming the version if none), builds the body, then
+  finds the row for the version (fails naming the version if none, or naming both tags if the
+  row names a different tag), builds the body, then
   GET-or-POST against `GITHUB_API_URL` / `GITHUB_REPOSITORY` with `GITHUB_TOKEN`.
 
 Pure functions (body, IDs from file names, prerelease from version, request decision from a
@@ -88,8 +91,9 @@ Prerelease: the version has a `-` prerelease part. Below 1.0 every version is a 
 ### Workflow wiring
 
 - `release` job: `outputs: { package-ids: ${{ steps.package-ids.outputs.package-ids }} }`; new
-  step `id: package-ids` after **Push to NuGet**, tag push only, in the pack folder, running the
-  `package-ids` command. Placed after the push so the job output exists only when the push
+  step `id: package-ids` after **Push to NuGet**, tag push only, run from the workspace root (no
+  `working-directory`; the script finds `Version.props` from the current checkout) with the pack
+  folder as its argument: `package-ids "${{ runner.temp }}/packages"`. Placed after the push so the job output exists only when the push
   succeeded.
 - `github-release` job: `needs: release`, `if: github.event_name == 'push' && github.ref_type == 'tag'`,
   checkout with `persist-credentials: false`, setup-node 22, then the `create` command with

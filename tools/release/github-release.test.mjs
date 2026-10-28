@@ -1,6 +1,6 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -69,14 +69,24 @@ test('package IDs: refuses an empty list', () => {
 
 // ---- package-ids command ----
 
+// A git repository holding Version.props, as the workflow's checkout does.
+function gitRepo(version) {
+  const root = tempDir();
+  execFileSync('git', ['init', '-q'], { cwd: root });
+  fs.writeFileSync(path.join(root, 'Version.props'),
+    `<Project><PropertyGroup><VersionLine>0.1-beta</VersionLine><Version>${version}</Version></PropertyGroup></Project>\n`);
+  return root;
+}
+
 test('package-ids prints IDs and appends to GITHUB_OUTPUT when set', () => {
+  const repo = gitRepo('0.2.0-beta.1');
   const dir = tempDir();
   for (const n of [`${ID}.Tool.0.2.0-beta.1.nupkg`, `${ID}.0.2.0-beta.1.nupkg`, 'other.txt']) fs.writeFileSync(path.join(dir, n), '');
   const outFile = path.join(dir, 'github-output');
   fs.writeFileSync(outFile, 'existing=1\n');
 
-  const withOut = spawnSync(process.execPath, [SCRIPT, 'package-ids', dir, '0.2.0-beta.1'], {
-    encoding: 'utf8', env: { ...process.env, GITHUB_OUTPUT: outFile },
+  const withOut = spawnSync(process.execPath, [SCRIPT, 'package-ids', dir], {
+    cwd: repo, encoding: 'utf8', env: { ...process.env, GITHUB_OUTPUT: outFile },
   });
   assert.equal(withOut.status, 0, withOut.stderr);
   assert.equal(withOut.stdout.trim(), `${ID} ${ID}.Tool`);
@@ -84,25 +94,40 @@ test('package-ids prints IDs and appends to GITHUB_OUTPUT when set', () => {
 
   const env = { ...process.env };
   delete env.GITHUB_OUTPUT;
-  const without = spawnSync(process.execPath, [SCRIPT, 'package-ids', dir, '0.2.0-beta.1'], { encoding: 'utf8', env });
+  const without = spawnSync(process.execPath, [SCRIPT, 'package-ids', dir], { cwd: repo, encoding: 'utf8', env });
   assert.equal(without.status, 0, without.stderr);
   assert.equal(without.stdout.trim(), `${ID} ${ID}.Tool`);
   assert.equal(fs.readFileSync(outFile, 'utf8'), `existing=1\npackage-ids=${ID} ${ID}.Tool\n`);
 });
 
-test('package-ids fails on a mismatched file name', () => {
+test('package-ids fails on a file name not matching the Version.props version', () => {
+  const repo = gitRepo('0.1.0-beta.5');
   const dir = tempDir();
   fs.writeFileSync(path.join(dir, `${ID}.0.1.0-beta.4.nupkg`), '');
-  const r = spawnSync(process.execPath, [SCRIPT, 'package-ids', dir, '0.1.0-beta.5'], { encoding: 'utf8' });
+  const r = spawnSync(process.execPath, [SCRIPT, 'package-ids', dir], { cwd: repo, encoding: 'utf8' });
   assert.notEqual(r.status, 0);
   assert.match(r.stderr, /does not end with/);
 });
 
-test('runPackageIds returns the IDs', () => {
+test('package-ids refuses the old two-argument form', () => {
+  const repo = gitRepo('1.0.0');
+  const r = spawnSync(process.execPath, [SCRIPT, 'package-ids', repo, '1.0.0'], { cwd: repo, encoding: 'utf8' });
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /Usage: .*package-ids <folder>\n/);
+});
+
+test('package-ids fails when Version.props cannot be read', () => {
+  const dir = tempDir();
+  fs.writeFileSync(path.join(dir, `${ID}.1.0.0.nupkg`), '');
+  assert.throws(() => runPackageIds({ folder: dir, root: tempDir(), env: {}, out: () => {} }),
+    /Cannot read Version\.props at the repository root: /);
+});
+
+test('runPackageIds returns the IDs for the Version.props version', () => {
   const dir = tempDir();
   fs.writeFileSync(path.join(dir, `${ID}.1.0.0.nupkg`), '');
   const lines = [];
-  assert.deepEqual(runPackageIds({ folder: dir, version: '1.0.0', env: {}, out: (l) => lines.push(l) }), [ID]);
+  assert.deepEqual(runPackageIds({ folder: dir, root: gitRepo('1.0.0'), env: {}, out: (l) => lines.push(l) }), [ID]);
   assert.deepEqual(lines, [ID]);
 });
 
@@ -199,7 +224,7 @@ test('Scenario: Release log note missing - fails naming the version, no request'
   assert.equal(f.calls.length, 0);
 });
 
-test('create: 403 on lookup is reported with status and message', async () => {
+test('Scenario: Page creation fails after publishing - reported with status and message', async () => {
   const root = createRoot();
   const f = fakeFetch(response(403, { message: 'Resource not accessible by integration' }));
   await assert.rejects(
@@ -218,6 +243,23 @@ test('create: 403 on POST is reported with status and message; non-JSON falls ba
   await assert.rejects(
     runCreate({ tag: TAG, ids: ID, root, env: ENV, fetch: fakeFetch(response(404, {}), response(500, 'Server exploded')).fn, out: () => {} }),
     /500 Server exploded/,
+  );
+});
+
+test('create: refuses a tag that differs from the log row, no request', async () => {
+  const root = createRoot();
+  const f = fakeFetch();
+  await assert.rejects(
+    runCreate({ tag: 'release-20261029', ids: ID, root, env: ENV, fetch: f.fn, out: () => {} }),
+    /The release log row for version 0\.1\.0-beta\.5 names tag release-20261028, not release-20261029\./,
+  );
+  assert.equal(f.calls.length, 0);
+});
+
+test('create: fails when Version.props cannot be read', async () => {
+  await assert.rejects(
+    runCreate({ tag: TAG, ids: ID, root: tempDir(), env: ENV, fetch: fakeFetch().fn, out: () => {} }),
+    /Cannot read Version\.props at the repository root: /,
   );
 });
 

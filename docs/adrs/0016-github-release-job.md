@@ -18,7 +18,8 @@ packages (ADR-0009).
   only. The `release` job keeps `contents: read, id-token: write`; workflow-level permissions
   drop to `contents: read`, and each job states its own.
 - **Package list.** After the push, the `release` job runs
-  `node tools/release/github-release.mjs package-ids <pack folder> <version>` and exposes the
+  `node tools/release/github-release.mjs package-ids <pack folder>` (version read from
+  `Version.props` at the tagged commit) and exposes the
   space-separated package IDs as job output `package-ids`. IDs come from the pushed file names,
   so the vendor tool's package (ADR-0011) is listed with no change here.
 - **Create.** The `github-release` job checks out the tag (no full history, no persisted
