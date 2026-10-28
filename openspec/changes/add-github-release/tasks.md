@@ -19,13 +19,14 @@ Depends on: none. Owner: worker-backend. Path: `tools/release/github-release.mjs
 Depends on: 1. Owner: worker-backend. Shared file assigned in the brief:
 `.github/workflows/release.yml`. Records: ADR-0016, ADR-0008.
 
-- [x] 2.1 Move permissions to job level (`release`: `contents: read, id-token: write`; workflow level `contents: read`), add the `package-ids` step after **Push to NuGet** (tag push only, run from the workspace root with the pack folder as its argument) and the `release` job output, and add the `github-release` job (`needs: release`, tag push only, `ubuntu-latest`, `contents: write`, checkout with `persist-credentials: false`, setup-node 22 at the pinned SHAs, `create` with `GITHUB_TOKEN` and `github.ref_name`), and verify by reading the workflow against ADR-0016 and running `package-ids` locally on a `dotnet pack` output folder; the live run is verified in section 4
+- [x] 2.1 Move permissions to job level (`release`: `contents: read, id-token: write`; workflow level `contents: read`), add the `package-ids` step after **Push to NuGet** (tag push only, run from the workspace root with the pack folder as its argument; step position and `if` revised by task 2.2) and the `release` job output, and add the `github-release` job (`needs: release`, tag push only, `ubuntu-latest`, `contents: write`, checkout with `persist-credentials: false`, setup-node 22 at the pinned SHAs, `create` with `GITHUB_TOKEN` and `github.ref_name`), and verify by reading the workflow against ADR-0016 and running `package-ids` locally on a `dotnet pack` output folder; the live run is verified in section 4
+- [ ] 2.2 Move the **Package IDs** step to after **Pack** and before **NuGet login** with no `if`, and pass the tag and package IDs to the `create` step through `env` (`TAG`, `IDS`) instead of in the command (section 2 supervisor minors, 2026-10-28), and verify by reading the workflow against the revised ADR-0016 and design.md "Workflow wiring", a YAML parse, and a rehearsal showing **Package IDs** run and `github-release` skipped (rehearsal in 4.1)
 
 ## 3. Documentation
 
 Depends on: 2. Owner: Architect.
 
-- [ ] 3.1 Update `docs/releasing.md`: the Release in "How it fits together", the `release.yml` row and the release steps; a one-time setup note that the read-only default for workflow permissions stays and the job grants its own `contents: write`; rehearsal expects `github-release` skipped; a row in "Failed releases and re-runs" for a failed Release job (use **Re-run failed jobs**; "Re-run all jobs" fails at the push), and verify every statement against ADR-0016 and the workflow
+- [x] 3.1 Update `docs/releasing.md`: the Release in "How it fits together", the `release.yml` row and the release steps; a one-time setup note that the read-only default for workflow permissions stays and the job grants its own `contents: write`; rehearsal expects `github-release` skipped; a row in "Failed releases and re-runs" for a failed Release job (use **Re-run failed jobs**; "Re-run all jobs" fails at the push), and verify every statement against ADR-0016 and the workflow
 - [ ] 3.2 Update the FR-10 entry in `docs/feature-requests.md` to closed by `add-github-release` once section 4 passes, and verify the index row and the entry agree
 
 ## 4. Verification

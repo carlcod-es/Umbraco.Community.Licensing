@@ -2,7 +2,8 @@
 
 How `Umbraco.Community.Licensing` is released to nuget.org. Only Carl starts a release.
 Decisions: PDR-0027 (versioning, log, refusals), PDR-0028 (test coverage), PDR-0029 (tag must
-match the log), ADR-0008 (CI, runners, publishing), ADR-0009 (release command and files).
+match the log), PDR-0037 (GitHub Release), ADR-0008 (CI, runners, publishing), ADR-0009 (release
+command and files), ADR-0016 (GitHub Release job).
 
 ## How it fits together
 
@@ -12,11 +13,19 @@ match the log), ADR-0008 (CI, runners, publishing), ADR-0009 (release command an
 | `RELEASES.md` | Repository root | One row per release attempt, newest first. Rows added only by the release command |
 | Release command | `node tools/release/release.mjs` | Works out the next version and tag, asks for a note, commits both files, pushes `main`, pushes the tag |
 | `ci.yml` | GitHub-hosted `ubuntu-latest` | Tool tests, build, test on every pull request to `main` and push to `main` |
-| `release.yml` | Any self-hosted runner available to this repository | On a `release-*` tag: checks, tool tests, build, test, pack, publish. On manual dispatch: rehearsal, publishes nothing |
+| `release.yml`, job `release` | Any self-hosted runner available to this repository | On a `release-*` tag: checks, tool tests, build, test, pack, **Package IDs**, publish. On manual dispatch: rehearsal, publishes nothing |
+| `release.yml`, job `github-release` | GitHub-hosted `ubuntu-latest` | On a `release-*` tag, only after job `release` passed: creates the GitHub Release on the tag. The only job with write access to the repository |
 | `all-platforms.yml` | GitHub-hosted Windows, Linux, macOS | Disabled. See [Pre-1.0 all-platform step](#pre-10-all-platform-step) |
 
-The package version comes only from `Version.props` at the tagged commit. One job builds, tests,
-packs and pushes, so the published package is the tested one.
+The package version comes only from `Version.props` at the tagged commit. Job `release` builds,
+tests, packs and pushes, so the published package is the tested one; job `github-release` builds
+nothing.
+
+Each published release gets a GitHub Release on its `release-yyyymmdd[-N]` tag: titled with the
+version, holding the release log note and a nuget.org link per published package, marked as a
+prerelease below 1.0. A failed attempt or a rehearsal gets none. A Release that already exists
+is left unchanged, so edits made on GitHub survive; they do not change `RELEASES.md`, which
+stays the record.
 
 ## One-time setup
 
@@ -67,6 +76,14 @@ every workflow change in a pull request before approving its run.
 No API key is stored. Each release run exchanges its OIDC token for a short-lived key. Renaming
 `release.yml` breaks publishing until the policy is updated.
 
+### Workflow permissions
+
+Nothing to set. The `carlcod-es` organisation keeps the default workflow permissions read-only,
+and the repository setting cannot be changed (organisation-enforced). Job `github-release` grants itself `contents: write` in
+`release.yml`; every other job stays read-only. If job `github-release` ever fails with HTTP 403,
+the organisation or enterprise has started refusing that; fallback: a fine-grained personal access
+token or a GitHub App token (ADR-0016).
+
 ### Tag ruleset (optional)
 
 Any writer can push a `release-*` tag; the release checks are the gate. To limit who can start a
@@ -83,8 +100,9 @@ Run before the first release, after changing the runner, and whenever a release 
    - **Print platform** names the runner machine's operating system.
    - Tool tests and the .NET tests pass.
    - **Pack** produces `Umbraco.Community.Licensing.<version>.nupkg`.
+   - **Package IDs** runs and prints `Umbraco.Community.Licensing`.
    - **Release check**, **NuGet login**, **Fail if NuGet login returned no API key** and
-     **Push to NuGet** are skipped.
+     **Push to NuGet** are skipped, and job `github-release` is skipped.
 
 A rehearsal never publishes, whichever branch or ref it runs on: the publish steps run only on a
 tag push. `workflow_dispatch` lists only workflows on `main`.
@@ -116,7 +134,8 @@ The command:
    `main`, creates the tag and pushes it.
 
 The tag push starts `release.yml`. Watch it in **Actions → Release**. The release is done when
-the run passes and nuget.org lists the version as a prerelease (before 1.0).
+both jobs pass, nuget.org lists the version as a prerelease (before 1.0), and the repository's
+**Releases** page shows the version on its tag with the note and the nuget.org link.
 
 Never push a package built on your own machine. A local pack carries the released version but is
 not the tested build from the tagged commit.
@@ -189,9 +208,11 @@ A refused tag stays on the remote. Delete it (`git push origin :refs/tags/<tag>`
 |---|---|
 | Build or tests failed | A failed release (PDR-0027). Its log row stays and its number is not reused. Fix the cause in a commit, then run the release command again; it takes the next number. Do not re-run the run |
 | Release check refused | See [Release run](#release-run) refusals |
-| Job queued, no runner online | GitHub fails it after 24 hours. Bring a runner online and re-run the run: same tag, same version |
+| Job `release` queued, no runner online | GitHub fails it after 24 hours. Bring a runner online and re-run the run: same tag, same version |
 | Run failed before its tests, in a step other than **Release check** (checkout, toolchain setup) | Fix the runner and re-run the run. A re-run uses the workflow files at the tagged commit: if the fix is a workflow change, commit it and release again with the release command |
-| Tests passed, **NuGet login**, **Fail if NuGet login returned no API key** or **Push to NuGet** failed, and nuget.org does not list the version | Fix the cause (policy, `NUGET_USER`) and re-run the run. It rebuilds and retests the same commit (ADR-0008). **Fail if NuGet login returned no API key** means login succeeded without a key: the Trusted Publishing policy or `NUGET_USER` is wrong or missing. A re-run uses the workflow files at the tagged commit: if the fix is a workflow change, commit it and release again with the release command (next number, PDR-0027) |
+| **Package IDs** failed | Nothing is published and no Release is made. No `.nupkg` found, or the packed file names and `Version.props` disagree: a build or packaging defect. Treat it as a failed release (PDR-0027): fix the cause in a commit, run the release command again (next number). Do not re-run the run |
+| Tests and **Package IDs** passed, **NuGet login**, **Fail if NuGet login returned no API key** or **Push to NuGet** failed, and nuget.org does not list the version | Fix the cause (policy, `NUGET_USER`) and re-run the run. It rebuilds and retests the same commit (ADR-0008). **Fail if NuGet login returned no API key** means login succeeded without a key: the Trusted Publishing policy or `NUGET_USER` is wrong or missing. A re-run uses the workflow files at the tagged commit: if the fix is a workflow change, commit it and release again with the release command (next number, PDR-0027) |
+| Job `release` passed, job `github-release` failed | The packages are published. Fix the cause if it is outside the repository (permissions, GitHub outage), then use **Re-run failed jobs**: it re-runs only `github-release`, reusing the package IDs from the passed job. Do not use **Re-run all jobs**: it fails at **Push to NuGet** as a duplicate and skips the Release. The re-run uses the script at the tagged commit; if the fix is a script or workflow change, or the log row at the tagged commit is missing or names another tag, create the Release by hand on the tag (title the version, body the `RELEASES.md` note and the nuget.org link, prerelease below 1.0) and fix it for the next release |
 | nuget.org refuses the very first push of the package ID under Trusted Publishing | Publish that version once from a short-lived API key scoped to the package, then delete the key; record it in the change's `follow-ups.md` |
 
 Re-running a tag run re-checks against the current `origin/main`. Commits added to `main` since

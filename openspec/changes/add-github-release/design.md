@@ -43,7 +43,7 @@ Persona check: no requirement harms a higher-priority persona.
 | Q2 | Release content | Version as title; release log note and one nuget.org link per published package; no attached files (Carl, 2026-10-28) | PDR-0037 |
 | Q3 | Release creation fails after publishing (FR-10 issue 3) | Created by the run after the push; failure reported; re-runnable without publishing again; existing Release unchanged (Carl, 2026-10-28) | PDR-0037, ADR-0016 |
 | Q4 | Order against `add-vendor-tool` | This change first, before `0.1.0-beta.5` (Carl, 2026-10-28) | none (scheduling) |
-| Q5 | How the Release is created | Node script in `tools/release/` calling the GitHub REST API with `fetch`; package IDs from the pushed file names (Architect) | ADR-0016 |
+| Q5 | How the Release is created | Node script in `tools/release/` calling the GitHub REST API with `fetch`; package IDs from the packed file names (Architect) | ADR-0016 |
 | Q6 | Where write access lives, and how the re-run avoids a duplicate push | Separate GitHub-hosted job with `contents: write` only; **Re-run failed jobs** re-runs it alone; no `--skip-duplicate` (Architect) | ADR-0016, amends ADR-0008 |
 
 FR-10 issue 2 (a second tag must not start a run) does not arise: no second tag.
@@ -91,13 +91,18 @@ Prerelease: the version has a `-` prerelease part. Below 1.0 every version is a 
 ### Workflow wiring
 
 - `release` job: `outputs: { package-ids: ${{ steps.package-ids.outputs.package-ids }} }`; new
-  step `id: package-ids` after **Push to NuGet**, tag push only, run from the workspace root (no
+  step `id: package-ids` after **Pack** and before **NuGet login**, on every run including
+  rehearsals (no `if`), run from the workspace root (no
   `working-directory`; the script finds `Version.props` from the current checkout) with the pack
-  folder as its argument: `package-ids "${{ runner.temp }}/packages"`. Placed after the push so the job output exists only when the push
-  succeeded.
+  folder as its argument: `package-ids "${{ runner.temp }}/packages"`. Placed before publishing so a failure publishes
+  nothing and every rehearsal exercises it; `needs: release` already keeps `github-release` from
+  running unless the push succeeded (revised 2026-10-28, section 2 supervisor).
 - `github-release` job: `needs: release`, `if: github.event_name == 'push' && github.ref_type == 'tag'`,
-  checkout with `persist-credentials: false`, setup-node 22, then the `create` command with
-  `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` and the tag `${{ github.ref_name }}`.
+  checkout with `persist-credentials: false`, setup-node 22, then
+  `create "$TAG" "$IDS"` with step `env` `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}`,
+  `TAG: ${{ github.ref_name }}`, `IDS: ${{ needs.release.outputs.package-ids }}`. Expressions
+  go through `env`, never into the command, in the job that holds the write token (bash on
+  `ubuntu-latest`).
 - Steps are single `node` commands, as in ADR-0008.
 
 ## Test strategy
@@ -125,7 +130,8 @@ Prerelease: the version has a `-` prerelease part. Below 1.0 every version is a 
 - [Hosted runner outage] → the Release job queues or fails; the package is already published;
   re-run the job later.
 - [`add-vendor-tool` section 11 edits the same workflow] → this change lands first; its brief for
-  section 11 must keep the `package-ids` step after the push and the `github-release` job.
+  section 11 must keep the `package-ids` step before **NuGet login**, the job output and the
+  `github-release` job, and the install-and-run step must write no `.nupkg` into the pack folder.
   `add-vendor-tool` gets that note through `opsx:update` after this change is archived.
 
 ## Migration Plan

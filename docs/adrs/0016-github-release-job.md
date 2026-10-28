@@ -17,14 +17,20 @@ packages (ADR-0009).
   tag push, `runs-on: ubuntu-latest` (GitHub-hosted). Job-level permissions `contents: write`
   only. The `release` job keeps `contents: read, id-token: write`; workflow-level permissions
   drop to `contents: read`, and each job states its own.
-- **Package list.** After the push, the `release` job runs
+- **Package list.** After **Pack** and before **NuGet login**, on every run (rehearsal
+  included), the `release` job runs
   `node tools/release/github-release.mjs package-ids <pack folder>` (version read from
   `Version.props` at the tagged commit) and exposes the
-  space-separated package IDs as job output `package-ids`. IDs come from the pushed file names,
+  space-separated package IDs as job output `package-ids`. A failure there stops the run before
+  anything is published; `needs: release` already keeps the Release job from running unless the
+  push succeeded (revised 2026-10-28, `add-github-release` section 2 supervisor). IDs come from
+  the packed file names,
   so the vendor tool's package (ADR-0011) is listed with no change here.
 - **Create.** The `github-release` job checks out the tag (no full history, no persisted
   credentials), sets up Node 22 and runs
-  `node tools/release/github-release.mjs create <tag> <package-ids>`. The script reads the
+  `node tools/release/github-release.mjs create "$TAG" "$IDS"`, with the tag and IDs passed as
+  step `env` (`TAG`, `IDS`) rather than written into the command, so a crafted tag name cannot
+  inject shell. The script reads the
   version from `Version.props` and the note from the `RELEASES.md` row (`release-rules.mjs`
   parsing), builds the body, and calls the GitHub REST API with `fetch` and `GITHUB_TOKEN`:
   `GET /repos/{repo}/releases/tags/{tag}`; on 404, `POST /repos/{repo}/releases` with
