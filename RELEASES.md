@@ -6,6 +6,7 @@ its row and its version number is not reused; nuget.org lists what was published
 
 | Version | Tag | Date | What changed |
 |---|---|---|---|
+| 0.1.0-beta.6 | release-20261028-2 | 2026-10-28 | Release test |
 | 0.1.0-beta.5 | release-20261028 | 2026-10-28 | Re-release with icon |
 | 0.1.0-beta.4 | release-20261027-2 | 2026-10-27 | Initial Pre-release |
 | 0.1.0-beta.3 | release-20261027 | 2026-10-27 | Initial Pre-release |
