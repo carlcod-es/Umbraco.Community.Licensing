@@ -1,6 +1,6 @@
 # ADR-0008: CI host, runners and package publishing
 
-- Status: Decided
+- Status: Amended by ADR-0011 (release run packs, checks and pushes the vendor tool package too)
 - Date: 2026-10-14
 - Source: `add-release-pipeline` design.md Q3, Q4, Q6, Q9, Q10, Q12
 - Revised: 2026-10-18 (Carl): `all-platforms.yml` disabled; Q6. 2026-10-19 (Carl): re-run after a

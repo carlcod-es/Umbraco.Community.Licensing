@@ -8,15 +8,21 @@ Cite as FR-N.
 | FR | Title | Raised | Status |
 |---|---|---|---|
 | FR-1 | Vendor-chosen key identifier prefix | Carl, 2026-10-09 | Taken into `add-license-core` (design.md Q20, PDR-0023) |
-| FR-2 | Vendor issuing console tool | Carl, 2026-10-09 | Open; a later change after `add-license-core` |
+| FR-2 | Vendor issuing console tool | Carl, 2026-10-09 | Taken into `add-vendor-tool` (design.md Q1 to Q26; PDR-0030 to PDR-0036, ADR-0011 to ADR-0015). SQL Server dropped (Carl, 2026-10-28) |
 | FR-3 | Example product package | Carl, 2026-10-09 | Open; possible later change |
-| FR-4 | Standby signing key | Carl, 2026-10-10 | Open; with or after FR-2 |
+| FR-4 | Standby signing key | Carl, 2026-10-10 | Taken into `add-vendor-tool` (design.md Q15, Q16; PDR-0032, PDR-0035). Issue 2 answered by the passphrase; storing apart is FR-15 |
 | FR-5 | Responding to a compromised signing key | Carl, 2026-10-10 | Open; after FR-2 |
 | FR-6 | CI and release pipeline | Carl, 2026-10-14 | Closed by `add-release-pipeline` (design.md Q1 to Q10; PDR-0027, PDR-0028, PDR-0029, ADR-0008, ADR-0009); first published version `0.1.0-beta.4`, 2026-10-27 |
 | FR-7 | Standard first-action text per state | Library review, 2026-10-20 | Withdrawn for now (Carl, 2026-10-20): the library supplies the state only; vendors write all message text. PDR-0002 unchanged |
 | FR-8 | Same status wording across vendors' screens | Library review, 2026-10-20 | Open. Screens stay out of the library (Carl, 2026-10-20) |
 | FR-9 | Grace period after expiry | Library review, 2026-10-20 | Open. Until then vendors implement grace themselves (Carl, 2026-10-20) |
 | FR-10 | Version marker for each release | Carl, 2026-10-27 | Open |
+| FR-11 | Private-key export from the vendor tool | `add-vendor-tool` explore, 2026-10-28 | Open |
+| FR-12 | Change the vendor tool passphrase | `add-vendor-tool` explore, 2026-10-28 | Open |
+| FR-13 | Richer console prompts in the vendor tool | Carl, 2026-10-28 | Open |
+| FR-14 | Retire a feature definition | `add-vendor-tool` explore, 2026-10-28 | Open |
+| FR-15 | Standby key stored apart from the active key | `add-vendor-tool` explore, 2026-10-28 | Open |
+| FR-16 | Import licenses issued before the vendor tool | `add-vendor-tool` explore, 2026-10-28 | Open |
 
 ## FR-1: Vendor-chosen key identifier prefix
 
@@ -315,3 +321,58 @@ the release command already creates (Carl, 2026-10-27, during `add-release-pipel
    (a marker for a failed attempt would point at an unpublished version).
 
 **Related.** PDR-0027, PDR-0029, ADR-0009.
+
+## FR-11: Private-key export from the vendor tool
+
+**Request.** Larger vendors create signing keys with the tool, then issue from their own store
+with the library. The store needs the private key as an unencrypted PEM.
+
+**Until taken up (Carl, 2026-10-28).** The tool targets small vendors only (PDR-0030); no
+private key leaves it (PDR-0032). Keys are stored in a standard encrypted format, so a vendor can
+open one with the passphrase and common tools.
+
+**Issues to settle.** Confirmation and warning before export; recording that a key was exported
+and when; whether a larger vendor needs the full setup.
+
+**Related.** PDR-0032, ADR-0014, `pre-1.0-considerations.md` C2.
+
+## FR-12: Change the vendor tool passphrase
+
+**Request.** Re-encrypt every private key under a new passphrase, e.g. after the old one may have
+been seen.
+
+**Issues to settle.** Older backups still open with the old passphrase only; the guide must say
+which passphrase each backup needs.
+
+**Related.** PDR-0032.
+
+## FR-13: Richer console prompts in the vendor tool
+
+**Request.** Selection lists, coloured tables and progress in the tool's prompts, e.g. with
+Spectre.Console (Carl, 2026-10-28).
+
+**Related.** ADR-0012 (BCL console prompts in `add-vendor-tool`).
+
+## FR-14: Retire a feature definition
+
+**Request.** Mark a feature as no longer offered: refused on new keys, dropped on reissue with a
+notice.
+
+**Related.** PDR-0036 (add-only), PDR-0016.
+
+## FR-15: Standby key stored apart from the active key
+
+**Request.** Export the standby private key to a separate encrypted file the vendor keeps
+elsewhere, so it survives "folder copied and passphrase known" and "no backup" (FR-4 issue 2).
+
+**Related.** PDR-0032, PDR-0035.
+
+## FR-16: Import licenses issued before the vendor tool
+
+**Request.** Record licenses a vendor issued with the library before using the tool, by reading
+their key strings, verified against the vendor's keys.
+
+**Issues to settle.** The vendor's existing private key must be brought into the tool (setup with
+an existing key); key strings are not kept after reading (PDR-0033).
+
+**Related.** PDR-0013, PDR-0033.
