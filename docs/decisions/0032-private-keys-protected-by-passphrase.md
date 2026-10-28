@@ -17,8 +17,8 @@ in scripts.
 
 - Every private key, active, standby or replaced, is stored encrypted with one passphrase set at
   setup, in a standard format other tools can open with it. Nothing else is encrypted.
-- The passphrase is at least 12 characters (design.md Q24, Architect assumption), typed twice at
-  setup.
+- The passphrase is at least 15 characters, with no other rule (design.md Q24, Carl,
+  2026-10-28), typed twice at setup.
 - Asked once per action that signs or creates a key; never for reading, exports or backups.
   Scripts supply it without a prompt, never as a plain command argument. Not kept after an
   action ends.
@@ -34,6 +34,10 @@ in scripts.
   passphrase.
 - The passphrase already separates both keys from a copied folder; storing the standby apart
   adds a second thing to lose for a small vendor.
+- Someone holding a copied folder or backup can guess the passphrase offline, with no lockout;
+  length is the defence. 15 characters with no composition rules follows NIST SP 800-63B
+  (revision 4) for a password used on its own. A three- or four-word phrase or a password-manager
+  value passes.
 
 ## Rejected options
 
@@ -46,6 +50,9 @@ in scripts.
 | Export private key for larger vendors | Out of this change's audience; FR-11 |
 | Standby exported to a separate file stored elsewhere | One more file to keep; FR-15 |
 | Passphrase change | Not needed for the first release; FR-12 |
+| Minimum 12 characters | Below current guidance for a password used alone against offline guessing |
+| Composition rules (upper case, digit, symbol) | Friction that leads to predictable patterns such as `Password!2026`; NIST SP 800-63B advises against them |
+| Refuse common passwords from a list | A list to ship and maintain; little gain at 15 characters |
 
 ## Consequences
 

@@ -16,16 +16,18 @@ store with the library.
 
 - **Audience.** Small vendors who issue keys only through the tool. Larger vendors are not served
   in this change.
-- **Installation.** One vendor per installation: one folder, one database, one prefix, one
-  signing-key mode. A second issuing setup is a second installation in another folder.
+- **Installation.** One vendor per installation: one folder, one database, one prefix at a time,
+  one signing-key mode. A second issuing setup is a second installation in another folder.
 - **One person.** No user accounts or permissions. Whoever can run the tool against the folder
   can do everything; signing also needs the passphrase (PDR-0032).
 - **By hand or batched.** Every action can be run with all its inputs on the command and asks
   nothing; a missing input with nobody present is a refusal naming it. The tool never connects to
   a store; a vendor's own script may call it.
 - **Guided setup.** Folder (PDR-0031), passphrase (PDR-0032), prefix (PDR-0023), one signing key
-  per product or one shared, standby key offered as recommended (PDR-0035). Prefix and
-  signing-key mode are fixed after setup (design.md Q23, Architect assumption).
+  per product or one shared, standby key offered as recommended (PDR-0035). Signing-key mode is
+  fixed after setup; changing it is FR-17. The prefix can be changed later: new issues and
+  reissues use the current prefix; existing licenses keep theirs until reissued (PDR-0023)
+  (design.md Q23, Carl, 2026-10-28).
 - **Jobs.** Setup; products and feature definitions (PDR-0036); issue, reissue, renew, resend
   (PDR-0034); find and list, customer fields (PDR-0033); standby, switch, trusted keys, export by
   signing key (PDR-0035); backup (PDR-0031).
@@ -47,9 +49,13 @@ store with the library.
 | Several operators, with or without roles | Needs accounts and a shared database; not small vendors' need |
 | Serve larger vendors (key generation only, private-key export) | Adds a second product shape; FR-11 |
 | Import licenses issued before the tool | Not needed by vendors starting with the tool; FR-16 |
+| Prefix fixed after setup | A vendor who outgrows the default `LIC` needs a new installation and loses the history there; no import (FR-16) |
+| Signing-key mode changeable after setup | Key migration with release coordination for every product; FR-17 |
 
 ## Consequences
 
 - The tool's guide states the vendor is responsible for the folder, its backups and the
   customer data in it (PDR-0014).
-- A vendor wanting a different prefix or signing-key mode creates a new installation.
+- A vendor wanting a different signing-key mode creates a new installation (FR-17).
+- After a prefix change, licenses carry the earlier prefix until reissued. A reference typed with
+  the earlier prefix is refused; the 10-character form is accepted (PDR-0023).

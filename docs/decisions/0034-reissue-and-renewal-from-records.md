@@ -24,15 +24,26 @@ expiry.
   | Renewal of a perpetual license | Perpetual |
   | Any other reissue (add-on, feature change) | Current expiry |
 
-- The last term runs from the last issue's issue time to its expiry. It is counted in calendar
+- The last term is the length the last renewal granted: from the later of the expiry before that
+  renewal and the renewal's issue time, to the expiry the renewal set. A license never renewed
+  has the term of its first issue: from its issue time to the expiry it set. Other reissues
+  (add-on, feature change, resend) do not change the term. The term is counted in calendar
   months when it was a whole number of months (same day of month and time of day, a day past a
-  month's end counting as its last day), and in exact time otherwise (design.md Q25, Architect
-  assumption).
+  month's end counting as its last day), and in exact time otherwise (design.md Q25, Carl,
+  2026-10-28).
 
   ```
-  issued 2025-11-30T23:59:59Z, expires 2026-11-30T23:59:59Z   renewed 2026-11-20  ->  2027-11-30T23:59:59Z
-  issued 2026-01-15T10:00:00Z, expires 2026-07-15T10:00:00Z   renewed             ->  2027-01-15T10:00:00Z
-  issued 2026-03-10T09:00:00Z, expires 2026-04-09T09:00:00Z   renewed (30 days)   ->  2026-05-09T09:00:00Z
+  first issue 2025-11-30T23:59:59Z expiring 2026-11-30T23:59:59Z
+    renewed 2026-11-20 (early)               term 12 months (first issue)   -> 2027-11-30T23:59:59Z
+    renewed again                            term 2026-11-30 .. 2027-11-30  -> 2028-11-30T23:59:59Z
+  first issue 2026-01-15T10:00:00Z expiring 2027-01-15T10:00:00Z
+    add-on 2026-09-01, then renewed          term 12 months (first issue)   -> 2028-01-15T10:00:00Z
+  first issue 2026-01-15T10:00:00Z expiring 2026-07-15T10:00:00Z
+    renewed                                  term 6 months, not 181 days    -> 2027-01-15T10:00:00Z
+  expired 2026-11-30T23:59:59Z; renewed 2027-02-01T09:00:00Z, vendor typed 2028-02-01T09:00:00Z
+    renewed again                            term 2027-02-01 .. 2028-02-01  -> 2029-02-01T09:00:00Z
+  first issue 2026-03-10T09:00:00Z expiring 2026-04-09T09:00:00Z
+    renewed                                  term 30 days                   -> 2026-05-09T09:00:00Z
   ```
 
 - Scripts take the suggestion only when they ask for it.
@@ -43,6 +54,9 @@ expiry.
 - Extending from the current expiry means a site owner who renews early loses nothing.
 - Counting months keeps a monthly or yearly term on the same day each time; exact time alone
   turns a six-month term into 181 days.
+- Measuring the term from the last renewal keeps it the same after an early renewal, a lapse,
+  or reissues in between; a goodwill extension by a later reissue does not lengthen the next
+  renewal.
 
 ## Rejected options
 
@@ -52,8 +66,11 @@ expiry.
 | Extend from today | Penalises renewing early |
 | Extend from the later of today or the current expiry | Two rules to explain; the vendor can type a date after a lapse |
 | No suggestion | Date arithmetic by hand on every renewal |
+| Term from the last issue entry's issue time to its expiry | Any reissue changes it: a yearly license renewed ten days early next suggests 12 months and 10 days; an add-on in month 8 makes the next renewal about 4 months |
 
 ## Consequences
 
 - After a lapse the suggestion is still current expiry plus term, which may be in the past; the
-  library rejects a past expiry (PDR-0013), and the vendor types a later date.
+  library rejects a past expiry (PDR-0013), and the vendor types a later date. The next term is
+  then measured from that renewal's issue time.
+- The record marks which reissues were renewals.

@@ -37,7 +37,8 @@ released from one tested build.
 
 **Non-Goals:** store integration, a long-running service, multiple users, encrypted database or
 backup, private-key export (FR-11), passphrase change (FR-12), rich console UI (FR-13), bulk
-reissue (FR-5), import of pre-tool keys (FR-16), HSM or vault keys (`pre-1.0-considerations.md`
+reissue (FR-5), import of pre-tool keys (FR-16), changing signing-key mode (FR-17), reused
+order reference warning (FR-18), HSM or vault keys (`pre-1.0-considerations.md`
 C2), localisation.
 
 ## Requirements
@@ -45,7 +46,7 @@ C2), localisation.
 | R | Requirement | Spec | Personas | Records |
 |---|---|---|---|---|
 | R1 | One vendor, one person per installation; manual or scripted | vendor-tool-setup: One vendor and one person per installation; Running by hand or from scripts | Vendor | PDR-0030 |
-| R2 | Guided setup | vendor-tool-setup: Guided setup | Vendor; site owner (prefix and keys set once, keys stay consistent) | PDR-0030, PDR-0023 |
+| R2 | Guided setup; prefix changeable later | vendor-tool-setup: Guided setup; Changing the prefix | Vendor; site owner (prefix and keys set once, keys stay consistent) | PDR-0030, PDR-0023 |
 | R3 | Folder location, moving | vendor-tool-setup: Folder location; Moving an installation | Vendor | PDR-0031 |
 | R4 | Products and add-only feature definitions | vendor-tool-products | Vendor; site owner (no feature silently lost, PDR-0016) | PDR-0036 |
 | R5 | Issue, reissue, renew, resend from records | vendor-tool-licenses | Vendor; site owner (renewal keeps paid-for days; lost key resent) | PDR-0033, PDR-0034, PDR-0021 |
@@ -70,7 +71,7 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q6 | SQL Server | Dropped; a database file inside the folder only (Carl, 2026-10-28). Was an FR-2 constraint | ADR-0013 |
 | Q7 | Protecting private keys | Encrypted with a passphrase set at setup; nothing else encrypted; asked once per command that signs or creates a key; batched runs supply it without a prompt (Carl, 2026-10-28) | PDR-0032 |
 | Q8 | Private-key export | None in this change; FR-11 (Carl, 2026-10-28) | PDR-0032 |
-| Q9 | Suggested expiry on renewal | Vendor types the expiry; tool suggests current expiry plus the last term (Carl, 2026-10-28). Months versus exact time: see Q22 | PDR-0034 |
+| Q9 | Suggested expiry on renewal | Vendor types the expiry; tool suggests current expiry plus the last term (Carl, 2026-10-28). Term and months versus exact time: see Q25 | PDR-0034 |
 | Q10 | Correcting or erasing customer data | Edit or clear order reference and email; no copy of a cleared value kept; records never deleted (Carl, 2026-10-28) | PDR-0033 |
 | Q11 | Trusted keys for a release | Switch asks the reason; trusted list per product; leaked key stays listed until reissues confirmed sent (Carl, 2026-10-28) | PDR-0035 |
 | Q12 | Storing key strings | Not stored; resend is reissue unchanged (Carl, 2026-10-28) | PDR-0033 |
@@ -84,16 +85,10 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q20 | Database and folder resolution | EF Core + SQLite in the folder; option, environment, pointer file, default (Carl, 2026-10-28) | ADR-0013 |
 | Q21 | Private-key encryption format | Encrypted PKCS#8 PEM, PBES2 AES-256-CBC + PBKDF2-SHA256 (Carl, 2026-10-28) | ADR-0014 |
 | Q22 | Backup and export formats | Zip of a consistent database snapshot and a manifest; CSV export (Carl approved T6, 2026-10-28) | ADR-0015 |
-
-**Architect assumptions, for Carl's review of this change** (each changes a spec scenario if
-overridden):
-
-| Q | Assumption | Where |
-|---|---|---|
-| Q23 | Prefix and signing-key mode are fixed at setup (FR-2: "one issuing setup, one prefix") | vendor-tool-setup: Guided setup; PDR-0030 |
-| Q24 | Passphrase at least 12 characters, no other rule | vendor-tool-setup: Passphrase too short; PDR-0032 |
-| Q25 | Last term counted in calendar months when it was a whole number of months, exact time otherwise. Without this a six-month term renewed from 2026-07-15 suggests 2027-01-12, not 2027-01-15 | vendor-tool-licenses: Suggested expiry; PDR-0034 |
-| Q26 | Order reference and customer email held once per license, not per issue; a reissue may overwrite them | vendor-tool-licenses: Customer details; PDR-0033 |
+| Q23 | Prefix and signing-key mode after setup | Prefix changeable: new issues and reissues use the current prefix, existing licenses keep theirs until reissued, typed references per PDR-0023. Signing-key mode fixed; changing it is FR-17 (Carl, 2026-10-28) | PDR-0030 |
+| Q24 | Passphrase rule | At least 15 characters, length only (NIST SP 800-63B rev 4) (Carl, 2026-10-28) | PDR-0032 |
+| Q25 | Length of the last term | Length the last renewal granted, from the later of the previous expiry and the renewal time to the expiry it set; first issue's term when never renewed; other reissues do not change it. Calendar months when whole months, exact time otherwise (Carl, 2026-10-28) | PDR-0034 |
+| Q26 | Where customer fields are held | Email per license; order reference per issue entry; only the latest entry's order reference correctable; clearing removes all of a license's order references at once. Warning on a reused order reference is FR-18 (Carl, 2026-10-28) | PDR-0033 |
 
 ## Decisions
 
@@ -105,8 +100,8 @@ overridden):
         v
   +-- ucl (src/Umbraco.Community.Licensing.Tool) --------------------------+
   |  Program --> ToolApp.Run(args, ToolEnvironment)                       |
-  |                 |  System.CommandLine root: setup folder product      |
-  |                 |                           license key backup        |
+  |                 |  System.CommandLine root: setup folder prefix       |
+  |                 |                   product license key backup        |
   |                 v                                                      |
   |  Commands/*  --uses-->  ToolConsole (in, out, err, interactive?,       |
   |     |                    hidden read)                                  |
@@ -137,6 +132,7 @@ terminal). Environment: `UCL_FOLDER`, `UCL_PASSPHRASE`.
 ```
   ucl setup [--prefix LIC|<prefix>|none] [--signing-keys per-product|shared] [--standby|--no-standby]
   ucl folder show | ucl folder use <path>
+  ucl prefix show | ucl prefix set LIC|<prefix>|none
   ucl product add <product-id> --name <display name>
   ucl product rename <product-id> --name <display name>
   ucl product feature add <product-id> <feature> --type switch|number|text
@@ -145,11 +141,11 @@ terminal). Environment: `UCL_FOLDER`, `UCL_PASSPHRASE`.
                     [--display-name] [--vendor-tag] [--order-ref] [--email]
   ucl license reissue <reference> [--expires <...|suggested>] [--feature name=value]...
                     [--remove-feature name]... [--display-name] [--vendor-tag] [--order-ref] [--email]
-  ucl license renew <reference> [--expires <...|suggested>]
+  ucl license renew <reference> [--expires <...|suggested>] [--order-ref] [--email]
   ucl license resend <reference>
   ucl license list [--product] [--reference] [--order-ref] [--email]
   ucl license show <reference>
-  ucl license customer <reference> [--order-ref <v> | --clear-order-ref] [--email <v> | --clear-email]
+  ucl license customer <reference> [--order-ref <v> | --clear-order-refs] [--email <v> | --clear-email]
   ucl key status [--without-standby]
   ucl key add-standby <product-id|shared>
   ucl key switch <product-id|shared> --reason routine|loss|leak [--yes]
@@ -164,7 +160,9 @@ terminal). Environment: `UCL_FOLDER`, `UCL_PASSPHRASE`.
 Feature values follow the product's definition: switch `name=on|off`, number `name=500`, text
 `name=eu`. Expiry: `2027-03-01` (date, PDR-0007), `2027-03-01T23:59:59Z`, `perpetual`. A missing
 input at a terminal is prompted; with `--no-input` or redirected stdin it is a refusal naming the
-option. Prompts and messages go to stderr; the result (key string, file path, list) to stdout.
+option. `--order-ref` on issue, reissue and renew sets the new issue entry's order reference; on
+`license customer` it corrects the latest entry's. `prefix set` needs no passphrase. Prompts and
+messages go to stderr; the result (key string, file path, list) to stdout.
 Exit codes: 0 done, 1 refused (validation, wrong passphrase, missing installation), 2 usage
 error.
 
@@ -200,8 +198,11 @@ Tables:
 | `Products` | `ProductId`, `DisplayName`, `CreatedUtc` |
 | `FeatureDefinitions` | `ProductId` + `Name`, `Type`, `AddedUtc` |
 | `SigningKeys` | `SigningKeyId`, `ProductId` (null in shared mode), `PublicKey` (export line), `EncryptedPrivateKeyPem`, `Role` (active / standby / replaced), `CreatedUtc`, `ReplacedUtc`, `ReplacedReason`, `InReleaseUtc`, `ReissuesSentUtc` |
-| `Licenses` | `Reference` (10 characters), `ProductId`, `OrderRef`, `CustomerEmail`, `CreatedUtc` |
-| `IssueEntries` | `Id`, `Reference`, `Kind` (issue / reissue / renewal / resend), `IssuedUtc`, `ExpiresUtc` (null = perpetual), `DisplayName`, `VendorTag`, `FeaturesJson`, `KeyIdentifier`, `SigningKeyId` |
+| `Licenses` | `Reference` (10 characters), `ProductId`, `CustomerEmail`, `CreatedUtc` |
+| `IssueEntries` | `Id`, `Reference`, `Kind` (issue / reissue / renewal / resend), `IssuedUtc`, `ExpiresUtc` (null = perpetual), `DisplayName`, `VendorTag`, `FeaturesJson`, `OrderRef`, `KeyIdentifier`, `SigningKeyId` |
+
+`KeyIdentifier` keeps the prefix each entry was issued with, so a prefix change needs no data
+change. `OrderRef` is indexed for find by order reference.
 
 No column holds a key string.
 
@@ -228,11 +229,13 @@ overwrites an existing output file. Signed-key export: CSV (RFC 4180, UTF-8, hea
 
 ### Expiry suggestion
 
-Pure function over the last issue entry (issued, expires) and the kind of reissue. Renewal of a
-time-limited license: if issued and expires share day of month (a day past a month's end
-counting as its last day) and time of day, add the same number of calendar months to expires
-(clamping to month end); otherwise add `expires - issued`. Perpetual: perpetual. Other reissues:
-current expiry. `--expires suggested` takes it without a prompt.
+Pure function over the license's issue entries, the current expiry and the kind of reissue.
+Term: take the last `renewal` entry R and the entry before it P; start = max(P.ExpiresUtc,
+R.IssuedUtc), end = R.ExpiresUtc. With no renewal entry: start = first entry's `IssuedUtc`, end =
+its `ExpiresUtc`. Renewal of a time-limited license: if start and end share day of month (a day
+past a month's end counting as its last day) and time of day, add the same number of calendar
+months to the current expiry (clamping to month end); otherwise add `end - start`. Perpetual:
+perpetual. Other reissues: current expiry. `--expires suggested` takes it without a prompt.
 
 ### Trusted keys
 
@@ -248,7 +251,7 @@ active has no `InReleaseUtc`.
 | `src/Umbraco.Community.Licensing.Tool/**`, `tests/Umbraco.Community.Licensing.Tool.Tests/**` | worker-backend (under `src/**`, `tests/**`) |
 | `Umbraco.Community.Licensing.slnx` | worker-backend, for the two new project entries |
 | `.github/workflows/release.yml` | Shared (CI): assigned to worker-backend in the brief |
-| `.config/dotnet-tools.json` (new top-level path, `dotnet-ef` for creating migrations) | Shared: assigned to worker-backend in the brief. Needs Carl's approval as a dependency (see Risks) |
+| `.config/dotnet-tools.json` (new top-level path, `dotnet-ef` for creating migrations) | Shared: assigned to worker-backend in the brief. `dotnet-ef` approved by Carl, 2026-10-28 |
 | `docs/vendor-tool.md`, `README.md`, records | Architect |
 
 ## Test strategy
@@ -272,10 +275,10 @@ Validation for every block: `dotnet build Umbraco.Community.Licensing.slnx`,
 
 ## Risks / Trade-offs
 
-- [Creating migrations needs the `dotnet-ef` CLI, not covered by the approved dependencies] →
-  Add it as a local tool in `.config/dotnet-tools.json`, pinned; Carl's approval needed before
-  tasks.md 2.2. Alternative: `EnsureCreated` with no migrations, which cannot upgrade a vendor's
-  database in a later version.
+- [Creating migrations needs the `dotnet-ef` CLI] → Added as a pinned local tool in
+  `.config/dotnet-tools.json` (approved by Carl, 2026-10-28; tasks.md 2.2). Alternative rejected:
+  `EnsureCreated` with no migrations, which cannot upgrade a vendor's database in a later
+  version.
 - [Decrypted PEM lives briefly as a .NET string, which cannot be zeroed] → Accepted for this
   bar; lifetime is one command. `pre-1.0-considerations.md` C2 (`FromECDsa`) would remove the
   string; not in this change.

@@ -23,6 +23,8 @@ Cite as FR-N.
 | FR-14 | Retire a feature definition | `add-vendor-tool` explore, 2026-10-28 | Open |
 | FR-15 | Standby key stored apart from the active key | `add-vendor-tool` explore, 2026-10-28 | Open |
 | FR-16 | Import licenses issued before the vendor tool | `add-vendor-tool` explore, 2026-10-28 | Open |
+| FR-17 | Change signing-key mode after setup | `add-vendor-tool` explore, 2026-10-28 | Open |
+| FR-18 | Warn on a reused order reference | `add-vendor-tool` explore, 2026-10-28 | Open |
 
 ## FR-1: Vendor-chosen key identifier prefix
 
@@ -376,3 +378,21 @@ their key strings, verified against the vendor's keys.
 an existing key); key strings are not kept after reading (PDR-0033).
 
 **Related.** PDR-0013, PDR-0033.
+
+## FR-17: Change signing-key mode after setup
+
+**Request.** Move an installation from one signing key per product to one shared key, or the
+reverse, without a new installation.
+
+**Issues to settle.** Which key survives or is created; every product's next release must trust
+it before it signs; standby keys; the trusted lists during the move (PDR-0035).
+
+**Related.** PDR-0030, PDR-0035, FR-5.
+
+## FR-18: Warn on a reused order reference
+
+**Request.** When an issue, reissue or renewal is given an order reference already held by an
+issue entry, warn (by hand) or refuse unless confirmed (scripted), so a store script run twice
+does not issue twice for one order.
+
+**Related.** PDR-0033 (order reference per issue entry), PDR-0030 (batched use).

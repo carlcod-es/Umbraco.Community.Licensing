@@ -18,7 +18,7 @@ Depends on: 1. Owner: worker-backend. Shared files assigned in the brief: the tw
 `.config/dotnet-tools.json`. Records: ADR-0011, ADR-0012, ADR-0013.
 
 - [ ] 2.1 Create `src/Umbraco.Community.Licensing.Tool` (project reference to the library; `PackAsTool`, `ToolCommandName` `ucl`, `PackageId` `Umbraco.Community.Licensing.Tool`, `Version.props` import, metadata and icon as the library, README from `docs/vendor-tool.md`) and `tests/Umbraco.Community.Licensing.Tool.Tests` (xUnit v3 as the library tests), add both to the `.slnx`, add System.CommandLine 2.0.x stable, Microsoft.EntityFrameworkCore.Sqlite 10.0.x and Microsoft.EntityFrameworkCore.Design 10.0.x (private assets) pinned exactly, and verify `dotnet build` passes with no warnings, `dotnet run --project src/Umbraco.Community.Licensing.Tool -- --version` prints `Version.props`'s version, and the library project has no new package reference
-- [ ] 2.2 Add `dotnet-ef` 10.0.x as a pinned local tool in `.config/dotnet-tools.json` (only after Carl approves it, design.md Risks), and verify `dotnet tool restore` and `dotnet ef --version` succeed
+- [ ] 2.2 Add `dotnet-ef` 10.0.x as a pinned local tool in `.config/dotnet-tools.json` (approved by Carl, 2026-10-28), and verify `dotnet tool restore` and `dotnet ef --version` succeed
 
 ## 3. Console, commands and folder
 
@@ -44,10 +44,12 @@ the passphrase). Records: ADR-0014, PDR-0032.
 ## 6. Setup
 
 Depends on: 5. Owner: worker-backend. Spec: vendor-tool-setup (Guided setup; One vendor and one
-person per installation; Moving an installation). Records: PDR-0030, PDR-0031, PDR-0023.
+person per installation; Moving an installation; Changing the prefix). Records: PDR-0030,
+PDR-0031, PDR-0023.
 
 - [ ] 6.1 Implement `ucl setup` (folder, passphrase twice, prefix, signing-key mode, standby offer; shared key created in shared mode; closing message with full path, content, backup advice and sync warning; pointer written), and verify by tests for "Setup with defaults", "Invalid prefix", "Passphrases differ", "Passphrase too short", "Folder already holds an installation" and "Second installation", interactive and with all options given
 - [ ] 6.2 Verify "New laptop": a test copies a set-up folder to another temp folder, points the tool at it, and issues a key with the same passphrase (after section 8; tick with 8)
+- [ ] 6.3 Implement `ucl prefix show` and `prefix set` (prefix rule, no passphrase, message on what changes, records untouched), and verify by tests for "Prefix changed", "Earlier prefix typed" and "Invalid prefix on change" (after section 8; tick with 8)
 
 ## 7. Products
 
@@ -60,10 +62,10 @@ Depends on: 6. Owner: worker-backend. Spec: vendor-tool-products. Records: PDR-0
 Depends on: 7. Owner: worker-backend. Spec: vendor-tool-licenses. Records: PDR-0033, PDR-0034,
 PDR-0021, PDR-0023.
 
-- [ ] 8.1 Implement the expiry suggestion per design.md (calendar months when the last term was whole months, exact time otherwise; perpetual; non-renewal), and verify by tests for every "Suggested expiry" scenario plus month-end (2026-01-31 to 2026-02-28) and leap-day cases
+- [ ] 8.1 Implement the expiry suggestion per design.md (term from the last renewal entry, or the first issue when never renewed; calendar months when the term was whole months, exact time otherwise; perpetual; non-renewal), and verify by tests for every "Suggested expiry" scenario (including "Second renewal after an early renewal", "Add-on before renewal" and "Renewal after a lapse") plus month-end (2026-01-31 to 2026-02-28) and leap-day cases
 - [ ] 8.2 Implement `ucl license issue` (feature values parsed by definition, signing with the product's active key, record and issue entry, key string to stdout once), and verify by tests for "License issued", "Undefined feature", "Wrong passphrase" and "Scripted issue", and that the key verifies with `LicenseEvaluator` trusting the product's public keys
-- [ ] 8.3 Implement `license reissue`, `license renew` (with `--expires suggested`) and `license resend`, building a `LicenseRequest` with the stored reference and product, and verify by tests for "Add-on bought", "Site owner lost the key" and each suggested-expiry case through the command
-- [ ] 8.4 Implement `license list` (filters by product, reference under the prefix rule, order reference, email), `license show` (issue entries newest first) and `license customer` (edit, clear), and verify by tests for "Find by customer email", "License history", "Erasure request" (cleared email absent from every byte of `ucl.db`) and "No delete"
+- [ ] 8.3 Implement `license reissue`, `license renew` (with `--expires suggested`, recorded as kind renewal) and `license resend` (entry with no order reference), with `--order-ref` setting the new entry's order reference, building a `LicenseRequest` with the stored reference and product, and verify by tests for "Add-on bought", "Site owner lost the key", "Renewal keeps the earlier order reference" and each suggested-expiry case through the command
+- [ ] 8.4 Implement `license list` (filters by product, reference under the prefix rule, order reference on any entry, email; row shows email and latest order reference), `license show` (issue entries newest first, each with its order reference) and `license customer` (edit or clear email; correct the latest entry's order reference; `--clear-order-refs` for every entry), and verify by tests for "Find by customer email", "Find by an earlier order reference", "License history", "Correcting the latest order reference", "Clearing order references", "Erasure request" (cleared email and order references absent from every byte of `ucl.db`) and "No delete"
 - [ ] 8.5 Verify "Copied folder": a test issues, reissues and resends licenses, then scans every file in the folder for each key string, and finds none
 
 ## 9. Signing keys

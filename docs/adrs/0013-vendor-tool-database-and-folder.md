@@ -38,7 +38,7 @@ database. Carl prefers EF Core.
 ## Consequences
 
 - Dependencies: `Microsoft.EntityFrameworkCore.Sqlite`, `Microsoft.EntityFrameworkCore.Design`
-  (approved by Carl 2026-10-28); `dotnet-ef` local tool (awaiting approval).
+  (approved by Carl 2026-10-28); `dotnet-ef` local tool (approved by Carl 2026-10-28).
 - `secure_delete` makes writes slightly slower; negligible at a small vendor's volume.
 
 ## Reversal Cost

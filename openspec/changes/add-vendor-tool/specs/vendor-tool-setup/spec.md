@@ -6,8 +6,8 @@ run and on another machine, and run every action by hand or from their own scrip
 ## ADDED Requirements
 
 ### Requirement: One vendor and one person per installation
-An installation SHALL hold one vendor's issuing setup: one folder, one database, one key prefix,
-one signing-key mode. It SHALL have no user accounts or permissions: whoever can run the tool
+An installation SHALL hold one vendor's issuing setup: one folder, one database, one key prefix
+at a time, one signing-key mode. It SHALL have no user accounts or permissions: whoever can run the tool
 against the folder can perform every action, and actions that use a private key also need the
 passphrase. A vendor needing a second issuing setup SHALL create a second installation in
 another folder.
@@ -19,14 +19,14 @@ another folder.
 
 ### Requirement: Guided setup
 Setup SHALL run once per installation and SHALL ask, in order, for: the folder, the passphrase
-(typed twice, hidden), the key prefix (`LIC` by default, the vendor's own, or none, by the
+(at least 15 characters, typed twice, hidden), the key prefix (`LIC` by default, the vendor's own, or none, by the
 prefix rule), the signing-key mode (one signing key per product, or one shared across all
 products), and whether to create a standby key with each signing key, presented as recommended.
 In shared mode setup SHALL create the shared signing key (and its standby key when chosen).
 Setup SHALL end by naming the folder's full path, what it holds (private signing keys,
 encrypted; license records; customer emails and order references, not encrypted), and that the
-folder must be backed up and kept out of folders synced to cloud storage. Prefix and
-signing-key mode SHALL NOT change after setup. Setup SHALL refuse a folder that already holds an
+folder must be backed up and kept out of folders synced to cloud storage. The signing-key mode
+SHALL NOT change after setup; the prefix MAY (Changing the prefix). Setup SHALL refuse a folder that already holds an
 installation, changing nothing.
 
 #### Scenario: Setup with defaults
@@ -45,12 +45,34 @@ installation, changing nothing.
 - **THEN** setup says so and asks for both again
 
 #### Scenario: Passphrase too short
-- **WHEN** the passphrase is shorter than 12 characters
+- **WHEN** the passphrase is shorter than 15 characters
 - **THEN** setup names the minimum length and asks again
 
 #### Scenario: Folder already holds an installation
 - **WHEN** setup is run for a folder that already holds an installation
 - **THEN** setup refuses, naming the folder, and nothing in it changes
+
+### Requirement: Changing the prefix
+The vendor SHALL show the installation's prefix and change it to `LIC`, their own or none, by the
+prefix rule. A change SHALL need no passphrase and SHALL state that new issues and reissues use
+the new prefix and existing licenses keep theirs until reissued. Existing records SHALL NOT
+change. A reference typed after the change SHALL be read under the prefix rule with the new
+prefix: the earlier prefix is refused, the 10-character form is accepted.
+
+#### Scenario: Prefix changed
+- **WHEN** the vendor of an installation with prefix `LIC` and license `LIC-8F3AK-M7RXB` changes
+  the prefix to `ACME` and then issues a license
+- **THEN** the new key identifier starts `ACME-`, the record of `LIC-8F3AK-M7RXB` is unchanged,
+  and a reissue of it starts `ACME-8F3AK-M7RXB-`
+
+#### Scenario: Earlier prefix typed
+- **WHEN** after the change to `ACME` the vendor shows `LIC-8F3AK-M7RXB`
+- **THEN** the reference is refused naming the configured prefix `ACME`; showing `8F3AK-M7RXB`
+  finds the license
+
+#### Scenario: Invalid prefix on change
+- **WHEN** the vendor changes the prefix to `acme-shop`
+- **THEN** the change is refused naming the prefix rule, and the prefix is unchanged
 
 ### Requirement: Folder location
 Setup SHALL propose `.ucl` in the vendor's home folder, show its full path, and accept any other

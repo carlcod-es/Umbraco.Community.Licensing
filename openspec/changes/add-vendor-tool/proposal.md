@@ -15,7 +15,8 @@ published, the library is ready to gain its main issuing client.
 - **Guided setup**: folder (proposed `~/.ucl`, the vendor may choose another), passphrase, key
   prefix (PDR-0023), one signing key per product or one shared, standby key offered as
   recommended. Setup names what is stored and says it must be backed up and kept out of
-  synced folders (PDR-0030, PDR-0031).
+  synced folders. The prefix can be changed later; the signing-key mode cannot (PDR-0030,
+  PDR-0031).
 - **Self-contained folder**: everything the tool holds is in one folder that keeps working when
   moved to another machine. Backup export to a zip and import of a zip into a folder with no
   installation (PDR-0031).
@@ -26,8 +27,8 @@ published, the library is ready to gain its main issuing client.
 - **Issue, reissue, renew, resend** from stored records. Renewal suggests the current expiry plus
   the last term. Key strings are never stored; resend is a reissue with nothing changed
   (PDR-0033, PDR-0034).
-- **Records**: find and list licenses; optional order reference and customer email per license,
-  editable and clearable; records never deleted (PDR-0033).
+- **Records**: find and list licenses; optional customer email per license and order reference
+  per issue, editable and clearable; records never deleted (PDR-0033).
 - **Signing keys**: switch with a reason (routine, loss, leak); record the signing key of every
   issue; export by signing key; standby key at setup or later; list of products without a
   standby key; the public key lines each product's next release must trust, including the
@@ -35,8 +36,8 @@ published, the library is ready to gain its main issuing client.
 - **Release**: the release run publishes the tool package alongside the library, same version.
 - Out of this change, logged as feature requests: private-key export for larger vendors (FR-11),
   passphrase change (FR-12), richer console prompts (FR-13), retiring feature definitions
-  (FR-14), standby key stored apart (FR-15), importing licenses issued before the tool (FR-16).
-  Bulk reissue and leak follow-through stay with FR-5.
+  (FR-14), standby key stored apart (FR-15), importing licenses issued before the tool (FR-16),
+  changing signing-key mode (FR-17), warning on a reused order reference (FR-18). Bulk reissue and leak follow-through stay with FR-5.
 
 ## Capabilities
 
@@ -63,9 +64,10 @@ published, the library is ready to gain its main issuing client.
   tests with the library's.
 - Library: no change.
 - Records: PDR-0030 to PDR-0036 (new); ADR-0011 to ADR-0015 (new; ADR-0011 amends ADR-0008).
-  `docs/feature-requests.md`: FR-2 and FR-4 taken into this change; FR-11 to FR-16 added.
+  `docs/feature-requests.md`: FR-2 and FR-4 taken into this change; FR-11 to FR-18 added.
 - Dependencies (approved by Carl, 2026-10-28): System.CommandLine,
-  Microsoft.EntityFrameworkCore.Sqlite, Microsoft.EntityFrameworkCore.Design (build only).
+  Microsoft.EntityFrameworkCore.Sqlite, Microsoft.EntityFrameworkCore.Design (build only),
+  `dotnet-ef` local tool (creating migrations).
 - Prerequisite for vendors: the .NET SDK.
 - Personas: vendor (records, safe keys, guided rotation). Site owner (primary): keys unchanged;
   renewals keep paid-for days; lost keys resent from records; a copied backup holds no usable
