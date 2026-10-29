@@ -51,7 +51,7 @@ internal sealed class ToolDbContext(DbContextOptions<ToolDbContext> options) : D
         {
             e.ToTable("Products");
             e.HasKey(x => x.ProductId);
-            e.HasMany(x => x.Features).WithOne().HasForeignKey(x => x.ProductId);
+            e.HasMany(x => x.Features).WithOne().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
         });
 
         model.Entity<FeatureDefinition>(e =>
@@ -64,7 +64,7 @@ internal sealed class ToolDbContext(DbContextOptions<ToolDbContext> options) : D
         {
             e.ToTable("SigningKeys");
             e.HasKey(x => x.SigningKeyId);
-            e.HasOne<Product>().WithMany().HasForeignKey(x => x.ProductId).IsRequired(false);
+            e.HasOne<Product>().WithMany().HasForeignKey(x => x.ProductId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
         });
 
         model.Entity<License>(e =>
@@ -72,8 +72,8 @@ internal sealed class ToolDbContext(DbContextOptions<ToolDbContext> options) : D
             e.ToTable("Licenses");
             e.HasKey(x => x.Reference);
             e.Property(x => x.Reference).HasMaxLength(10);
-            e.HasOne<Product>().WithMany().HasForeignKey(x => x.ProductId);
-            e.HasMany(x => x.Entries).WithOne().HasForeignKey(x => x.Reference);
+            e.HasOne<Product>().WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
+            e.HasMany(x => x.Entries).WithOne().HasForeignKey(x => x.Reference).OnDelete(DeleteBehavior.Restrict);
         });
 
         model.Entity<IssueEntry>(e =>
@@ -81,7 +81,7 @@ internal sealed class ToolDbContext(DbContextOptions<ToolDbContext> options) : D
             e.ToTable("IssueEntries");
             e.HasKey(x => x.Id);
             e.Property(x => x.Reference).HasMaxLength(10);
-            e.HasOne<SigningKey>().WithMany().HasForeignKey(x => x.SigningKeyId);
+            e.HasOne<SigningKey>().WithMany().HasForeignKey(x => x.SigningKeyId).OnDelete(DeleteBehavior.Restrict);
             e.HasIndex(x => x.OrderRef);
         });
     }

@@ -1,4 +1,5 @@
 using System.CommandLine;
+using Umbraco.Community.Licensing.Tool.Data;
 
 namespace Umbraco.Community.Licensing.Tool;
 
@@ -15,6 +16,9 @@ internal sealed class ToolContext(
     Action<ToolContext> runSetup)
 {
     public ToolEnvironment Environment { get; } = environment;
+
+    /// <summary>The environment variable that supplies the passphrase to scripts.</summary>
+    public const string PassphraseVariable = "UCL_PASSPHRASE";
 
     public ToolConsole Console => Environment.Console;
 
@@ -80,10 +84,78 @@ internal sealed class ToolContext(
     /// present.
     /// </summary>
     /// <exception cref="InvalidOperationException">Not interactive: the caller should have refused instead.</exception>
-    public string? PromptHidden(string text) =>
-        Interactive
-            ? Console.PromptHidden(text)
-            : throw new InvalidOperationException("A hidden prompt needs an interactive session.");
+    public string PromptHidden(string text) => Console.PromptHidden(text, NoInput);
+
+    /// <summary>
+    /// Reads the passphrase, first found of: <c>--passphrase-stdin</c> (first line of stdin), the
+    /// <c>UCL_PASSPHRASE</c> variable, a hidden prompt when interactive (ADR-0012). It is never trimmed (a line
+    /// ending is removed by the line read only); an empty value counts as missing. Not cached: the caller holds
+    /// it for one command.
+    /// </summary>
+    /// <exception cref="ToolRefusal">
+    /// <c>--passphrase-stdin</c> at a terminal (reading a line would echo it), or no source supplied one and
+    /// nobody can be asked.
+    /// </exception>
+    public string ReadPassphrase()
+    {
+        if (PassphraseStdin)
+        {
+            if (!Console.InputRedirected)
+            {
+                throw new ToolRefusal(
+                    "--passphrase-stdin needs the passphrase piped on stdin. At a terminal, leave it out to be asked.");
+            }
+
+            var line = Console.ReadLine();
+            if (!string.IsNullOrEmpty(line))
+            {
+                return line;
+            }
+        }
+
+        var variable = Environment.GetVariable(PassphraseVariable);
+        if (!string.IsNullOrEmpty(variable))
+        {
+            return variable;
+        }
+
+        if (Interactive)
+        {
+            var typed = PromptHidden("Passphrase: ");
+            if (typed.Length > 0)
+            {
+                return typed;
+            }
+        }
+
+        throw new ToolRefusal(
+            $"Passphrase needed. Pipe it with --passphrase-stdin or set {PassphraseVariable}. Nothing changed.");
+    }
+
+    /// <summary>
+    /// Unlocks for an action that creates or uses a private key: reads the passphrase once and checks it
+    /// against the check stored at setup, so a mistyped passphrase can never encrypt a new key. Call it before
+    /// anything else changes.
+    /// </summary>
+    /// <returns>The verified passphrase; hold it for this command only.</returns>
+    /// <exception cref="ToolRefusal">No passphrase, a wrong one, or the installation holds no passphrase check.</exception>
+    public string ReadVerifiedPassphrase(ToolDbContext db)
+    {
+        var check = KeyProtection.LoadCheck(db)
+            ?? throw new ToolRefusal("This installation has no passphrase check (setup did not finish). Nothing changed.");
+        var passphrase = ReadPassphrase();
+        return check.Verify(passphrase)
+            ? passphrase
+            : throw new ToolRefusal("Wrong passphrase. Nothing changed.");
+    }
+
+    /// <summary>
+    /// Resolves the vendor folder (writing <c>Using &lt;path&gt;</c>) and opens its database. The one way a
+    /// command opens the database: <see cref="Installation.Open"/> creates <c>ucl.db</c> when missing, so it
+    /// must only receive a resolved folder. Dispose the result.
+    /// </summary>
+    /// <exception cref="ToolRefusal">No installation, or a database made by a newer tool.</exception>
+    public ToolDbContext OpenDatabase() => Installation.Open(UseInstallation());
 
     /// <summary>
     /// The step every installation-using command starts with: resolves the vendor folder, writes

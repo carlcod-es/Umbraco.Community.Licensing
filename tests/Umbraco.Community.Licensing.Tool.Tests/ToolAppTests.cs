@@ -143,7 +143,7 @@ public class ToolAppTests
         // System.CommandLine's default handler reports the programming error and exits 1.
         Assert.Equal(1, tool.Run("stub-hidden"));
         Assert.Contains("interactive session", tool.Stderr);
-        Assert.Throws<InvalidOperationException>(() => tool.Environment.Console.PromptHidden("x"));
+        Assert.Throws<InvalidOperationException>(() => tool.Environment.Console.PromptHidden("x", noInput: false));
         Assert.Equal("", tool.Stdout);
         Assert.DoesNotContain("Passphrase: ", tool.Stderr);
     }

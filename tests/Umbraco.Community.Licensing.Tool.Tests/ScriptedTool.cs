@@ -1,4 +1,5 @@
 using System.CommandLine;
+using Umbraco.Community.Licensing.Tool.Data;
 
 namespace Umbraco.Community.Licensing.Tool.Tests;
 
@@ -18,7 +19,8 @@ internal sealed class ScriptedTool : IDisposable
         string stdin = "",
         bool stdinRedirected = true,
         string hiddenKeys = "",
-        Action<ToolContext>? setup = null)
+        Action<ToolContext>? setup = null,
+        IReadOnlyDictionary<string, string>? variables = null)
     {
         _setup = setup;
         var keys = new Queue<char>(hiddenKeys);
@@ -39,12 +41,15 @@ internal sealed class ScriptedTool : IDisposable
             });
         Environment = new ToolEnvironment(
             console,
-            TimeProvider.System,
+            Clock,
             Home: Path.Combine(_root, "home"),
             CurrentDirectory: Path.Combine(_root, "cwd"),
-            GetVariable: _ => null,
+            GetVariable: name => variables is not null && variables.TryGetValue(name, out var value) ? value : null,
             Pbkdf2Iterations: 1_000);
     }
+
+    /// <summary>The tool's clock; fixed until advanced.</summary>
+    public FixedTimeProvider Clock { get; } = new(new DateTimeOffset(2026, 1, 15, 9, 30, 0, TimeSpan.Zero));
 
     public ToolEnvironment Environment { get; }
 
@@ -55,11 +60,11 @@ internal sealed class ScriptedTool : IDisposable
 
     public string Stderr => _stderr.ToString();
 
-    public int Run(params string[] args) => ToolApp.Run(args, Environment, [Stub, StubTwo, StubHidden, StubThrow], _setup);
+    public int Run(params string[] args) => ToolApp.Run(args, Environment, [Stub, StubTwo, StubHidden, StubThrow, StubKey], _setup);
 
     /// <summary>
-    /// Makes <paramref name="folder"/> an installation. An empty file is enough to mark an installation for resolution tests; tests of the
-    /// database itself use Installation.Open.
+    /// Makes <paramref name="folder"/> an installation for resolution tests: an empty file is enough to mark
+    /// one. Tests of the database itself use <see cref="Installation.Open"/>.
     /// </summary>
     public static string MakeInstallation(string folder)
     {
@@ -113,6 +118,33 @@ internal sealed class ScriptedTool : IDisposable
         var kind = new Argument<string>("kind");
         var command = new Command("stub-throw") { kind };
         host.SetAction(command, context => throw ErrorHandlingTests.Make(context.ParseResult.GetValue(kind)!));
+        return command;
+    }
+
+    /// <summary>
+    /// Stub standing in for a key-creating command: opens the database, unlocks with the passphrase, then
+    /// creates one signing key. Writes the key ID to stdout.
+    /// </summary>
+    private static Command StubKey(ToolHost host)
+    {
+        var command = new Command("stub-key");
+        host.SetAction(command, context =>
+        {
+            using var db = context.OpenDatabase();
+            var passphrase = context.ReadVerifiedPassphrase(db);
+            using var pair = SigningKeyPair.Create();
+            db.SigningKeys.Add(new SigningKey
+            {
+                SigningKeyId = pair.SigningKeyId,
+                PublicKey = pair.PublicKey.Export(),
+                EncryptedPrivateKeyPem = KeyProtection.Encrypt(pair.PrivateKey, passphrase, context.Environment.Pbkdf2Iterations),
+                Role = SigningKeyRole.Active,
+                CreatedUtc = context.Environment.TimeProvider.GetUtcNow(),
+            });
+            db.SaveChanges();
+            context.Console.Out.WriteLine(pair.SigningKeyId);
+            return ExitCodes.Done;
+        });
         return command;
     }
 

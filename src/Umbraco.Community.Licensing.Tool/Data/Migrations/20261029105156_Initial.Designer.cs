@@ -10,7 +10,7 @@ using Umbraco.Community.Licensing.Tool.Data;
 namespace Umbraco.Community.Licensing.Tool.Data.Migrations
 {
     [DbContext(typeof(ToolDbContext))]
-    [Migration("20261029102816_Initial")]
+    [Migration("20261029105156_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -198,7 +198,7 @@ namespace Umbraco.Community.Licensing.Tool.Data.Migrations
                     b.HasOne("Umbraco.Community.Licensing.Tool.Data.Product", null)
                         .WithMany("Features")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -207,13 +207,13 @@ namespace Umbraco.Community.Licensing.Tool.Data.Migrations
                     b.HasOne("Umbraco.Community.Licensing.Tool.Data.License", null)
                         .WithMany("Entries")
                         .HasForeignKey("Reference")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Umbraco.Community.Licensing.Tool.Data.SigningKey", null)
                         .WithMany()
                         .HasForeignKey("SigningKeyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -222,7 +222,7 @@ namespace Umbraco.Community.Licensing.Tool.Data.Migrations
                     b.HasOne("Umbraco.Community.Licensing.Tool.Data.Product", null)
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -230,7 +230,8 @@ namespace Umbraco.Community.Licensing.Tool.Data.Migrations
                 {
                     b.HasOne("Umbraco.Community.Licensing.Tool.Data.Product", null)
                         .WithMany()
-                        .HasForeignKey("ProductId");
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Umbraco.Community.Licensing.Tool.Data.License", b =>

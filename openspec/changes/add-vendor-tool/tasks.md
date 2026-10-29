@@ -39,7 +39,7 @@ Depends on: 2, 3. Owner: worker-backend. Records: ADR-0013, PDR-0033.
 Depends on: 4. Owner: worker-backend. Spec: vendor-tool-signing-keys (Private keys encrypted with
 the passphrase). Records: ADR-0014, PDR-0032.
 
-- [ ] 5.1 Implement the passphrase check (PBKDF2-SHA256, salt, stored iterations, fixed-time compare), encrypt and decrypt of private keys per ADR-0014, and passphrase sources (`--passphrase-stdin`, `UCL_PASSPHRASE`, hidden prompt), and verify by tests for "Opened by another tool" (`ECDsa.ImportFromEncryptedPem` with and without the passphrase), a wrong passphrase refused before any key is created, and one encrypt/decrypt at 600,000 iterations completing
+- [x] 5.1 Implement the passphrase check (PBKDF2-SHA256, salt, stored iterations, fixed-time compare), encrypt and decrypt of private keys per ADR-0014, and passphrase sources (`--passphrase-stdin`, `UCL_PASSPHRASE`, hidden prompt), and verify by tests for "Opened by another tool" (`ECDsa.ImportFromEncryptedPem` with and without the passphrase), a wrong passphrase refused before any key is created, and one encrypt/decrypt at 600,000 iterations completing
 
 ## 6. Setup
 

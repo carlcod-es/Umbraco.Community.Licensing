@@ -48,15 +48,15 @@ internal sealed class ToolConsole(
     }
 
     /// <summary>
-    /// Writes a prompt to stderr, then reads a line from the keyboard without echoing it. Call it through
-    /// <see cref="ToolContext.PromptHidden"/>, which refuses when nobody is present. Stdin is never a source.
+    /// Writes a prompt to stderr, then reads a line from the keyboard without echoing it. Stdin is never a
+    /// source. Takes <paramref name="noInput"/> so the interactivity guard cannot be skipped.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Stdin is redirected: there are no keys to read.</exception>
-    internal string PromptHidden(string text)
+    /// <exception cref="InvalidOperationException">Not interactive (stdin redirected or <c>--no-input</c>): the caller should have refused instead.</exception>
+    internal string PromptHidden(string text, bool noInput)
     {
-        if (InputRedirected)
+        if (!IsInteractive(noInput))
         {
-            throw new InvalidOperationException("A hidden prompt needs a keyboard, not redirected input.");
+            throw new InvalidOperationException("A hidden prompt needs an interactive session.");
         }
 
         Error.Write(text);

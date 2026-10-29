@@ -52,7 +52,7 @@ namespace Umbraco.Community.Licensing.Tool.Data.Migrations
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "ProductId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -72,7 +72,7 @@ namespace Umbraco.Community.Licensing.Tool.Data.Migrations
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "ProductId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -97,7 +97,8 @@ namespace Umbraco.Community.Licensing.Tool.Data.Migrations
                         name: "FK_SigningKeys_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
-                        principalColumn: "ProductId");
+                        principalColumn: "ProductId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -125,13 +126,13 @@ namespace Umbraco.Community.Licensing.Tool.Data.Migrations
                         column: x => x.Reference,
                         principalTable: "Licenses",
                         principalColumn: "Reference",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_IssueEntries_SigningKeys_SigningKeyId",
                         column: x => x.SigningKeyId,
                         principalTable: "SigningKeys",
                         principalColumn: "SigningKeyId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
