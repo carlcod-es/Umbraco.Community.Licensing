@@ -123,6 +123,7 @@ agents cannot delegate.
 | `tools/**` | worker-backend |
 | `assets/**` | Architect. Files packed into the package are referenced from the library project by worker-backend |
 | `.github/**` | Shared (CI): assigned to worker-backend in the brief |
+| `.config/**` | Shared: assigned in the brief |
 | `Version.props` | Shared: assigned in the brief; `VersionLine` changed only by Carl, `Version` only by the release command after `add-release-pipeline` |
 | `RELEASES.md` | Architect creates it; rows added only by the release command |
 

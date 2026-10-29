@@ -1,0 +1,34 @@
+# add-vendor-tool follow-ups
+
+Minors and nits from reviews. Read at the start of each apply session.
+
+| Source | Severity | Item | Action |
+|---|---|---|---|
+| Review of tasks.md 2.1–2.2 | nit | `src/Umbraco.Community.Licensing.Tool/Umbraco.Community.Licensing.Tool.csproj`: the `docs/vendor-tool.md` pack item has `Condition="Exists(...)"` so the build works before the guide exists. NU5039 still fails `dotnet pack` if the file is missing. | When tasks.md 12.1 creates the guide, consider dropping the condition so a path typo fails at build. |
+| Review of tasks.md 2.1–2.2 | nit | `Program.cs` relies on System.CommandLine's default `--version`. | Closed by tasks.md 3.1: `--version` overridden to print the bare Tool assembly version; asserted through `ToolApp.Run`. |
+| Review of tasks.md 3.1 | minor | `ToolConsole.PromptHidden` falls back to stdin when redirected; takes no interactivity guard; `ToolContext.Require` refuses on the first missing input, not each; given vs prompted values trimmed differently. | Closed by the tasks.md 3.2 block (`ToolContext.PromptHidden`, `RequireAll`). |
+| Review of tasks.md 3.2 | product question | `--folder` naming a folder without `ucl.db` refuses naming only that folder, with no setup offer (setup takes no `--folder`). After an accepted setup offer, the original command continues. | Raised with Carl; if confirmed, clarify vendor-tool-setup "Folder location" via `opsx:update`. |
+| Review of tasks.md 3.2 | minor | `ToolContext.ResolveInstallation` de-duplicates candidate folders with ordinal comparison and no trailing-separator trim; on Windows the same folder can be listed twice. | Fix when next touching `ToolContext` (trim separators; ignore case on Windows). |
+| Review of tasks.md 3.2 | minor | No-installation refusal says "Run 'ucl setup'" before `setup` exists; after accepted setup only the current directory and `<home>/.ucl` are re-checked. | Check both in the tasks.md 6.1 brief and review. |
+| Review of tasks.md 3.2 | nit | `Hidden_read_never_falls_back_to_stdin_when_redirected` asserts System.CommandLine's default exception-handler text. | Leave; revisit with the top-level catch (tasks.md 4.1). |
+| Review of tasks.md 3.1 | minor | `ToolHost` catches only `ToolRefusal`; other exceptions crash with a stack trace. | Decide a top-level catch (I/O, database errors → message, exit 1) when tasks.md 4.1 adds the database. |
+| Review of tasks.md 3.1 | minor | No way for an action to signal a usage error (exit 2); `ucl setup` must reject `--folder` and `--passphrase-stdin` as usage errors (design.md Command surface). | In the tasks.md 6.1 brief: use a command validator on `setup` (parse error → exit 2 via `ToolApp`); no new exception type. |
+| Review of tasks.md 3.1 | nit | `--help --bogus` exits 2 without help. | Leave. |
+| Review of tasks.md 3.1 | nit | Hidden-read tests have no control-character or surrogate-pair case. | Leave unless 5.1 needs it. |
+| Review of tasks.md 3.1 | nit | Help via `dotnet run` shows usage name `Umbraco.Community.Licensing.Tool`, not `ucl`. | Folded into the tasks.md 3.2 block (root command name `ucl`); confirm in 11.1 install-and-run. |
+| Supervisor, section 2 | minor | tasks.md 11.1 needs a local `dotnet pack` of the tool, which fails (NU5039) until `docs/vendor-tool.md` exists; that file is written in tasks.md 12.1, after section 11. | Architect resolves via `opsx:update` before briefing section 11 (placeholder guide, reorder, or temp README in the 11.1 check). Raise with Carl. |
+| Supervisor, section 2 | nit | `tests/Umbraco.Community.Licensing.Tool.Tests/VersionTests.cs` checks the assembly's informational version, not `--version` stdout. | In tasks.md 3.1, assert `--version` stdout through `ToolEnvironment`. |
+| Supervisor, section 2 | nit | Tool test csproj imports `Version.props` only to embed the expected version. | Optional: pass the version as an MSBuild property instead. |
+| Supervisor, section 2 | nit | `.config/dotnet-tools.json` has no trailing newline (as `dotnet tool install` writes it). | Leave. |
+| Supervisor, section 2 | note | `dotnet ef migrations add` needs an `IDesignTimeDbContextFactory`, since the folder is resolved at runtime. | Name it in the tasks.md 4.1 brief. |
+| Supervisor, section 2 | note | Tool package is ~39 MB (SQLite native assets for every runtime). | One line in `docs/vendor-tool.md` (tasks.md 12.1). |
+| Supervisor, section 3 | product question | After an accepted setup offer the original command continues; if it then refuses (e.g. `license issue` with no products), it exits 1 although setup created an installation. | Raised with Carl with the tasks.md 3.2 question. |
+| Supervisor, section 3 | minor | `ToolConsole.PromptHidden` is reachable as `context.Console.PromptHidden` without the `--no-input` guard; `ToolContext.PromptHidden` returns `string?` but never null. | tasks.md 5.1 brief: guard at the console; single `ToolContext.ReadPassphrase()` applying ADR-0012 precedence; passphrase never through `RequireAll` (trims); decide `--passphrase-stdin` at a terminal. |
+| Supervisor, section 3 | minor | Folder resolution lives in `ToolContext`, not `Installation` (design.md Components); folder precedence not unit-tested (design.md Test strategy). | tasks.md 4.1 brief: pure `Installation.Resolve(folderOption, currentDirectory, home)` with unit tests; open + migrate beside it. |
+| Supervisor, section 3 | minor | Path equality: with the Windows de-dup minor above, setup's "current directory is home" warning needs the same comparison. | One path-equality helper (trim separators; ignore case on Windows); name in the tasks.md 4.1 or 6.1 brief. |
+| Supervisor, section 3 | minor | Empty home (`GetFolderPath(UserProfile)` returns `""`) makes `.ucl` resolve against the process cwd. | With the path helper: refuse "home folder not found" or drop that candidate and say so. |
+| Supervisor, section 3 | nit | `ucl folder` with no subcommand prints only "Required command was not provided." | Any later block: show the group's help on that error. |
+| Supervisor, section 3 | nit | `FolderCommands.cs` at project root; design.md Components shows `Commands/*`. | Architect: next brief moves commands under `Commands/`. |
+| Supervisor, section 3 | note | Positional arguments (`<product-id>`, `<reference>`) must be optional in the parser and go through `RequireAll`, or a missing one is exit 2 with no prompt. | tasks.md 7.1 and 8.x briefs. |
+| Supervisor, section 3 | note | Tests use `TimeProvider.System`; design.md asks for a fixed clock. | Hand-written `TimeProvider` subclass in tests (no new dependency); tasks.md 4.1 or 8.1 brief. |
+| Supervisor, section 3 | note | "Key string alone on stdout" must be asserted in each tasks.md 8.x test. Production `ToolApp.Run` passes no setup seam; tasks.md 6.1 must make real setup the default. | tasks.md 6.1 and 8.x briefs. |

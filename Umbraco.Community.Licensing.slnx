@@ -1,8 +1,10 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Umbraco.Community.Licensing/Umbraco.Community.Licensing.csproj" />
+    <Project Path="src/Umbraco.Community.Licensing.Tool/Umbraco.Community.Licensing.Tool.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Umbraco.Community.Licensing.Tests/Umbraco.Community.Licensing.Tests.csproj" />
+    <Project Path="tests/Umbraco.Community.Licensing.Tool.Tests/Umbraco.Community.Licensing.Tool.Tests.csproj" />
   </Folder>
 </Solution>

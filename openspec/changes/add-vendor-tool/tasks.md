@@ -10,23 +10,23 @@ PDR-0030 to PDR-0036, ADR-0011 to ADR-0016.
 
 Depends on: none. Owner: Architect.
 
-- [ ] 1.1 Add the `.config/**` row (Shared: assigned in the brief) to the CLAUDE.md ownership table, and verify it matches design.md Ownership
+- [x] 1.1 Add the `.config/**` row (Shared: assigned in the brief) to the CLAUDE.md ownership table, and verify it matches design.md Ownership
 
 ## 2. Tool and test projects
 
 Depends on: 1. Owner: worker-backend. Shared files assigned in the brief: the two `.slnx` entries,
 `.config/dotnet-tools.json`. Records: ADR-0011, ADR-0012, ADR-0013.
 
-- [ ] 2.1 Create `src/Umbraco.Community.Licensing.Tool` (project reference to the library; `PackAsTool`, `ToolCommandName` `ucl`, `PackageId` `Umbraco.Community.Licensing.Tool`, `Version.props` import, metadata and icon as the library, README from `docs/vendor-tool.md`) and `tests/Umbraco.Community.Licensing.Tool.Tests` (xUnit v3 as the library tests), add both to the `.slnx`, add System.CommandLine 2.0.x stable, Microsoft.EntityFrameworkCore.Sqlite 10.0.x and Microsoft.EntityFrameworkCore.Design 10.0.x (private assets) pinned exactly, and verify `dotnet build` passes with no warnings, `dotnet run --project src/Umbraco.Community.Licensing.Tool -- --version` prints `Version.props`'s version, and the library project has no new package reference
-- [ ] 2.2 Add `dotnet-ef` 10.0.x as a pinned local tool in `.config/dotnet-tools.json` (approved by Carl, 2026-10-28), and verify `dotnet tool restore` and `dotnet ef --version` succeed
+- [x] 2.1 Create `src/Umbraco.Community.Licensing.Tool` (project reference to the library; `PackAsTool`, `ToolCommandName` `ucl`, `PackageId` `Umbraco.Community.Licensing.Tool`, `Version.props` import, metadata and icon as the library, README from `docs/vendor-tool.md`) and `tests/Umbraco.Community.Licensing.Tool.Tests` (xUnit v3 as the library tests), add both to the `.slnx`, add System.CommandLine 2.0.x stable, Microsoft.EntityFrameworkCore.Sqlite 10.0.x and Microsoft.EntityFrameworkCore.Design 10.0.x (private assets) pinned exactly, and verify `dotnet build` passes with no warnings, `dotnet run --project src/Umbraco.Community.Licensing.Tool -- --version` prints `Version.props`'s version, and the library project has no new package reference
+- [x] 2.2 Add `dotnet-ef` 10.0.x as a pinned local tool in `.config/dotnet-tools.json` (approved by Carl, 2026-10-28), and verify `dotnet tool restore` and `dotnet ef --version` succeed
 
 ## 3. Console, commands and folder
 
 Depends on: 2. Owner: worker-backend. Spec: vendor-tool-setup (Folder location; Running by hand or
 from scripts). Records: ADR-0012, ADR-0013, PDR-0030, PDR-0031.
 
-- [ ] 3.1 Implement `ToolApp.Run(args, ToolEnvironment)`, `ToolEnvironment` (console, `TimeProvider`, home, current directory, environment, PBKDF2 iteration count), `ToolConsole` (stdout result, stderr messages and prompts, interactive detection, `--no-input`, hidden read), global options and exit codes 0/1/2 per design.md Command surface, and verify by tests for the "Missing input with nobody present" and "Prompted by hand" scenarios against a stub command
-- [ ] 3.2 Implement folder resolution (`--folder`, current directory holding `ucl.db`, `<home>/.ucl`), the `Using <path>` line on stderr, `ucl folder show`, and the "no installation" refusal with the setup offer when interactive (the offer may start setup once section 6 exists; until then test the offer and a declined answer), and verify by tests for "Current folder used", "Home installation used elsewhere", "Folder named on the command wins", "No installation found" and "No installation found with nobody present", and that stdout carries no `Using` line
+- [x] 3.1 Implement `ToolApp.Run(args, ToolEnvironment)`, `ToolEnvironment` (console, `TimeProvider`, home, current directory, environment, PBKDF2 iteration count), `ToolConsole` (stdout result, stderr messages and prompts, interactive detection, `--no-input`, hidden read), global options and exit codes 0/1/2 per design.md Command surface, and verify by tests for the "Missing input with nobody present" and "Prompted by hand" scenarios against a stub command
+- [x] 3.2 Implement folder resolution (`--folder`, current directory holding `ucl.db`, `<home>/.ucl`), the `Using <path>` line on stderr, `ucl folder show`, and the "no installation" refusal with the setup offer when interactive (the offer may start setup once section 6 exists; until then test the offer and a declined answer), and verify by tests for "Current folder used", "Home installation used elsewhere", "Folder named on the command wins", "No installation found" and "No installation found with nobody present", and that stdout carries no `Using` line
 
 ## 4. Database
 

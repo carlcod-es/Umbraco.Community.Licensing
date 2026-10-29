@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="../../Version.props" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Umbraco.Community.Licensing.Tool</RootNamespace>
+    <AssemblyName>Umbraco.Community.Licensing.Tool</AssemblyName>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>ucl</ToolCommandName>
+    <PackageId>Umbraco.Community.Licensing.Tool</PackageId>
+    <Description>Vendor console for Umbraco.Community.Licensing: manage products and customers, issue and revoke license keys, from a local database.</Description>
+    <Authors>Carl Sargunar</Authors>
+    <RepositoryUrl>https://github.com/carlcod-es/Umbraco.Community.Licensing</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>licensing;license-key;umbraco;dotnet-tool</PackageTags>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\docs\vendor-tool.md" Pack="true" PackagePath="README.md" Condition="Exists('..\..\docs\vendor-tool.md')" />
+    <None Include="..\..\assets\icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="[2.0.14]" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="[10.0.14]" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="[10.0.14]">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Umbraco.Community.Licensing\Umbraco.Community.Licensing.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Umbraco.Community.Licensing.Tool.Tests" />
+  </ItemGroup>
+
+</Project>
