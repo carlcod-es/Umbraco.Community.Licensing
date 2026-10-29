@@ -2,7 +2,7 @@
 
 - Status: Decided
 - Date: 2026-10-28
-- Source: `add-vendor-tool` design.md Q4, Q5, Q6, Q13, Q29, Q30, Q31
+- Source: `add-vendor-tool` design.md Q4, Q5, Q6, Q13, Q29, Q30, Q31, Q32
 - Personas: vendor (knows where keys and records are; survives a new laptop). Site owner: records
   of what they bought survive the vendor's hardware.
 
@@ -23,7 +23,9 @@ must know where, keep it backed up, and take it to a new machine.
   runs. Every action states the folder it uses. With no installation found, the action refuses
   naming the folders checked and, with a person present, offers to run setup (design.md Q29,
   Carl, 2026-10-29). Setup creates `~/.ucl` when missing and accepts a folder holding other files
-  but no installation (design.md Q30, Carl, 2026-10-29).
+  but no installation (design.md Q30, Carl, 2026-10-29). The refused action does not run after
+  setup; a folder named on the command that holds no installation is refused with no offer
+  (design.md Q32, Carl, 2026-10-29).
 - **Self-contained.** Everything the installation holds is in that folder. Copying it to another
   machine and pointing the tool at it keeps every action working, with the same passphrase.
 - **Backup export.** A zip of a consistent copy of the installation, with the date taken. No
@@ -53,6 +55,8 @@ must know where, keep it backed up, and take it to a new machine.
 | Remembered folder, or a folder environment setting | A second setup or a restore quietly changes which installation later actions use; an environment setting in a shell profile overrides the current folder. Stating the folder on every action covers the wrong-folder risk instead (design.md Q29) |
 | Setup only into an empty folder | Refuses a vendor who keeps notes or scripts beside the installation; the home-folder warning covers the main risk (design.md Q30) |
 | Start setup when no installation is found | An accidental command would lead into permanent choices; offered, not started (design.md Q29) |
+| Run the action after setup | A new installation is empty, so most actions would then refuse; one run, one outcome (design.md Q32) |
+| Offer setup for a named folder | Setup takes no folder option and offers only `~/.ucl` or the current folder, so it could not create the installation there; a mistyped folder would lead into setup (design.md Q32) |
 | Keys in the OS key store | Cannot be moved by copying the folder |
 | SQL Server (FR-2 constraint, dropped by Carl) | The database is not in the folder: moving and zip backup would cover keys and settings only |
 | Import replaces after confirmation, with an automatic safety copy | More to specify; renaming the folder first does the same |

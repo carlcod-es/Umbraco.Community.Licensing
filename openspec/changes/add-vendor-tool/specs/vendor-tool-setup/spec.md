@@ -93,7 +93,9 @@ of: a folder named on the command, the current folder when it holds an installat
 the home folder. The tool SHALL remember no folder between runs. Every action that uses an
 installation SHALL state the folder's full path on standard error. When no installation is
 found, the action SHALL refuse, naming the folders it checked; with a person present it SHALL
-then offer to run setup, and start it only when the person accepts.
+then offer to run setup, and start it only when the person accepts. The refused action SHALL NOT
+run, whether or not setup runs. A folder named on the command that holds no installation SHALL be
+refused, naming that folder, with no offer of setup.
 
 #### Scenario: Default folder created
 - **WHEN** setup runs on a machine with no `~/.ucl` and the vendor accepts the proposed folder
@@ -122,7 +124,13 @@ then offer to run setup, and start it only when the person accepts.
 - **WHEN** an action runs at a terminal where neither the current folder nor `~/.ucl` holds an
   installation
 - **THEN** it refuses, naming both folders, and offers to run setup; setup starts only if the
-  vendor accepts
+  vendor accepts and runs in full; the action is not run, and the command exits with a failure
+  code
+
+#### Scenario: Folder named on the command holds no installation
+- **WHEN** the vendor names `~/acme-practice`, which holds no installation, on a command run at a
+  terminal
+- **THEN** the action refuses, naming `~/acme-practice`, and offers nothing
 
 #### Scenario: No installation found with nobody present
 - **WHEN** a script runs an action and no installation is found

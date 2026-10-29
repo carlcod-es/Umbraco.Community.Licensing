@@ -96,6 +96,7 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q29 | Finding the installation; more than one | First of: `--folder`, the current folder when it holds an installation, `~/.ucl`. Setup offers `~/.ucl` (proposed) or the current folder. Nothing remembered; no folder environment setting. Each action states the folder used. No installation: refuse naming the folders checked; at a terminal, offer setup (Carl, 2026-10-29) | PDR-0031, ADR-0013 |
 | Q30 | Folder state at setup | `~/.ucl` created when missing; a folder holding other files but no installation accepted; only an existing installation refused (Carl, 2026-10-29) | PDR-0031 |
 | Q31 | Next step after setup | Closing message ends with the next steps by mode: `product add` (per-product: creates the signing key, asks the passphrase), then `key trusted`. The guide gives the same first steps (Carl, 2026-10-29) | PDR-0031 |
+| Q32 | Setup offer edge cases | `--folder` naming a folder with no installation: refused, no offer. Accepted offer: setup runs in full, then the refused action is not run; exit 1 (Carl, 2026-10-29) | PDR-0031 |
 
 ## Decisions
 
@@ -176,7 +177,8 @@ and asks the passphrase), then `ucl key trusted <product-id>`. It runs only when
 `license customer` it corrects the latest entry's. `prefix set` needs no passphrase. Prompts and
 messages go to stderr; the result (key string, file path, list) to stdout. Every command that opens
 an installation first writes `Using <full path>` to stderr. No installation found: exit 1 naming
-the folders checked; when interactive, then `Run setup now? [y/N]`, starting setup on yes.
+the folders checked; when interactive, then `Run setup now? [y/N]`, starting setup on yes. The action is not run after setup; exit 1 either
+way. `--folder` naming a folder with no `ucl.db`: exit 1 naming it, no offer.
 `folder show` prints the resolved folder to stdout. `backup import` without `--folder` asks for
 the target as setup does, and with no person present refuses naming `--folder`.
 Exit codes: 0 done, 1 refused (validation, wrong passphrase, missing installation), 2 usage
