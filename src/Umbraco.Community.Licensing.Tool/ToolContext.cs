@@ -101,34 +101,29 @@ internal sealed class ToolContext(
 
     private string ResolveInstallation()
     {
-        if (Folder is not null)
+        if (Folder is not null && string.IsNullOrWhiteSpace(Folder))
         {
-            if (string.IsNullOrWhiteSpace(Folder))
-            {
-                throw new ToolRefusal("--folder needs a path.");
-            }
-
-            var named = Path.GetFullPath(Folder.Trim(), Environment.CurrentDirectory);
-            return Installation.Exists(named)
-                ? named
-                : throw new ToolRefusal(
-                    $"No installation in {named} (named by --folder): {Installation.DatabaseFileName} not found there.");
+            throw new ToolRefusal("--folder needs a path.");
         }
 
-        var candidates = new[]
+        var resolution = Installation.Resolve(Folder, Environment.CurrentDirectory, Environment.Home);
+        if (resolution.Folder is not null)
         {
-            Path.GetFullPath(Environment.CurrentDirectory),
-            Path.GetFullPath(Path.Combine(Environment.Home, Installation.HomeFolderName)),
-        }.Distinct(StringComparer.Ordinal).ToArray();
-
-        var found = candidates.FirstOrDefault(Installation.Exists);
-        if (found is not null)
-        {
-            return found;
+            return resolution.Folder;
         }
 
+        if (resolution.NamedByOption)
+        {
+            throw new ToolRefusal(
+                $"No installation in {resolution.Candidates[0]} (named by --folder): {Installation.DatabaseFileName} not found there.");
+        }
+
+        var candidates = resolution.Candidates;
         var message = $"No installation found. {Installation.DatabaseFileName} is not in:"
             + string.Concat(candidates.Select(c => $"{System.Environment.NewLine}  {c}"))
+            + (resolution.HomeUnknown
+                ? $"{System.Environment.NewLine}The home folder could not be determined, so {Installation.HomeFolderName} under it was not checked."
+                : "")
             + $"{System.Environment.NewLine}Run 'ucl setup' to create one, or name a folder with --folder.";
         if (!Interactive)
         {

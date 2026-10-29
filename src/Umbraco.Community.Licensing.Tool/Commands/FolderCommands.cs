@@ -1,6 +1,6 @@
 using System.CommandLine;
 
-namespace Umbraco.Community.Licensing.Tool;
+namespace Umbraco.Community.Licensing.Tool.Commands;
 
 /// <summary>The <c>folder</c> command group.</summary>
 internal static class FolderCommands

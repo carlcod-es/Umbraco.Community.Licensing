@@ -55,11 +55,11 @@ internal sealed class ScriptedTool : IDisposable
 
     public string Stderr => _stderr.ToString();
 
-    public int Run(params string[] args) => ToolApp.Run(args, Environment, [Stub, StubTwo, StubHidden], _setup);
+    public int Run(params string[] args) => ToolApp.Run(args, Environment, [Stub, StubTwo, StubHidden, StubThrow], _setup);
 
     /// <summary>
-    /// Makes <paramref name="folder"/> an installation. Section 4 replaces the empty file with a real
-    /// database; this is the only place tests create one.
+    /// Makes <paramref name="folder"/> an installation. An empty file is enough to mark an installation for resolution tests; tests of the
+    /// database itself use Installation.Open.
     /// </summary>
     public static string MakeInstallation(string folder)
     {
@@ -104,6 +104,15 @@ internal sealed class ScriptedTool : IDisposable
             context.Console.Out.WriteLine(string.Join(",", values));
             return ExitCodes.Done;
         });
+        return command;
+    }
+
+    /// <summary>Stub throwing the exception family named by its argument.</summary>
+    private static Command StubThrow(ToolHost host)
+    {
+        var kind = new Argument<string>("kind");
+        var command = new Command("stub-throw") { kind };
+        host.SetAction(command, context => throw ErrorHandlingTests.Make(context.ParseResult.GetValue(kind)!));
         return command;
     }
 

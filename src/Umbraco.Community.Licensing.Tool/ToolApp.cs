@@ -2,6 +2,7 @@ using System.CommandLine;
 using System.CommandLine.Help;
 using System.CommandLine.Invocation;
 using System.Reflection;
+using Umbraco.Community.Licensing.Tool.Commands;
 
 namespace Umbraco.Community.Licensing.Tool;
 

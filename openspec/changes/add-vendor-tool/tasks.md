@@ -32,7 +32,7 @@ from scripts). Records: ADR-0012, ADR-0013, PDR-0030, PDR-0031.
 
 Depends on: 2, 3. Owner: worker-backend. Records: ADR-0013, PDR-0033.
 
-- [ ] 4.1 Implement `ToolDbContext` with the design.md tables (no column for a key string), the initial migration, open with `secure_delete` on and `journal_mode` DELETE, migrations applied on open, and refusal of a database holding an unknown migration, and verify by tests that a new folder gets the schema, the pragmas read back as set, and a database with an extra migration row is refused naming "update the tool"
+- [x] 4.1 Implement `ToolDbContext` with the design.md tables (no column for a key string), the initial migration, open with `secure_delete` on and `journal_mode` DELETE, migrations applied on open, and refusal of a database holding an unknown migration, and verify by tests that a new folder gets the schema, the pragmas read back as set, and a database with an extra migration row is refused naming "update the tool"
 
 ## 5. Private key protection
 

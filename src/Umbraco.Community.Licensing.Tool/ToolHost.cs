@@ -1,4 +1,6 @@
 using System.CommandLine;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 
 namespace Umbraco.Community.Licensing.Tool;
 
@@ -26,9 +28,10 @@ internal sealed class ToolHost(ToolEnvironment environment, GlobalOptions global
             {
                 return run(new ToolContext(Environment, parseResult, globals, _runSetup));
             }
-            catch (ToolRefusal refusal)
+            catch (Exception ex) when (ex is ToolRefusal or IOException or UnauthorizedAccessException or SqliteException or DbUpdateException)
             {
-                Environment.Console.Error.WriteLine(refusal.Message);
+                // Expected failures of the folder and database: the message, no stack trace.
+                Environment.Console.Error.WriteLine(ex.Message);
                 return ExitCodes.Refused;
             }
         });
