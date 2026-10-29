@@ -20,7 +20,7 @@ internal static class ToolApp
         Action<ToolContext>? runSetup = null)
     {
         var globals = new GlobalOptions();
-        var host = new ToolHost(environment, globals, runSetup);
+        var host = new ToolHost(environment, globals, runSetup ?? SetupCommand.Run);
         var console = environment.Console;
 
         // A plain Command rather than RootCommand: RootCommand names itself after the executable, which is not "ucl" under `dotnet run` or the test host.
@@ -28,6 +28,7 @@ internal static class ToolApp
         globals.AddTo(root);
         root.Subcommands.Add(SetupCommand.Build(host));
         root.Subcommands.Add(FolderCommands.Build(host));
+        root.Subcommands.Add(ProductCommands.Build(host));
         UseBareVersion(root, console);
         foreach (var build in extraCommands)
         {
@@ -42,10 +43,27 @@ internal static class ToolApp
                 console.Error.WriteLine(error.Message);
             }
 
+            ShowGroupHelp(root, args, parseResult, console);
             return ExitCodes.Usage;
         }
 
         return parseResult.Invoke(new InvocationConfiguration { Output = console.Out, Error = console.Error });
+    }
+
+    /// <summary>
+    /// A command group run with no subcommand (<c>ucl product</c>) lists its subcommands, on stderr beside the
+    /// error; the exit code stays the usage error's. Nothing is shown for any other parse error.
+    /// </summary>
+    private static void ShowGroupHelp(Command root, string[] args, ParseResult parseResult, ToolConsole console)
+    {
+        var command = parseResult.CommandResult.Command;
+        if (command == root || command.Subcommands.Count == 0 || parseResult.UnmatchedTokens.Count > 0)
+        {
+            return;
+        }
+
+        console.Error.WriteLine();
+        root.Parse([.. args, "--help"]).Invoke(new InvocationConfiguration { Output = console.Error, Error = console.Error });
     }
 
     /// <summary>

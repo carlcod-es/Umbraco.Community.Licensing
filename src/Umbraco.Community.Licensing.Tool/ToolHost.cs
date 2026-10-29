@@ -1,7 +1,6 @@
 using System.CommandLine;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Umbraco.Community.Licensing.Tool.Commands;
 
 namespace Umbraco.Community.Licensing.Tool;
 
@@ -13,12 +12,10 @@ namespace Umbraco.Community.Licensing.Tool;
 /// <param name="globals">The global options.</param>
 /// <param name="runSetup">
 /// Runs setup when the person accepts the offer made by <see cref="ToolContext.UseInstallation"/>; it
-/// creates the installation or throws <see cref="ToolRefusal"/>. Defaults to <see cref="SetupCommand.Run"/>.
+/// creates the installation or throws <see cref="ToolRefusal"/>.
 /// </param>
-internal sealed class ToolHost(ToolEnvironment environment, GlobalOptions globals, Action<ToolContext>? runSetup = null)
+internal sealed class ToolHost(ToolEnvironment environment, GlobalOptions globals, Action<ToolContext> runSetup)
 {
-    private readonly Action<ToolContext> _runSetup = runSetup ?? SetupCommand.Run;
-
     public ToolEnvironment Environment { get; } = environment;
 
     /// <summary>The global options, for command validators.</summary>
@@ -30,7 +27,7 @@ internal sealed class ToolHost(ToolEnvironment environment, GlobalOptions global
         {
             try
             {
-                return run(new ToolContext(Environment, parseResult, Globals, _runSetup));
+                return run(new ToolContext(Environment, parseResult, Globals, runSetup));
             }
             catch (Exception ex) when (ex is ToolRefusal or IOException or UnauthorizedAccessException or SqliteException or DbUpdateException)
             {

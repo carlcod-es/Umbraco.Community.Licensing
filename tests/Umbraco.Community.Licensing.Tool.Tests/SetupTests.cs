@@ -1,4 +1,3 @@
-using Umbraco.Community.Licensing.Tool.Commands;
 using Umbraco.Community.Licensing.Tool.Data;
 
 namespace Umbraco.Community.Licensing.Tool.Tests;
@@ -42,9 +41,9 @@ public class SetupTests
         Assert.Equal("", tool.Stdout);
         var folder = Path.GetFullPath(tool.HomeInstallation);
         var settings = Settings(folder);
-        Assert.Equal("LIC", settings[SettingNames.KeyPrefix]);
-        Assert.Equal(SigningKeyModes.PerProduct, settings[SettingNames.SigningKeyMode]);
-        Assert.Equal("true", settings[SettingNames.StandbyKeys]);
+        Assert.Equal("LIC", settings["KeyPrefix"]);
+        Assert.Equal("PerProduct", settings["SigningKeyMode"]);
+        Assert.Equal("true", settings["StandbyKeys"]);
         Assert.Empty(SigningKeysIn(folder));
 
         using var db = Installation.Open(folder);
@@ -71,7 +70,7 @@ public class SetupTests
         using var tool = ScriptedTool.Installed(new SetupAnswers(Shared: true));
 
         var folder = Path.GetFullPath(tool.HomeInstallation);
-        Assert.Equal(SigningKeyModes.Shared, Settings(folder)[SettingNames.SigningKeyMode]);
+        Assert.Equal("Shared", Settings(folder)["SigningKeyMode"]);
         var keys = SigningKeysIn(folder);
         Assert.Equal(2, keys.Count);
         Assert.All(keys, k => Assert.Null(k.ProductId));
@@ -105,7 +104,7 @@ public class SetupTests
         using var tool = ScriptedTool.Installed(new SetupAnswers(Shared: true, Standby: false));
 
         var folder = Path.GetFullPath(tool.HomeInstallation);
-        Assert.Equal("false", Settings(folder)[SettingNames.StandbyKeys]);
+        Assert.Equal("false", Settings(folder)["StandbyKeys"]);
         Assert.Equal(SigningKeyRole.Active, Assert.Single(SigningKeysIn(folder)).Role);
     }
 
@@ -113,10 +112,10 @@ public class SetupTests
     public void Setup_prefix_none_and_own_prefix()
     {
         using var none = ScriptedTool.Installed(new SetupAnswers(Prefix: "none"));
-        Assert.Equal("", Settings(none.HomeInstallation)[SettingNames.KeyPrefix]);
+        Assert.Equal("", Settings(none.HomeInstallation)["KeyPrefix"]);
 
         using var own = ScriptedTool.Installed(new SetupAnswers(Prefix: "ACME2"));
-        Assert.Equal("ACME2", Settings(own.HomeInstallation)[SettingNames.KeyPrefix]);
+        Assert.Equal("ACME2", Settings(own.HomeInstallation)["KeyPrefix"]);
     }
 
     [Fact]
@@ -127,7 +126,7 @@ public class SetupTests
         Assert.Equal(0, tool.Run("setup"));
 
         Assert.Equal(3, Count(tool.Stderr, "1 to 16 characters of A-Z and 0-9"));
-        Assert.Equal("ACME", Settings(tool.HomeInstallation)[SettingNames.KeyPrefix]);
+        Assert.Equal("ACME", Settings(tool.HomeInstallation)["KeyPrefix"]);
     }
 
     [Fact]
@@ -274,8 +273,8 @@ public class SetupTests
             hiddenKeys: new SetupAnswers().HiddenKeys);
         Assert.Equal(0, second.Run("setup"));
 
-        Assert.Equal("TWO", Settings(cwd)[SettingNames.KeyPrefix]);
-        Assert.Equal("ONE", Settings(tool.HomeInstallation)[SettingNames.KeyPrefix]);
+        Assert.Equal("TWO", Settings(cwd)["KeyPrefix"]);
+        Assert.Equal("ONE", Settings(tool.HomeInstallation)["KeyPrefix"]);
         Assert.Equal(2, SigningKeysIn(cwd).Count);
         Assert.Empty(SigningKeysIn(tool.HomeInstallation));
 
@@ -420,7 +419,7 @@ public class SetupTests
         Assert.True(Installation.Exists(tool.HomeInstallation));
         Assert.Equal("", tool.Stdout);
         Assert.Contains("Run setup now? [y/N]", tool.Stderr);
-        Assert.Contains("Setup finished. Run the command again.", tool.Stderr);
+        Assert.Contains("The command was not run. Run it again to use the new installation.", tool.Stderr);
     }
 
     [Fact]

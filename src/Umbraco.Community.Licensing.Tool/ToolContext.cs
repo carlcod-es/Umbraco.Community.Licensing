@@ -212,6 +212,6 @@ internal sealed class ToolContext(
 
         // Setup runs in full (or refuses); the action that found no installation does not run (Q32).
         runSetup(this);
-        throw new ToolRefusal("Setup finished. Run the command again.");
+        throw new ToolRefusal("The command was not run. Run it again to use the new installation.");
     }
 }

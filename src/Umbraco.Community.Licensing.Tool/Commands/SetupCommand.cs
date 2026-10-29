@@ -5,26 +5,6 @@ using Umbraco.Community.Licensing.Tool.Data;
 
 namespace Umbraco.Community.Licensing.Tool.Commands;
 
-/// <summary>Setting names written by setup. <see cref="KeyProtection"/> owns the passphrase check rows.</summary>
-internal static class SettingNames
-{
-    /// <summary>The key prefix; an empty value means none.</summary>
-    public const string KeyPrefix = "KeyPrefix";
-
-    /// <summary><see cref="SigningKeyModes.PerProduct"/> or <see cref="SigningKeyModes.Shared"/>; never changes after setup.</summary>
-    public const string SigningKeyMode = "SigningKeyMode";
-
-    /// <summary><c>true</c> when each signing key gets a standby key.</summary>
-    public const string StandbyKeys = "StandbyKeys";
-}
-
-/// <summary>Values of <see cref="SettingNames.SigningKeyMode"/>.</summary>
-internal static class SigningKeyModes
-{
-    public const string PerProduct = "PerProduct";
-    public const string Shared = "Shared";
-}
-
 /// <summary>
 /// <c>ucl setup</c>: creates an installation, only with a person answering at a terminal (PDR-0030). Every
 /// answer is collected before anything is written.
@@ -261,10 +241,7 @@ internal static class SetupCommand
         var iterations = context.Environment.Pbkdf2Iterations;
         var now = context.Environment.TimeProvider.GetUtcNow();
         using var db = Installation.Open(folder);
-        db.Settings.AddRange(
-            new Setting { Name = SettingNames.KeyPrefix, Value = prefix },
-            new Setting { Name = SettingNames.SigningKeyMode, Value = shared ? SigningKeyModes.Shared : SigningKeyModes.PerProduct },
-            new Setting { Name = SettingNames.StandbyKeys, Value = standby ? "true" : "false" });
+        new InstallationSettings(prefix, shared, standby).AddTo(db);
         KeyProtection.StoreCheck(db, passphrase, iterations);
         if (shared)
         {

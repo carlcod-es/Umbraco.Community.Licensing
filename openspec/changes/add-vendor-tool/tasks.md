@@ -56,7 +56,7 @@ PDR-0031, PDR-0023.
 
 Depends on: 6. Owner: worker-backend. Spec: vendor-tool-products. Records: PDR-0036, PDR-0016.
 
-- [ ] 7.1 Implement `ucl product add` (per-product mode creates the signing key and standby key, needs the passphrase), `product rename`, `product feature add` (add-only) and `product list`, and verify by tests for every vendor-tool-products scenario in both signing-key modes
+- [x] 7.1 Implement `ucl product add` (per-product mode creates the signing key and standby key, needs the passphrase), `product rename`, `product feature add` (add-only) and `product list`, and verify by tests for every vendor-tool-products scenario in both signing-key modes
 
 ## 8. Licenses
 

@@ -24,12 +24,13 @@ internal sealed class ScriptedTool : IDisposable
         IReadOnlyDictionary<string, string>? variables = null,
         byte[]? stdinBytes = null,
         TextReader? stdinReader = null)
-        : this(null, stdin, stdinRedirected, hiddenKeys, setup, variables, stdinBytes, stdinReader)
+        : this(null, null, stdin, stdinRedirected, hiddenKeys, setup, variables, stdinBytes, stdinReader)
     {
     }
 
     private ScriptedTool(
         string? root,
+        FixedTimeProvider? clock,
         string stdin,
         bool stdinRedirected,
         string hiddenKeys,
@@ -41,6 +42,7 @@ internal sealed class ScriptedTool : IDisposable
         _ownsRoot = root is null;
         _root = root ?? Path.Combine(Path.GetTempPath(), "ucl-test-" + Guid.NewGuid().ToString("N"));
         _setup = setup;
+        Clock = clock ?? new FixedTimeProvider(new DateTimeOffset(2026, 1, 15, 9, 30, 0, TimeSpan.Zero));
         var keys = new Queue<char>(hiddenKeys);
         Func<ConsoleKeyInfo> readKey = () =>
         {
@@ -64,8 +66,8 @@ internal sealed class ScriptedTool : IDisposable
             Pbkdf2Iterations: 1_000);
     }
 
-    /// <summary>The tool's clock; fixed until advanced.</summary>
-    public FixedTimeProvider Clock { get; } = new(new DateTimeOffset(2026, 1, 15, 9, 30, 0, TimeSpan.Zero));
+    /// <summary>The tool's clock; fixed until advanced. <see cref="Another"/> shares it.</summary>
+    public FixedTimeProvider Clock { get; }
 
     public ToolEnvironment Environment { get; }
 
@@ -120,7 +122,7 @@ internal sealed class ScriptedTool : IDisposable
     }
 
     /// <summary>
-    /// A new tool (fresh streams, own stdin, keys and variables) over the same home and current directory.
+    /// A new tool (fresh streams, own stdin, keys and variables) over the same home, current directory and clock.
     /// It does not remove the folders on dispose; the tool that made them does.
     /// </summary>
     public ScriptedTool Another(
@@ -131,7 +133,7 @@ internal sealed class ScriptedTool : IDisposable
         IReadOnlyDictionary<string, string>? variables = null,
         byte[]? stdinBytes = null,
         TextReader? stdinReader = null) =>
-        new(_root, stdin, stdinRedirected, hiddenKeys, setup, variables, stdinBytes, stdinReader);
+        new(_root, Clock, stdin, stdinRedirected, hiddenKeys, setup, variables, stdinBytes, stdinReader);
 
     public void Dispose()
     {

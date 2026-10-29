@@ -155,11 +155,11 @@ public class FolderTests
         Assert.Equal("", tool.Stdout);
         Assert.DoesNotContain("Using", tool.Stderr);
         Assert.Contains("Setup finished. The installation is in", tool.Stderr);
-        Assert.Contains("Setup finished. Run the command again.", tool.Stderr);
+        Assert.Contains("The command was not run. Run it again to use the new installation.", tool.Stderr);
     }
 
     [Fact]
-    public void No_installation_found_accepted_then_the_command_run_again_uses_the_installation()
+    public void Installed_tool_then_folder_show_uses_the_installation()
     {
         using var tool = ScriptedTool.Installed();
 
