@@ -8,15 +8,25 @@ Cite as FR-N.
 | FR | Title | Raised | Status |
 |---|---|---|---|
 | FR-1 | Vendor-chosen key identifier prefix | Carl, 2026-10-09 | Taken into `add-license-core` (design.md Q20, PDR-0023) |
-| FR-2 | Vendor issuing console tool | Carl, 2026-10-09 | Open; a later change after `add-license-core` |
+| FR-2 | Vendor issuing console tool | Carl, 2026-10-09 | Taken into `add-vendor-tool` (design.md Q1 to Q26; PDR-0030 to PDR-0036, ADR-0011 to ADR-0015). SQL Server dropped (Carl, 2026-10-28) |
 | FR-3 | Example product package | Carl, 2026-10-09 | Open; possible later change |
-| FR-4 | Standby signing key | Carl, 2026-10-10 | Open; with or after FR-2 |
+| FR-4 | Standby signing key | Carl, 2026-10-10 | Taken into `add-vendor-tool` (design.md Q15, Q16; PDR-0032, PDR-0035). Issue 2 answered by the passphrase; storing apart is FR-15 |
 | FR-5 | Responding to a compromised signing key | Carl, 2026-10-10 | Open; after FR-2 |
 | FR-6 | CI and release pipeline | Carl, 2026-10-14 | Closed by `add-release-pipeline` (design.md Q1 to Q10; PDR-0027, PDR-0028, PDR-0029, ADR-0008, ADR-0009); first published version `0.1.0-beta.4`, 2026-10-27 |
 | FR-7 | Standard first-action text per state | Library review, 2026-10-20 | Withdrawn for now (Carl, 2026-10-20): the library supplies the state only; vendors write all message text. PDR-0002 unchanged |
 | FR-8 | Same status wording across vendors' screens | Library review, 2026-10-20 | Open. Screens stay out of the library (Carl, 2026-10-20) |
 | FR-9 | Grace period after expiry | Library review, 2026-10-20 | Open. Until then vendors implement grace themselves (Carl, 2026-10-20) |
-| FR-10 | Version marker for each release | Carl, 2026-10-27 | Open |
+| FR-10 | Version marker for each release | Carl, 2026-10-27 | Closed by `add-github-release` (design.md Q1 to Q6; PDR-0037, ADR-0016); first GitHub Release `0.1.0-beta.6`, 2026-10-28 |
+| FR-11 | Private-key export from the vendor tool | `add-vendor-tool` explore, 2026-10-28 | Open |
+| FR-12 | Change the vendor tool passphrase | `add-vendor-tool` explore, 2026-10-28 | Open |
+| FR-13 | Richer console prompts in the vendor tool | Carl, 2026-10-28 | Open |
+| FR-14 | Retire a feature definition | `add-vendor-tool` explore, 2026-10-28 | Open |
+| FR-15 | Standby key stored apart from the active key | `add-vendor-tool` explore, 2026-10-28 | Open |
+| FR-16 | Import licenses issued before the vendor tool | `add-vendor-tool` explore, 2026-10-28 | Open |
+| FR-17 | Change signing-key mode after setup | `add-vendor-tool` explore, 2026-10-28 | Open |
+| FR-18 | Warn on a reused order reference | `add-vendor-tool` explore, 2026-10-28 | Open |
+| FR-19 | Change the version line from the release command | Carl, 2026-10-28 | Open; after `add-github-release` |
+| FR-20 | Issue several licenses in one vendor tool run | Carl, 2026-10-29 (`add-vendor-tool` update) | Open |
 
 ## FR-1: Vendor-chosen key identifier prefix
 
@@ -315,3 +325,123 @@ the release command already creates (Carl, 2026-10-27, during `add-release-pipel
    (a marker for a failed attempt would point at an unpublished version).
 
 **Related.** PDR-0027, PDR-0029, ADR-0009.
+
+**Closed** by `add-github-release` (Carl, 2026-10-28): a GitHub Release on the existing release
+tag, created by the release run after publishing (PDR-0037, ADR-0016). Issue 2 does not arise: no
+second tag. First Release: `0.1.0-beta.6`.
+
+## FR-11: Private-key export from the vendor tool
+
+**Request.** Larger vendors create signing keys with the tool, then issue from their own store
+with the library. The store needs the private key as an unencrypted PEM.
+
+**Until taken up (Carl, 2026-10-28).** The tool targets small vendors only (PDR-0030); no
+private key leaves it (PDR-0032). Keys are stored in a standard encrypted format, so a vendor can
+open one with the passphrase and common tools.
+
+**Issues to settle.** Confirmation and warning before export; recording that a key was exported
+and when; whether a larger vendor needs the full setup.
+
+**Related.** PDR-0032, ADR-0014, `pre-1.0-considerations.md` C2.
+
+## FR-12: Change the vendor tool passphrase
+
+**Request.** Re-encrypt every private key under a new passphrase, e.g. after the old one may have
+been seen.
+
+**Issues to settle.** Older backups still open with the old passphrase only; the guide must say
+which passphrase each backup needs.
+
+**Related.** PDR-0032.
+
+## FR-13: Richer console prompts in the vendor tool
+
+**Request.** Selection lists, coloured tables and progress in the tool's prompts, e.g. with
+Spectre.Console (Carl, 2026-10-28).
+
+**Related.** ADR-0012 (BCL console prompts in `add-vendor-tool`).
+
+## FR-14: Retire a feature definition
+
+**Request.** Mark a feature as no longer offered: refused on new keys, dropped on reissue with a
+notice.
+
+**Related.** PDR-0036 (add-only), PDR-0016.
+
+## FR-15: Standby key stored apart from the active key
+
+**Request.** Export the standby private key to a separate encrypted file the vendor keeps
+elsewhere, so it survives "folder copied and passphrase known" and "no backup" (FR-4 issue 2).
+
+**Related.** PDR-0032, PDR-0035.
+
+## FR-16: Import licenses issued before the vendor tool
+
+**Request.** Record licenses a vendor issued with the library before using the tool, by reading
+their key strings, verified against the vendor's keys.
+
+**Issues to settle.** The vendor's existing private key must be brought into the tool (setup with
+an existing key); key strings are not kept after reading (PDR-0033).
+
+**Related.** PDR-0013, PDR-0033.
+
+## FR-17: Change signing-key mode after setup
+
+**Request.** Move an installation from one signing key per product to one shared key, or the
+reverse, without a new installation.
+
+**Issues to settle.** Which key survives or is created; every product's next release must trust
+it before it signs; standby keys; the trusted lists during the move (PDR-0035).
+
+**Related.** PDR-0030, PDR-0035, FR-5.
+
+## FR-18: Warn on a reused order reference
+
+**Request.** When an issue, reissue or renewal is given an order reference already held by an
+issue entry, warn (by hand) or refuse unless confirmed (scripted), so a store script run twice
+does not issue twice for one order.
+
+**Related.** PDR-0033 (order reference per issue entry), PDR-0030 (batched use).
+
+## FR-19: Change the version line from the release command
+
+**Request.** The release command asks whether to keep the version line or move it, so moving
+from `0.1-beta` to `0.2-beta` (numbering restarts at `0.2.0-beta.1`) needs no separate hand
+edit and commit (Carl, 2026-10-28). An extra question on every release is acceptable (Carl,
+2026-10-28); a command-line flag was the alternative offered.
+
+**Personas.** Vendor: a minor bump is part of the release that brings the change, so the
+version and its note are made together.
+
+**Issues to settle.**
+1. Choices offered: keep, next minor beta (`0.M+1-beta`), `1`; after 1.0, keep or next major.
+   Whether any other line can be typed.
+2. Refusals: going backwards or sideways (e.g. `0.2-beta` to `0.1-beta`, or a line already in
+   the log).
+3. Going to `1`: refuse, warn or remind about the pre-1.0 all-platform step and the README
+   coverage line (PDR-0028, PDR-0024).
+4. The confirmation shows the line change; the `Release <version>` commit holds the line, the
+   version and the log row together.
+5. Whether hand-editing `VersionLine` stays allowed.
+
+**Related.** PDR-0027 (Carl changes the line by hand; amended by the change that takes this up),
+PDR-0024, PDR-0028, ADR-0009, `docs/releasing.md` "Changing the version line".
+
+## FR-20: Issue several licenses in one vendor tool run
+
+**Request.** One vendor tool action issues several licenses, for example from an input file,
+asking the passphrase once and decrypting each signing key once, so batched CLI use does not
+pay the passphrase check and key decryption per license (Carl, 2026-10-29). Raised when the
+`add-vendor-tool` scenario "Passphrase asked once" (three licenses in one action) was dropped:
+the change issues one license per run.
+
+**Personas.** Vendor: batched issuing from their own process (PDR-0030) is faster and the
+passphrase is supplied once. Site owner: keys unchanged.
+
+**Issues to settle.**
+1. Input: file format, standard input, or repeated arguments.
+2. Output: how each key string is paired with its request on standard output.
+3. A refusal part-way: all or nothing, or per-license results.
+4. Whether reissue, renew and resend batch too.
+
+**Related.** PDR-0030 (batched use), PDR-0032 (passphrase once per run), FR-18.

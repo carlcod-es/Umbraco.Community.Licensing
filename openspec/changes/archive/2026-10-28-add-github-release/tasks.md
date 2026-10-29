@@ -1,0 +1,37 @@
+Owners per CLAUDE.md: sections 1 and 2 worker-backend; section 3 Architect; section 4 Carl.
+Validation for every worker block: `node --test "tools/release/*.test.mjs"`,
+`dotnet build Umbraco.Community.Licensing.slnx -c Release`. Bar: production (design.md). Test
+names follow spec scenario names. Spec: `specs/release-process/spec.md`. Records: PDR-0037,
+ADR-0016, ADR-0008, ADR-0009.
+
+## 1. GitHub Release script
+
+Depends on: none. Owner: worker-backend. Path: `tools/release/github-release.mjs` and
+`tools/release/github-release.test.mjs`. Node 22+, ES modules, no npm packages; reuse
+`release-rules.mjs` parsing.
+
+- [x] 1.1 Implement the pure functions: package IDs from `.nupkg` file names and a version (refusing an empty list or a name not ending `.<version>.nupkg`), the Release body (note, blank line, one nuget.org link per ID naming the version), and prerelease from the version, and verify by tests for "Page created", "One link per published package", "Release from 1.0", a dotted package ID and a mismatched file name
+- [x] 1.2 Implement the `package-ids <folder>` command, reading the version from `Version.props` at the repository root (revised 2026-10-28, supervisor: the workflow has no version to pass), printing the IDs and appending `package-ids=<ids>` to `$GITHUB_OUTPUT` when set, and verify by a test running it against a temp folder with and without `GITHUB_OUTPUT`
+- [x] 1.3 Implement the `create <tag> <ids>` command: read `Version.props` and the `RELEASES.md` row for the version (refusing a row that names a different tag; revised 2026-10-28, supervisor), GET the Release for the tag, POST it on 404 with `tag_name`, `name`, `body`, `prerelease` and `make_latest`, leave an existing Release unchanged, and fail with status and GitHub's message on any other response; `fetch` injectable; and verify by tests for "Page already exists", "Release log note missing", "Page creation fails after publishing" (by that name), a row naming a different tag, the 404-then-POST payload, and a 403 reported with its message
+
+## 2. Release workflow
+
+Depends on: 1. Owner: worker-backend. Shared file assigned in the brief:
+`.github/workflows/release.yml`. Records: ADR-0016, ADR-0008.
+
+- [x] 2.1 Move permissions to job level (`release`: `contents: read, id-token: write`; workflow level `contents: read`), add the `package-ids` step after **Push to NuGet** (tag push only, run from the workspace root with the pack folder as its argument; step position and `if` revised by task 2.2) and the `release` job output, and add the `github-release` job (`needs: release`, tag push only, `ubuntu-latest`, `contents: write`, checkout with `persist-credentials: false`, setup-node 22 at the pinned SHAs, `create` with `GITHUB_TOKEN` and `github.ref_name`), and verify by reading the workflow against ADR-0016 and running `package-ids` locally on a `dotnet pack` output folder; the live run is verified in section 4
+- [x] 2.2 Move the **Package IDs** step to after **Pack** and before **NuGet login** with no `if`, and pass the tag and package IDs to the `create` step through `env` (`TAG`, `IDS`) instead of in the command (section 2 supervisor minors, 2026-10-28), and verify by reading the workflow against the revised ADR-0016 and design.md "Workflow wiring", a YAML parse, and a rehearsal showing **Package IDs** run and `github-release` skipped (rehearsal in 4.1)
+
+## 3. Documentation
+
+Depends on: 2. Owner: Architect.
+
+- [x] 3.1 Update `docs/releasing.md`: the Release in "How it fits together", the `release.yml` row and the release steps; a one-time setup note that the read-only default for workflow permissions stays and the job grants its own `contents: write`; rehearsal expects `github-release` skipped; a row in "Failed releases and re-runs" for a failed Release job (use **Re-run failed jobs**; "Re-run all jobs" fails at the push), and verify every statement against ADR-0016 and the workflow
+- [x] 3.2 Update the FR-10 entry in `docs/feature-requests.md` to closed by `add-github-release` once section 4 passes, and verify the index row and the entry agree
+
+## 4. Verification
+
+Depends on: 2, 3. Owner: Carl.
+
+- [x] 4.1 Run a rehearsal, and verify it passes with `github-release` skipped ("Rehearsal has no page")
+- [x] 4.2 Make the next release with the release command (`0.1.0-beta.5` was released before this change and gets no Release, Carl, 2026-10-28), and verify the Releases page shows that version on its tag, marked prerelease, with the note and the nuget.org link ("Page created")

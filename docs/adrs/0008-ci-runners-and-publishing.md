@@ -1,6 +1,7 @@
 # ADR-0008: CI host, runners and package publishing
 
-- Status: Decided
+- Status: Amended by ADR-0011 (release run packs, checks and pushes the vendor tool package too),
+  ADR-0016 (GitHub Release job after the push; per-job permissions)
 - Date: 2026-10-14
 - Source: `add-release-pipeline` design.md Q3, Q4, Q6, Q9, Q10, Q12
 - Revised: 2026-10-18 (Carl): `all-platforms.yml` disabled; Q6. 2026-10-19 (Carl): re-run after a
@@ -63,7 +64,8 @@ Microsoft.Testing.Platform and need `dotnet test --solution` (ADR-0006).
 - **Action dependencies**: `actions/checkout`, `actions/setup-dotnet`, `actions/setup-node`,
   `NuGet/login`. Each pinned to a full commit SHA with its version in a comment; latest stable
   release at least two weeks old at apply time. Approved by Carl with this change.
-- **Workflow permissions**: `contents: read` everywhere; `id-token: write` only in `release.yml`.
+- **Workflow permissions**: `contents: read` everywhere; `id-token: write` only in `release.yml`
+  (amended by ADR-0016: job `github-release` holds `contents: write`).
 
 ## Alternatives Considered
 
