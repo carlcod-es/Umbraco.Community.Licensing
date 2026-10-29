@@ -64,6 +64,42 @@ public class KeyProtectionTests(ITestOutputHelper output)
         Assert.False(check.Verify(Passphrase + " "));
     }
 
+    // "créme brûlée façade" with every accent composed (NFC) or as base letter plus combining mark (NFD).
+    private const string Nfc = "cr\u00e9me br\u00fbl\u00e9e fa\u00e7ade";
+    private const string Nfd = "cre\u0301me bru\u0302le\u0301e fac\u0327ade";
+
+    [Fact]
+    public void The_two_Unicode_forms_differ_as_strings()
+    {
+        Assert.NotEqual(Nfc, Nfd, StringComparer.Ordinal);
+        Assert.True(Nfc.Length >= 15);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void A_check_verifies_the_other_Unicode_form(bool createdFromNfd)
+    {
+        var check = PassphraseCheck.Create(createdFromNfd ? Nfd : Nfc, 1_000);
+
+        Assert.True(check.Verify(createdFromNfd ? Nfc : Nfd));
+        Assert.True(check.Verify(createdFromNfd ? Nfd : Nfc));
+        Assert.False(check.Verify("cr\u00e9me br\u00fbl\u00e9e fa\u00e7ade!"));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void A_key_decrypts_with_the_other_Unicode_form(bool encryptedWithNfd)
+    {
+        using var pair = SigningKeyPair.Create();
+        var pem = KeyProtection.Encrypt(pair.PrivateKey, encryptedWithNfd ? Nfd : Nfc, 1_000);
+
+        using var key = KeyProtection.Decrypt(pem, encryptedWithNfd ? Nfc : Nfd);
+
+        Assert.Equal(pair.PublicKey.Export(), key.PublicKey.Export());
+    }
+
     [Fact]
     public void The_check_uses_its_stored_iterations()
     {

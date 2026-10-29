@@ -2,7 +2,7 @@
 
 - Status: Decided
 - Date: 2026-10-28
-- Source: `add-vendor-tool` design.md Q21
+- Source: `add-vendor-tool` design.md Q21, Q34
 
 ## Context
 
@@ -23,6 +23,8 @@ ADR-0001 left encryption to tooling).
   or opened.
 - **Iterations** stored in each PEM and in the check, so tests can run with a low count passed
   through `ToolEnvironment`.
+- **Passphrase text.** Normalised to Unicode NFC, then UTF-8, before every derivation (check,
+  encrypt, decrypt), whatever the source (Q34).
 
 ## Alternatives Considered
 
@@ -32,11 +34,13 @@ ADR-0001 left encryption to tooling).
 | OS key stores (DPAPI, Keychain, libsecret) | Not portable by copying; different per OS |
 | Argon2 key derivation | Not in the BCL; a dependency |
 | Library change to accept `ECDsa` (`pre-1.0-considerations.md` C2) | Not needed for this change; would avoid the plain PEM string |
+| Passphrase bytes as received, no normalisation | The same passphrase can fail between a Windows pipe and a macOS prompt |
 
 ## Consequences
 
 - The decrypted PEM exists briefly as a .NET string that cannot be zeroed.
-- About half a second of key derivation per command that signs.
+- Key derivation runs once for the check and once per key encrypted or decrypted: two per signing
+  command, three for `product add` with standby, about 1 to 1.5 s.
 - Keys open with `openssl pkey` and the passphrase.
 
 ## Reversal Cost

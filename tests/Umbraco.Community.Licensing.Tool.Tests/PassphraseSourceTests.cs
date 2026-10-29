@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Umbraco.Community.Licensing.Tool.Data;
 
@@ -15,9 +16,10 @@ public class PassphraseSourceTests
         string stdin = "",
         bool stdinRedirected = true,
         string hiddenKeys = "",
-        IReadOnlyDictionary<string, string>? variables = null)
+        IReadOnlyDictionary<string, string>? variables = null,
+        byte[]? stdinBytes = null)
     {
-        var tool = new ScriptedTool(stdin, stdinRedirected, hiddenKeys, variables: variables);
+        var tool = new ScriptedTool(stdin, stdinRedirected, hiddenKeys, variables: variables, stdinBytes: stdinBytes);
         using var db = Installation.Open(tool.HomeInstallation);
         KeyProtection.StoreCheck(db, passphrase, tool.Environment.Pbkdf2Iterations);
         db.SaveChanges();
@@ -64,7 +66,7 @@ public class PassphraseSourceTests
 
         Assert.Equal(1, tool.Run("stub-key"));
 
-        Assert.Contains("no passphrase check", tool.Stderr);
+        Assert.Contains("no usable passphrase check", tool.Stderr);
         Assert.Equal(0, KeyCount(tool));
     }
 
@@ -130,21 +132,68 @@ public class PassphraseSourceTests
     }
 
     [Fact]
-    public void Empty_sources_count_as_missing()
+    public void An_empty_environment_variable_counts_as_missing()
     {
-        using var tool = Prepared(stdin: "\n", variables: Env(""));
+        using var tool = Prepared(variables: Env(""));
 
-        Assert.Equal(1, tool.Run("stub-key", "--passphrase-stdin"));
+        Assert.Equal(1, tool.Run("stub-key"));
         Assert.Contains("UCL_PASSPHRASE", tool.Stderr);
+        Assert.Equal(0, KeyCount(tool));
     }
 
     [Fact]
-    public void End_of_stdin_counts_as_missing()
+    public void An_empty_stdin_line_is_refused_without_falling_through_to_the_environment()
     {
-        using var tool = Prepared();
+        using var tool = Prepared(stdin: "\n", variables: Env(Passphrase));
 
         Assert.Equal(1, tool.Run("stub-key", "--passphrase-stdin"));
-        Assert.Contains("UCL_PASSPHRASE", tool.Stderr);
+        Assert.Contains("--passphrase-stdin was given but no passphrase was on stdin", tool.Stderr);
+        Assert.Equal("", tool.Stdout);
+        Assert.Equal(0, KeyCount(tool));
+    }
+
+    [Fact]
+    public void End_of_stdin_is_refused_without_falling_through_to_the_environment()
+    {
+        using var tool = Prepared(variables: Env(Passphrase));
+
+        Assert.Equal(1, tool.Run("stub-key", "--passphrase-stdin"));
+        Assert.Contains("--passphrase-stdin was given but no passphrase was on stdin", tool.Stderr);
+        Assert.Equal("", tool.Stdout);
+        Assert.Equal(0, KeyCount(tool));
+    }
+
+    // "créme brûlée façade" with every accent composed (NFC) or as base letter plus combining mark (NFD).
+    private const string Nfc = "cr\u00e9me br\u00fbl\u00e9e fa\u00e7ade";
+    private const string Nfd = "cre\u0301me bru\u0302le\u0301e fac\u0327ade";
+
+    [Fact]
+    public void A_non_ASCII_stdin_line_matches_the_same_passphrase_typed_at_the_prompt()
+    {
+        // The check is made from the prompt run; each stdin form must verify against it.
+        using var typed = Prepared(passphrase: Nfc, stdinRedirected: false, hiddenKeys: Nfc + "\n");
+        Assert.Equal(0, typed.Run("stub-key"));
+
+        var utf8 = new UTF8Encoding(false);
+        byte[] Line(string text, bool bom, string ending) =>
+            [.. bom ? Encoding.UTF8.GetPreamble() : [], .. utf8.GetBytes(text + ending)];
+
+        foreach (var text in new[] { Nfc, Nfd })
+        {
+            foreach (var bom in new[] { false, true })
+            {
+                foreach (var ending in new[] { "", "\n", "\r\n" })
+                {
+                    using var piped = Prepared(
+                        passphrase: Nfc,
+                        stdinBytes: Line(text, bom, ending));
+                    Assert.True(
+                        piped.Run("stub-key", "--passphrase-stdin") == 0,
+                        $"nfd={text == Nfd} bom={bom} ending={ending.Length}: {piped.Stderr}");
+                    Assert.Equal(1, KeyCount(piped));
+                }
+            }
+        }
     }
 
     [Fact]

@@ -97,6 +97,8 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q30 | Folder state at setup | `~/.ucl` created when missing; a folder holding other files but no installation accepted; only an existing installation refused (Carl, 2026-10-29) | PDR-0031 |
 | Q31 | Next step after setup | Closing message ends with the next steps by mode: `product add` (per-product: creates the signing key, asks the passphrase), then `key trusted`. The guide gives the same first steps (Carl, 2026-10-29) | PDR-0031 |
 | Q32 | Setup offer edge cases | `--folder` naming a folder with no installation: refused, no offer. Accepted offer: setup runs in full, then the refused action is not run; exit 1 (Carl, 2026-10-29) | PDR-0031 |
+| Q33 | `--passphrase-stdin` with no passphrase | Refused (exit 1) when stdin's first line is empty or stdin is at its end; no fall-through to `UCL_PASSPHRASE`. Refused at a terminal (stdin not redirected), since reading would echo it (Carl, 2026-10-29) | ADR-0012 |
+| Q34 | Non-ASCII passphrases | `--passphrase-stdin` line read as UTF-8; every passphrase normalised to Unicode NFC at every source, setup included, before the check and PEM encryption (Carl, 2026-10-29) | ADR-0014 |
 
 ## Decisions
 
@@ -199,7 +201,9 @@ package).
 System.CommandLine 2.0 for parsing, help and validation. Prompts with BCL `Console`: interactive
 when stdin is not redirected and `--no-input` is absent; prompts on stderr so stdout can be
 redirected; hidden passphrase read with `Console.ReadKey(intercept: true)`. Passphrase precedence:
-`--passphrase-stdin` (first line of stdin), `UCL_PASSPHRASE`, prompt.
+`--passphrase-stdin` (first line of stdin), `UCL_PASSPHRASE`, prompt. `--passphrase-stdin` reads the
+first line as UTF-8; an empty line or end of stdin is refused, not passed to the next source; at a
+terminal it is refused (Q33).
 
 ### Database and folder — ADR-0013
 
@@ -236,7 +240,9 @@ iterations)`. Use: `ECDsa.ImportFromEncryptedPem` → `ExportPkcs8PrivateKeyPem`
 against the `Settings` passphrase check (PBKDF2-SHA256, 16-byte salt, same iteration count,
 `CryptographicOperations.FixedTimeEquals`), so a mistyped passphrase in per-product mode cannot
 encrypt a new key under a different passphrase. Tests pass a low iteration count through
-`ToolEnvironment`; the count is stored with each PEM and check, so decrypting reads it back.
+`ToolEnvironment`; the count is stored with each PEM and check, so decrypting reads it back. The
+passphrase is normalised to NFC before the check and before encryption or decryption, so the same
+characters give the same bytes from any source or OS (Q34).
 
 ### Backup and export — ADR-0015
 
@@ -310,8 +316,9 @@ Validation for every block: `dotnet build Umbraco.Community.Licensing.slnx`,
 - [Lost passphrase] → Keys unrecoverable (FR-2 loss case). Setup and the guide say to keep it in a
   password manager, apart from backups.
 - [Older backups hold cleared emails] → Stated in the guide (PDR-0033).
-- [600,000 PBKDF2 iterations cost about half a second per command that signs] → Acceptable; once
-  per command.
+- [PBKDF2 at 600,000 iterations runs once for the check and once per key encrypted or decrypted:
+  two derivations per signing command, three for `product add` with standby, about 1 to 1.5 s] →
+  Acceptable for commands run by hand or in small batches.
 - [First push of a new package ID under Trusted Publishing] → The policy is per repository and
   workflow (ADR-0008); if nuget.org refuses, Carl publishes the first tool version with a
   short-lived API key and records it in follow-ups.md.

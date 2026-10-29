@@ -15,10 +15,10 @@ internal sealed class ToolContext(
     GlobalOptions globals,
     Action<ToolContext> runSetup)
 {
-    public ToolEnvironment Environment { get; } = environment;
-
     /// <summary>The environment variable that supplies the passphrase to scripts.</summary>
     public const string PassphraseVariable = "UCL_PASSPHRASE";
+
+    public ToolEnvironment Environment { get; } = environment;
 
     public ToolConsole Console => Environment.Console;
 
@@ -87,13 +87,13 @@ internal sealed class ToolContext(
     public string PromptHidden(string text) => Console.PromptHidden(text, NoInput);
 
     /// <summary>
-    /// Reads the passphrase, first found of: <c>--passphrase-stdin</c> (first line of stdin), the
-    /// <c>UCL_PASSPHRASE</c> variable, a hidden prompt when interactive (ADR-0012). It is never trimmed (a line
+    /// Reads the passphrase, first found of: <c>--passphrase-stdin</c> (first line of stdin, read as UTF-8; an empty
+    /// line or end of input is refused, never falling through), the <c>UCL_PASSPHRASE</c> variable, a hidden prompt when interactive (ADR-0012). It is never trimmed (a line
     /// ending is removed by the line read only); an empty value counts as missing. Not cached: the caller holds
     /// it for one command.
     /// </summary>
     /// <exception cref="ToolRefusal">
-    /// <c>--passphrase-stdin</c> at a terminal (reading a line would echo it), or no source supplied one and
+    /// <c>--passphrase-stdin</c> at a terminal (reading a line would echo it) or with no passphrase on stdin, or no source supplied one and
     /// nobody can be asked.
     /// </exception>
     public string ReadPassphrase()
@@ -107,10 +107,10 @@ internal sealed class ToolContext(
             }
 
             var line = Console.ReadLine();
-            if (!string.IsNullOrEmpty(line))
-            {
-                return line;
-            }
+            return string.IsNullOrEmpty(line)
+                ? throw new ToolRefusal(
+                    "--passphrase-stdin was given but no passphrase was on stdin. Nothing changed.")
+                : line;
         }
 
         var variable = Environment.GetVariable(PassphraseVariable);
@@ -142,7 +142,7 @@ internal sealed class ToolContext(
     public string ReadVerifiedPassphrase(ToolDbContext db)
     {
         var check = KeyProtection.LoadCheck(db)
-            ?? throw new ToolRefusal("This installation has no passphrase check (setup did not finish). Nothing changed.");
+            ?? throw new ToolRefusal("This installation has no usable passphrase check. Nothing changed.");
         var passphrase = ReadPassphrase();
         return check.Verify(passphrase)
             ? passphrase

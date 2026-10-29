@@ -26,12 +26,21 @@ internal sealed class ToolConsole(
     public bool InputRedirected { get; } = inputRedirected;
 
     /// <summary>The console of the running process.</summary>
-    public static ToolConsole FromProcess() => new(
-        Console.In,
-        Console.Out,
-        Console.Error,
-        Console.IsInputRedirected,
-        () => Console.ReadKey(intercept: true));
+    public static ToolConsole FromProcess() => Console.IsInputRedirected
+        ? FromInputStream(Console.OpenStandardInput(), Console.Out, Console.Error, true, () => Console.ReadKey(intercept: true))
+        : new(Console.In, Console.Out, Console.Error, false, () => Console.ReadKey(intercept: true));
+
+    /// <summary>
+    /// A console reading <paramref name="input"/> as UTF-8 whatever the console code page (Q34). A UTF-8 byte
+    /// order mark at the start is consumed, so it never becomes part of a passphrase.
+    /// </summary>
+    internal static ToolConsole FromInputStream(
+        Stream input,
+        TextWriter output,
+        TextWriter error,
+        bool inputRedirected,
+        Func<ConsoleKeyInfo> readKey) =>
+        new(new StreamReader(input, new UTF8Encoding(false), detectEncodingFromByteOrderMarks: true), output, error, inputRedirected, readKey);
 
     /// <summary>Interactive when stdin is not redirected and <c>--no-input</c> is absent.</summary>
     public bool IsInteractive(bool noInput) => !noInput && !InputRedirected;

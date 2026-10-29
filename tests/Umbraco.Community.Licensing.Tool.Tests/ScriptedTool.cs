@@ -20,16 +20,12 @@ internal sealed class ScriptedTool : IDisposable
         bool stdinRedirected = true,
         string hiddenKeys = "",
         Action<ToolContext>? setup = null,
-        IReadOnlyDictionary<string, string>? variables = null)
+        IReadOnlyDictionary<string, string>? variables = null,
+        byte[]? stdinBytes = null)
     {
         _setup = setup;
         var keys = new Queue<char>(hiddenKeys);
-        var console = new ToolConsole(
-            new StringReader(stdin),
-            _stdout,
-            _stderr,
-            stdinRedirected,
-            () =>
+        Func<ConsoleKeyInfo> readKey = () =>
             {
                 var c = keys.Dequeue();
                 return c switch
@@ -38,7 +34,10 @@ internal sealed class ScriptedTool : IDisposable
                     '\b' => new ConsoleKeyInfo('\b', ConsoleKey.Backspace, false, false, false),
                     _ => new ConsoleKeyInfo(c, ConsoleKey.A, false, false, false),
                 };
-            });
+            };
+        var console = stdinBytes is null
+            ? new ToolConsole(new StringReader(stdin), _stdout, _stderr, stdinRedirected, readKey)
+            : ToolConsole.FromInputStream(new MemoryStream(stdinBytes), _stdout, _stderr, stdinRedirected, readKey);
         Environment = new ToolEnvironment(
             console,
             Clock,

@@ -2,7 +2,7 @@
 
 - Status: Decided
 - Date: 2026-10-28
-- Source: `add-vendor-tool` design.md Q19
+- Source: `add-vendor-tool` design.md Q19, Q33
 
 ## Context
 
@@ -18,7 +18,9 @@ be a plain argument (PDR-0032).
   absent. Prompts and messages to stderr; results (key string, path, list) to stdout. Hidden
   passphrase read with `Console.ReadKey(intercept: true)`.
 - **Passphrase sources**, first found: `--passphrase-stdin` (first line of stdin),
-  `UCL_PASSPHRASE`, hidden prompt.
+  `UCL_PASSPHRASE`, hidden prompt. `--passphrase-stdin` reads its line as UTF-8; an empty line or
+  end of stdin is refused, with no fall-through to `UCL_PASSPHRASE`; with stdin at a terminal it is
+  refused, since reading would echo the passphrase (Q33).
 - **Exit codes.** 0 done, 1 refused, 2 usage error.
 - **Testability.** Commands run through `ToolApp.Run(args, ToolEnvironment)`; the environment
   carries the console, clock, folders and variables.

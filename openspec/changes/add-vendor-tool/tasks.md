@@ -40,6 +40,7 @@ Depends on: 4. Owner: worker-backend. Spec: vendor-tool-signing-keys (Private ke
 the passphrase). Records: ADR-0014, PDR-0032.
 
 - [x] 5.1 Implement the passphrase check (PBKDF2-SHA256, salt, stored iterations, fixed-time compare), encrypt and decrypt of private keys per ADR-0014, and passphrase sources (`--passphrase-stdin`, `UCL_PASSPHRASE`, hidden prompt), and verify by tests for "Opened by another tool" (`ECDsa.ImportFromEncryptedPem` with and without the passphrase), a wrong passphrase refused before any key is created, and one encrypt/decrypt at 600,000 iterations completing
+- [x] 5.2 Apply design.md Q33 and Q34: refuse `--passphrase-stdin` with an empty first line or end of stdin (no fall-through), read its line as UTF-8, normalise every passphrase to NFC in one place used by the check, encrypt and decrypt; and verify by tests that empty stdin with a valid `UCL_PASSPHRASE` set is refused, that a passphrase stored in NFD verifies when given in NFC (and the reverse) at the check and on decrypt, and that a non-ASCII UTF-8 stdin line matches the same passphrase typed at the prompt
 
 ## 6. Setup
 

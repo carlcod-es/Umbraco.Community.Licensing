@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Security.Cryptography;
+using System.Text;
 using Umbraco.Community.Licensing.Tool.Data;
 
 namespace Umbraco.Community.Licensing.Tool;
@@ -19,12 +21,12 @@ internal sealed record PassphraseCheck(byte[] Salt, int Iterations, byte[] Hash)
     public static PassphraseCheck Create(string passphrase, int iterations)
     {
         var salt = RandomNumberGenerator.GetBytes(SaltSize);
-        return new PassphraseCheck(salt, iterations, Derive(passphrase, salt, iterations));
+        return new PassphraseCheck(salt, iterations, Derive(KeyProtection.Normalize(passphrase), salt, iterations));
     }
 
     /// <summary>Whether <paramref name="passphrase"/> matches, using the stored salt and iterations; fixed-time compare.</summary>
     public bool Verify(string passphrase) =>
-        CryptographicOperations.FixedTimeEquals(Derive(passphrase, Salt, Iterations), Hash);
+        CryptographicOperations.FixedTimeEquals(Derive(KeyProtection.Normalize(passphrase), Salt, Iterations), Hash);
 
     private static byte[] Derive(string passphrase, byte[] salt, int iterations) =>
         Rfc2898DeriveBytes.Pbkdf2(passphrase, salt, iterations, HashAlgorithmName.SHA256, HashSize);
@@ -36,6 +38,12 @@ internal sealed record PassphraseCheck(byte[] Salt, int Iterations, byte[] Hash)
 /// </summary>
 internal static class KeyProtection
 {
+    /// <summary>
+    /// The one place a passphrase is normalised to Unicode NFC (Q34), so the same text gives the same bytes
+    /// from any source or OS. Check, encrypt and decrypt all go through it; it never trims.
+    /// </summary>
+    internal static string Normalize(string passphrase) => passphrase.Normalize(NormalizationForm.FormC);
+
     /// <summary>Settings row: base64 salt of the passphrase check.</summary>
     public const string SaltSetting = "PassphraseCheckSalt";
 
@@ -55,11 +63,11 @@ internal static class KeyProtection
         var check = PassphraseCheck.Create(passphrase, iterations);
         db.Settings.AddRange(
             new Setting { Name = SaltSetting, Value = Convert.ToBase64String(check.Salt) },
-            new Setting { Name = IterationsSetting, Value = iterations.ToString(System.Globalization.CultureInfo.InvariantCulture) },
+            new Setting { Name = IterationsSetting, Value = iterations.ToString(CultureInfo.InvariantCulture) },
             new Setting { Name = HashSetting, Value = Convert.ToBase64String(check.Hash) });
     }
 
-    /// <summary>The stored check; null when the installation has none (or an unreadable one).</summary>
+    /// <summary>The stored check; null when the installation has none or an unreadable one.</summary>
     public static PassphraseCheck? LoadCheck(ToolDbContext db)
     {
         var values = db.Settings
@@ -68,7 +76,7 @@ internal static class KeyProtection
         if (!values.TryGetValue(SaltSetting, out var salt)
             || !values.TryGetValue(IterationsSetting, out var iterations)
             || !values.TryGetValue(HashSetting, out var hash)
-            || !int.TryParse(iterations, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var count)
+            || !int.TryParse(iterations, NumberStyles.None, CultureInfo.InvariantCulture, out var count)
             || count < 1)
         {
             return null;
@@ -93,7 +101,7 @@ internal static class KeyProtection
         using var ecdsa = ECDsa.Create();
         ecdsa.ImportFromPem(key.ExportPem());
         return ecdsa.ExportEncryptedPkcs8PrivateKeyPem(
-            passphrase,
+            Normalize(passphrase),
             new PbeParameters(PbeEncryptionAlgorithm.Aes256Cbc, HashAlgorithmName.SHA256, iterations));
     }
 
@@ -105,7 +113,7 @@ internal static class KeyProtection
     public static SigningPrivateKey Decrypt(string encryptedPem, string passphrase)
     {
         using var ecdsa = ECDsa.Create();
-        ecdsa.ImportFromEncryptedPem(encryptedPem, passphrase);
+        ecdsa.ImportFromEncryptedPem(encryptedPem, Normalize(passphrase));
         return SigningPrivateKey.FromPem(ecdsa.ExportPkcs8PrivateKeyPem());
     }
 }
