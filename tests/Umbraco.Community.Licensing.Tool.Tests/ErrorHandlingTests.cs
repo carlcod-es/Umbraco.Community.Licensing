@@ -34,12 +34,25 @@ public class ErrorHandlingTests
         Assert.Contains("InvalidOperationException", tool.Stderr);
     }
 
+    [Fact]
+    public void Database_update_failure_prints_the_inner_database_message()
+    {
+        using var tool = new ScriptedTool();
+
+        var exit = tool.Run("stub-throw", "update-inner");
+
+        Assert.Equal(1, exit);
+        Assert.Contains("boom-inner", tool.Stderr);
+        Assert.DoesNotContain("See the inner exception", tool.Stderr);
+    }
+
     internal static Exception Make(string kind) => kind switch
     {
         "io" => new IOException("boom-io"),
         "access" => new UnauthorizedAccessException("boom-access"),
         "sqlite" => new SqliteException("boom-sqlite", 1),
         "update" => new DbUpdateException("boom-update"),
+        "update-inner" => new DbUpdateException("See the inner exception for details.", new SqliteException("boom-inner", 19)),
         _ => new InvalidOperationException("boom-other"),
     };
 }

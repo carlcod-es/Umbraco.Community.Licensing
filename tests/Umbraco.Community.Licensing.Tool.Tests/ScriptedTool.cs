@@ -12,7 +12,8 @@ internal sealed class ScriptedTool : IDisposable
 {
     private readonly StringWriter _stdout = new();
     private readonly StringWriter _stderr = new();
-    private readonly string _root = Path.Combine(Path.GetTempPath(), "ucl-test-" + Guid.NewGuid().ToString("N"));
+    private readonly string _root;
+    private readonly bool _ownsRoot;
     private readonly Action<ToolContext>? _setup;
 
     public ScriptedTool(
@@ -21,22 +22,38 @@ internal sealed class ScriptedTool : IDisposable
         string hiddenKeys = "",
         Action<ToolContext>? setup = null,
         IReadOnlyDictionary<string, string>? variables = null,
-        byte[]? stdinBytes = null)
+        byte[]? stdinBytes = null,
+        TextReader? stdinReader = null)
+        : this(null, stdin, stdinRedirected, hiddenKeys, setup, variables, stdinBytes, stdinReader)
     {
+    }
+
+    private ScriptedTool(
+        string? root,
+        string stdin,
+        bool stdinRedirected,
+        string hiddenKeys,
+        Action<ToolContext>? setup,
+        IReadOnlyDictionary<string, string>? variables,
+        byte[]? stdinBytes,
+        TextReader? stdinReader = null)
+    {
+        _ownsRoot = root is null;
+        _root = root ?? Path.Combine(Path.GetTempPath(), "ucl-test-" + Guid.NewGuid().ToString("N"));
         _setup = setup;
         var keys = new Queue<char>(hiddenKeys);
         Func<ConsoleKeyInfo> readKey = () =>
+        {
+            var c = keys.Dequeue();
+            return c switch
             {
-                var c = keys.Dequeue();
-                return c switch
-                {
-                    '\n' => new ConsoleKeyInfo('\r', ConsoleKey.Enter, false, false, false),
-                    '\b' => new ConsoleKeyInfo('\b', ConsoleKey.Backspace, false, false, false),
-                    _ => new ConsoleKeyInfo(c, ConsoleKey.A, false, false, false),
-                };
+                '\n' => new ConsoleKeyInfo('\r', ConsoleKey.Enter, false, false, false),
+                '\b' => new ConsoleKeyInfo('\b', ConsoleKey.Backspace, false, false, false),
+                _ => new ConsoleKeyInfo(c, ConsoleKey.A, false, false, false),
             };
+        };
         var console = stdinBytes is null
-            ? new ToolConsole(new StringReader(stdin), _stdout, _stderr, stdinRedirected, readKey)
+            ? new ToolConsole(stdinReader ?? new StringReader(stdin), _stdout, _stderr, stdinRedirected, readKey)
             : ToolConsole.FromInputStream(new MemoryStream(stdinBytes), _stdout, _stderr, stdinRedirected, readKey);
         Environment = new ToolEnvironment(
             console,
@@ -63,7 +80,8 @@ internal sealed class ScriptedTool : IDisposable
 
     /// <summary>
     /// Makes <paramref name="folder"/> an installation for resolution tests: an empty file is enough to mark
-    /// one. Tests of the database itself use <see cref="Installation.Open"/>.
+    /// one. Tests of the database itself use <see cref="Installation.Open(string)"/>; tests of commands use
+    /// <see cref="Installed"/>.
     /// </summary>
     public static string MakeInstallation(string folder)
     {
@@ -72,9 +90,52 @@ internal sealed class ScriptedTool : IDisposable
         return Path.GetFullPath(folder);
     }
 
+    /// <summary>The passphrase <see cref="Installed"/> sets.</summary>
+    public const string DefaultPassphrase = "correct horse battery staple";
+
+    /// <summary>
+    /// A tool with a new installation made by the real <c>ucl setup</c>, answered through the scripted
+    /// interactive console. The returned tool (default: nobody at a terminal) owns the folders; use
+    /// <see cref="Another"/> for further runs with other stdin, keys or variables.
+    /// </summary>
+    public static ScriptedTool Installed(SetupAnswers? answers = null)
+    {
+        var tool = new ScriptedTool();
+        try
+        {
+            using var setup = tool.Another(stdin: (answers ?? new SetupAnswers()).Stdin, stdinRedirected: false, hiddenKeys: (answers ?? new SetupAnswers()).HiddenKeys);
+            var exit = setup.Run("setup");
+            if (exit != 0)
+            {
+                throw new InvalidOperationException($"Setup exited {exit}: {setup.Stderr}");
+            }
+
+            return tool;
+        }
+        catch
+        {
+            tool.Dispose();
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// A new tool (fresh streams, own stdin, keys and variables) over the same home and current directory.
+    /// It does not remove the folders on dispose; the tool that made them does.
+    /// </summary>
+    public ScriptedTool Another(
+        string stdin = "",
+        bool stdinRedirected = true,
+        string hiddenKeys = "",
+        Action<ToolContext>? setup = null,
+        IReadOnlyDictionary<string, string>? variables = null,
+        byte[]? stdinBytes = null,
+        TextReader? stdinReader = null) =>
+        new(_root, stdin, stdinRedirected, hiddenKeys, setup, variables, stdinBytes, stdinReader);
+
     public void Dispose()
     {
-        if (Directory.Exists(_root))
+        if (_ownsRoot && Directory.Exists(_root))
         {
             Directory.Delete(_root, recursive: true);
         }
@@ -158,4 +219,24 @@ internal sealed class ScriptedTool : IDisposable
         });
         return command;
     }
+}
+
+/// <summary>The answers <c>ucl setup</c> is given by <see cref="ScriptedTool.Installed"/>; the defaults are the proposed values.</summary>
+/// <param name="Shared">One signing key shared across all products.</param>
+/// <param name="Standby">Create standby keys.</param>
+/// <param name="Prefix">The prefix as typed; empty accepts <c>LIC</c>.</param>
+/// <param name="CurrentFolder">Choose the current folder instead of <c>~/.ucl</c>.</param>
+/// <param name="Passphrase">Typed twice.</param>
+internal sealed record SetupAnswers(
+    bool Shared = false,
+    bool Standby = true,
+    string Prefix = "",
+    bool CurrentFolder = false,
+    string Passphrase = ScriptedTool.DefaultPassphrase)
+{
+    /// <summary>The answers read from stdin, in setup's order (the passphrase is typed on the hidden keys).</summary>
+    public string Stdin =>
+        $"{(CurrentFolder ? "2" : "")}\n{Prefix}\n{(Shared ? "2" : "")}\n{(Standby ? "" : "n")}\n";
+
+    public string HiddenKeys => $"{Passphrase}\n{Passphrase}\n";
 }

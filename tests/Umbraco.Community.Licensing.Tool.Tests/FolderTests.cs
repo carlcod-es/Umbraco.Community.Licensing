@@ -140,36 +140,44 @@ public class FolderTests
     [Theory]
     [InlineData("y")]
     [InlineData("YES")]
-    public void No_installation_found_accepted_starts_setup_then_carries_on(string answer)
+    public void No_installation_found_accepted_runs_setup_in_full_and_not_the_action(string answer)
     {
-        var setupCalls = 0;
+        // Offer answer, then setup: folder, prefix, mode, standby.
         using var tool = new ScriptedTool(
-            stdin: answer + "\n",
+            stdin: answer + "\n\n\n\n\n",
             stdinRedirected: false,
-            setup: context =>
-            {
-                setupCalls++;
-                ScriptedTool.MakeInstallation(Path.Combine(context.Environment.Home, Installation.HomeFolderName));
-            });
-
-        var exit = tool.Run("folder", "show");
-
-        Assert.Equal(0, exit);
-        Assert.Equal(1, setupCalls);
-        var home = Path.GetFullPath(tool.HomeInstallation);
-        Assert.Equal(home + NewLine, tool.Stdout);
-        AssertUsing(tool, home);
-    }
-
-    [Fact]
-    public void No_installation_found_accepted_but_setup_unavailable_refuses()
-    {
-        using var tool = new ScriptedTool(stdin: "y\n", stdinRedirected: false);
+            hiddenKeys: ScriptedTool.DefaultPassphrase + "\n" + ScriptedTool.DefaultPassphrase + "\n");
 
         var exit = tool.Run("folder", "show");
 
         Assert.Equal(1, exit);
-        Assert.Contains("not available", tool.Stderr);
+        Assert.True(Installation.Exists(tool.HomeInstallation));
+        Assert.Equal("", tool.Stdout);
+        Assert.DoesNotContain("Using", tool.Stderr);
+        Assert.Contains("Setup finished. The installation is in", tool.Stderr);
+        Assert.Contains("Setup finished. Run the command again.", tool.Stderr);
+    }
+
+    [Fact]
+    public void No_installation_found_accepted_then_the_command_run_again_uses_the_installation()
+    {
+        using var tool = ScriptedTool.Installed();
+
+        using var again = tool.Another();
+        Assert.Equal(0, again.Run("folder", "show"));
+        Assert.Equal(Path.GetFullPath(tool.HomeInstallation) + NewLine, again.Stdout);
+    }
+
+    [Fact]
+    public void No_installation_found_accepted_but_setup_refuses_creates_nothing()
+    {
+        using var tool = new ScriptedTool(stdin: "y\n", stdinRedirected: false);
+
+        // Input ends at setup's first question.
+        var exit = tool.Run("folder", "show");
+
+        Assert.Equal(1, exit);
+        Assert.False(Directory.Exists(tool.HomeInstallation));
         Assert.Equal("", tool.Stdout);
     }
 

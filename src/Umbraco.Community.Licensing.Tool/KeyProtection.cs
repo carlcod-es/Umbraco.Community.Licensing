@@ -42,7 +42,18 @@ internal static class KeyProtection
     /// The one place a passphrase is normalised to Unicode NFC (Q34), so the same text gives the same bytes
     /// from any source or OS. Check, encrypt and decrypt all go through it; it never trims.
     /// </summary>
-    internal static string Normalize(string passphrase) => passphrase.Normalize(NormalizationForm.FormC);
+    /// <exception cref="ToolRefusal">The text is not valid UTF-16 (a lone surrogate).</exception>
+    internal static string Normalize(string passphrase)
+    {
+        try
+        {
+            return passphrase.Normalize(NormalizationForm.FormC);
+        }
+        catch (ArgumentException)
+        {
+            throw new ToolRefusal("The passphrase is not valid text. Nothing changed.");
+        }
+    }
 
     /// <summary>Settings row: base64 salt of the passphrase check.</summary>
     public const string SaltSetting = "PassphraseCheckSalt";

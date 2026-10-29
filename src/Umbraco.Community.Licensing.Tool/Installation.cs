@@ -59,6 +59,26 @@ internal static class Installation
     }
 
     /// <summary>
+    /// Creates the folder when missing, then an empty <c>ucl.db</c> atomically: it never replaces or opens
+    /// an existing one, so two creators cannot both succeed. SQLite accepts the empty file as a new database;
+    /// <see cref="Open"/> then migrates it.
+    /// </summary>
+    /// <exception cref="ToolRefusal">The folder already holds an installation (checked and created in one step).</exception>
+    public static void CreateNew(string folder)
+    {
+        Directory.CreateDirectory(folder);
+        var path = Path.Combine(folder, DatabaseFileName);
+        try
+        {
+            using var created = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+        }
+        catch (IOException) when (File.Exists(path))
+        {
+            throw new ToolRefusal($"{folder} already holds an installation. Setup changed nothing there.");
+        }
+    }
+
+    /// <summary>
     /// Opens the installation in <paramref name="folder"/>, creating <c>ucl.db</c> when missing. Refuses,
     /// changing nothing, when the database holds a migration this tool does not know; otherwise applies
     /// pending migrations. Dispose the context to release the file.

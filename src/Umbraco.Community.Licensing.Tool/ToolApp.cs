@@ -26,6 +26,7 @@ internal static class ToolApp
         // A plain Command rather than RootCommand: RootCommand names itself after the executable, which is not "ucl" under `dotnet run` or the test host.
         var root = new Command("ucl", "Umbraco.Community.Licensing vendor console.") { new HelpOption(), new VersionOption() };
         globals.AddTo(root);
+        root.Subcommands.Add(SetupCommand.Build(host));
         root.Subcommands.Add(FolderCommands.Build(host));
         UseBareVersion(root, console);
         foreach (var build in extraCommands)

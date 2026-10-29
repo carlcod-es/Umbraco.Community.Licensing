@@ -87,14 +87,14 @@ internal sealed class ToolContext(
     public string PromptHidden(string text) => Console.PromptHidden(text, NoInput);
 
     /// <summary>
-    /// Reads the passphrase, first found of: <c>--passphrase-stdin</c> (first line of stdin, read as UTF-8; an empty
-    /// line or end of input is refused, never falling through), the <c>UCL_PASSPHRASE</c> variable, a hidden prompt when interactive (ADR-0012). It is never trimmed (a line
-    /// ending is removed by the line read only); an empty value counts as missing. Not cached: the caller holds
-    /// it for one command.
+    /// Reads the passphrase, first found of: <c>--passphrase-stdin</c> (first line of stdin, read as UTF-8; an
+    /// empty line or end of input is refused, never falling through), the <c>UCL_PASSPHRASE</c> variable, a
+    /// hidden prompt when interactive (ADR-0012). It is never trimmed (a line ending is removed by the line
+    /// read only); an empty value counts as missing. Not cached: the caller holds it for one command.
     /// </summary>
     /// <exception cref="ToolRefusal">
-    /// <c>--passphrase-stdin</c> at a terminal (reading a line would echo it) or with no passphrase on stdin, or no source supplied one and
-    /// nobody can be asked.
+    /// <c>--passphrase-stdin</c> at a terminal (reading a line would echo it) or with no passphrase on stdin,
+    /// or no source supplied one and nobody can be asked.
     /// </exception>
     public string ReadPassphrase()
     {
@@ -163,7 +163,7 @@ internal sealed class ToolContext(
     /// <c>--folder</c>, the current directory, <c>&lt;home&gt;/.ucl</c>; a folder is an installation when it
     /// holds <c>ucl.db</c>. Parents are not searched and nothing is remembered between runs.
     /// </summary>
-    /// <exception cref="ToolRefusal">No installation was found (or setup, if offered, did not create one).</exception>
+    /// <exception cref="ToolRefusal">No installation was found; also after an accepted setup, which does not run the action.</exception>
     public string UseInstallation()
     {
         var folder = ResolveInstallation();
@@ -210,8 +210,8 @@ internal sealed class ToolContext(
             throw new ToolRefusal("Setup not run. Nothing changed.");
         }
 
+        // Setup runs in full (or refuses); the action that found no installation does not run (Q32).
         runSetup(this);
-        return candidates.FirstOrDefault(Installation.Exists)
-            ?? throw new ToolRefusal("Setup did not create an installation. Nothing changed.");
+        throw new ToolRefusal("Setup finished. Run the command again.");
     }
 }

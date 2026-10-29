@@ -1,6 +1,7 @@
 using System.CommandLine;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Umbraco.Community.Licensing.Tool.Commands;
 
 namespace Umbraco.Community.Licensing.Tool;
 
@@ -12,13 +13,16 @@ namespace Umbraco.Community.Licensing.Tool;
 /// <param name="globals">The global options.</param>
 /// <param name="runSetup">
 /// Runs setup when the person accepts the offer made by <see cref="ToolContext.UseInstallation"/>; it
-/// creates the installation or throws <see cref="ToolRefusal"/>. Defaults to <see cref="SetupUnavailable"/>.
+/// creates the installation or throws <see cref="ToolRefusal"/>. Defaults to <see cref="SetupCommand.Run"/>.
 /// </param>
 internal sealed class ToolHost(ToolEnvironment environment, GlobalOptions globals, Action<ToolContext>? runSetup = null)
 {
-    private readonly Action<ToolContext> _runSetup = runSetup ?? SetupUnavailable;
+    private readonly Action<ToolContext> _runSetup = runSetup ?? SetupCommand.Run;
 
     public ToolEnvironment Environment { get; } = environment;
+
+    /// <summary>The global options, for command validators.</summary>
+    public GlobalOptions Globals { get; } = globals;
 
     /// <summary>Sets the command's action. Return <see cref="ExitCodes.Done"/> or throw <see cref="ToolRefusal"/>.</summary>
     public void SetAction(Command command, Func<ToolContext, int> run) =>
@@ -26,17 +30,14 @@ internal sealed class ToolHost(ToolEnvironment environment, GlobalOptions global
         {
             try
             {
-                return run(new ToolContext(Environment, parseResult, globals, _runSetup));
+                return run(new ToolContext(Environment, parseResult, Globals, _runSetup));
             }
             catch (Exception ex) when (ex is ToolRefusal or IOException or UnauthorizedAccessException or SqliteException or DbUpdateException)
             {
                 // Expected failures of the folder and database: the message, no stack trace.
-                Environment.Console.Error.WriteLine(ex.Message);
+                // EF wraps the database error in a generic "see the inner exception" message.
+                Environment.Console.Error.WriteLine(ex is DbUpdateException { InnerException: { } inner } ? inner.Message : ex.Message);
                 return ExitCodes.Refused;
             }
         });
-
-    // Placeholder until tasks.md 6.1 supplies setup.
-    private static void SetupUnavailable(ToolContext context) =>
-        throw new ToolRefusal("Setup is not available yet.");
 }
