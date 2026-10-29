@@ -4,7 +4,8 @@
 - Date: 2026-10-14
 - Source: `add-release-pipeline` design.md Q3, Q4, Q6, Q9, Q10, Q12
 - Revised: 2026-10-18 (Carl): `all-platforms.yml` disabled; Q6. 2026-10-19 (Carl): re-run after a
-  publish failure; Q12. 2026-10-19 (Carl): `licensing-release` label dropped for now; Q3
+  publish failure; Q12. 2026-10-19 (Carl): `licensing-release` label dropped for now; Q3. 2026-10-27 (Carl): push runs in the pack
+  output folder; `add-release-pipeline` tasks.md 10.1
 
 ## Context
 
@@ -50,7 +51,10 @@ Microsoft.Testing.Platform and need `dotnet test --solution` (ADR-0006).
   1, 3, 4, PDR-0029, and "on `main`" by `git merge-base --is-ancestor` against `origin/main`);
   tool tests; `dotnet build -c Release -p:ContinuousIntegrationBuild=true`;
   `dotnet test --solution ... -c Release --no-build`; `dotnet pack -c Release --no-build`;
-  login and push. Checks and push run only on a tag push; a `workflow_dispatch` rehearsal builds,
+  login, empty-key guard and push (guard revised 2026-10-20, `add-release-pipeline` tasks.md
+  9.1). The push runs in the pack output folder with a bare `*.nupkg`, so the wildcard path
+  holds no directory separator; a mixed-separator path failed on Windows (revised 2026-10-27,
+  `add-release-pipeline` tasks.md 10.1). Checks and push run only on a tag push; a `workflow_dispatch` rehearsal builds,
   tests and packs on a release machine and publishes nothing. One job, so the package pushed is
   the one tested. `concurrency: release`, not cancelled in progress.
 - **Toolchain**: `actions/setup-dotnet` with `global-json-file: global.json`; `actions/setup-node`

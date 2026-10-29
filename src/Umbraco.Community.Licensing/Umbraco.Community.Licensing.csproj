@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="../../Version.props" />
+
+  <PropertyGroup>
+    <RootNamespace>Umbraco.Community.Licensing</RootNamespace>
+    <AssemblyName>Umbraco.Community.Licensing</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>Umbraco.Community.Licensing</PackageId>
+    <Description>Offline license key issuing and validation for Umbraco packages. No dependencies beyond the .NET shared framework.</Description>
+    <Authors>Carl Sargunar</Authors>
+    <RepositoryUrl>https://github.com/carlcod-es/Umbraco.Community.Licensing</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>licensing;license-key;umbraco</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\assets\icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Umbraco.Community.Licensing.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -1,6 +1,6 @@
 # Releasing
 
-How `Umbraco.Community.Licensing.Core` is released to nuget.org. Only Carl starts a release.
+How `Umbraco.Community.Licensing` is released to nuget.org. Only Carl starts a release.
 Decisions: PDR-0027 (versioning, log, refusals), PDR-0028 (test coverage), PDR-0029 (tag must
 match the log), ADR-0008 (CI, runners, publishing), ADR-0009 (release command and files).
 
@@ -82,8 +82,9 @@ Run before the first release, after changing the runner, and whenever a release 
 2. Check the run:
    - **Print platform** names the runner machine's operating system.
    - Tool tests and the .NET tests pass.
-   - **Pack** produces `Umbraco.Community.Licensing.Core.<version>.nupkg`.
-   - **Release check**, **NuGet login** and **Push to NuGet** are skipped.
+   - **Pack** produces `Umbraco.Community.Licensing.<version>.nupkg`.
+   - **Release check**, **NuGet login**, **Fail if NuGet login returned no API key** and
+     **Push to NuGet** are skipped.
 
 A rehearsal never publishes, whichever branch or ref it runs on: the publish steps run only on a
 tag push. `workflow_dispatch` lists only workflows on `main`.
@@ -190,7 +191,7 @@ A refused tag stays on the remote. Delete it (`git push origin :refs/tags/<tag>`
 | Release check refused | See [Release run](#release-run) refusals |
 | Job queued, no runner online | GitHub fails it after 24 hours. Bring a runner online and re-run the run: same tag, same version |
 | Run failed before its tests, in a step other than **Release check** (checkout, toolchain setup) | Fix the runner and re-run the run. A re-run uses the workflow files at the tagged commit: if the fix is a workflow change, commit it and release again with the release command |
-| Tests passed, **NuGet login** or **Push to NuGet** failed, and nuget.org does not list the version | Fix the cause (policy, `NUGET_USER`) and re-run the run. It rebuilds and retests the same commit (ADR-0008) |
+| Tests passed, **NuGet login**, **Fail if NuGet login returned no API key** or **Push to NuGet** failed, and nuget.org does not list the version | Fix the cause (policy, `NUGET_USER`) and re-run the run. It rebuilds and retests the same commit (ADR-0008). **Fail if NuGet login returned no API key** means login succeeded without a key: the Trusted Publishing policy or `NUGET_USER` is wrong or missing. A re-run uses the workflow files at the tagged commit: if the fix is a workflow change, commit it and release again with the release command (next number, PDR-0027) |
 | nuget.org refuses the very first push of the package ID under Trusted Publishing | Publish that version once from a short-lived API key scoped to the package, then delete the key; record it in the change's `follow-ups.md` |
 
 Re-running a tag run re-checks against the current `origin/main`. Commits added to `main` since
@@ -217,5 +218,5 @@ dotnet test --solution Umbraco.Community.Licensing.slnx -c Release --no-build
 Record one result per operating system in the `follow-ups.md` of the change that goes to 1.0:
 the platform line, and pass or fail with any failing test names. This closes the
 `add-release-pipeline` "All-platform check" scenario and the open Windows and Linux follow-ups
-from `add-license-core` (`add-release-pipeline` `follow-ups.md` item 31). Then change the README
+from `add-license-core` (`pre-1.0-considerations.md` C11). Then change the README
 line and the version line (see [Changing the version line](#changing-the-version-line)).

@@ -1,6 +1,6 @@
 # ADR-0003: Packaging, naming, clock and dependencies
 
-- Status: Amended by ADR-0006
+- Status: Amended by ADR-0006, ADR-0010
 - Date: 2026-10-09
 - Source: `add-license-core` design.md Q3 (`CLEAN-PROJECT-PROMPT.md` section 10, technology
   item 3)
@@ -20,7 +20,7 @@ Umbraco package authors and search for Umbraco community packages.
   `InternalsVisibleTo` the test project only (ADR-0005).
 - **Target**: `net10.0` (from `Directory.Build.props`). `GenerateDocumentationFile` on for the
   library, so with warnings as errors every public member is documented. Package metadata: MIT
-  licence expression, README, description, tags; no icon yet.
+  licence expression, README, description, tags; no icon yet (icon added 2026-10-27, ADR-0006).
 - **Clock**: `System.TimeProvider` injected into issuer and evaluator, defaulting to
   `TimeProvider.System`.
 - **Dependencies**: library, none beyond the shared framework. Tests: `xunit.v3`,
