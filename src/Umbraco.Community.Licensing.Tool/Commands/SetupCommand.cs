@@ -155,19 +155,12 @@ internal static class SetupCommand
                 return KeyPrefix.Default.Value;
             }
 
-            if (string.Equals(answer, "none", StringComparison.OrdinalIgnoreCase))
+            if (PrefixInput.TryParse(answer, out var prefix))
             {
-                return KeyPrefix.None.Value;
+                return prefix;
             }
 
-            try
-            {
-                return KeyPrefix.Of(answer).Value;
-            }
-            catch (ArgumentException)
-            {
-                context.Console.Error.WriteLine("A key prefix must be 1 to 16 characters of A-Z and 0-9 (capital letters), or 'none'. Try again.");
-            }
+            context.Console.Error.WriteLine($"{PrefixInput.RuleText} Try again.");
         }
     }
 
@@ -245,29 +238,15 @@ internal static class SetupCommand
         KeyProtection.StoreCheck(db, passphrase, iterations);
         if (shared)
         {
-            AddSharedKey(db, SigningKeyRole.Active, passphrase, iterations, now);
+            SigningKeyStore.Add(db, null, SigningKeyRole.Active, passphrase, iterations, now);
             if (standby)
             {
-                AddSharedKey(db, SigningKeyRole.Standby, passphrase, iterations, now);
+                SigningKeyStore.Add(db, null, SigningKeyRole.Standby, passphrase, iterations, now);
             }
         }
 
         // One SaveChanges is one transaction: settings, check and keys all land or none do.
         db.SaveChanges();
-    }
-
-    private static void AddSharedKey(ToolDbContext db, SigningKeyRole role, string passphrase, int iterations, DateTimeOffset now)
-    {
-        using var pair = SigningKeyPair.Create();
-        db.SigningKeys.Add(new SigningKey
-        {
-            SigningKeyId = pair.SigningKeyId,
-            ProductId = null,
-            PublicKey = pair.PublicKey.Export(),
-            EncryptedPrivateKeyPem = KeyProtection.Encrypt(pair.PrivateKey, passphrase, iterations),
-            Role = role,
-            CreatedUtc = now,
-        });
     }
 
     /// <summary>Removes the database only when this run created it (and its journal files), then the folder when this run made it and it is empty.</summary>

@@ -722,7 +722,7 @@ public class ProductTests
         tool.Clock.Advance(TimeSpan.FromDays(3));
 
         using var run = tool.Another();
-        Assert.Equal(run.Clock, tool.Clock);
+        Assert.Same(run.Clock, tool.Clock);
         Assert.Equal(0, run.Run("product", "add", "acme.commerce", "--name", "Acme Commerce"));
 
         using var db = Open(tool);

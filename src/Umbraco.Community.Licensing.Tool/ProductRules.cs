@@ -84,8 +84,14 @@ internal static class ProductRules
         return definitions;
     }
 
+    /// <summary>The stored product.</summary>
+    /// <exception cref="ToolRefusal">No such product.</exception>
+    public static Product FindProduct(ToolDbContext db, string productId) =>
+        db.Products.FirstOrDefault(p => p.ProductId == productId)
+        ?? throw new ToolRefusal($"Unknown product {productId}. Nothing changed.");
+
     // ArgumentException.Message appends " (Parameter 'x')" (on a second line in some runtimes); the library's own sentence is wanted.
-    private static string WithoutParameterName(string message)
+    internal static string WithoutParameterName(string message)
     {
         var end = message.IndexOfAny(['\r', '\n']);
         var line = end < 0 ? message : message[..end];

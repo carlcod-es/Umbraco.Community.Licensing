@@ -29,6 +29,8 @@ internal static class ToolApp
         root.Subcommands.Add(SetupCommand.Build(host));
         root.Subcommands.Add(FolderCommands.Build(host));
         root.Subcommands.Add(ProductCommands.Build(host));
+        root.Subcommands.Add(LicenseCommands.Build(host));
+        root.Subcommands.Add(PrefixCommands.Build(host));
         UseBareVersion(root, console);
         foreach (var build in extraCommands)
         {

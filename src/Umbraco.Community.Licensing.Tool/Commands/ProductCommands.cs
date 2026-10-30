@@ -67,10 +67,10 @@ internal static class ProductCommands
             // Everything is checked; only now is the passphrase asked for, and a wrong one adds nothing.
             var passphrase = context.ReadVerifiedPassphrase(db);
             var iterations = context.Environment.Pbkdf2Iterations;
-            AddKey(db, productId, SigningKeyRole.Active, passphrase, iterations, now);
+            SigningKeyStore.Add(db, productId, SigningKeyRole.Active, passphrase, iterations, now);
             if (settings.StandbyKeys)
             {
-                AddKey(db, productId, SigningKeyRole.Standby, passphrase, iterations, now);
+                SigningKeyStore.Add(db, productId, SigningKeyRole.Standby, passphrase, iterations, now);
             }
         }
 
@@ -79,20 +79,6 @@ internal static class ProductCommands
         context.Console.Error.WriteLine(settings.Shared
             ? $"Added product {productId}. It uses the shared signing key."
             : $"Added product {productId} with its own signing key{(settings.StandbyKeys ? " and standby key" : "")}.");
-    }
-
-    private static void AddKey(ToolDbContext db, string productId, SigningKeyRole role, string passphrase, int iterations, DateTimeOffset now)
-    {
-        using var pair = SigningKeyPair.Create();
-        db.SigningKeys.Add(new SigningKey
-        {
-            SigningKeyId = pair.SigningKeyId,
-            ProductId = productId,
-            PublicKey = pair.PublicKey.Export(),
-            EncryptedPrivateKeyPem = KeyProtection.Encrypt(pair.PrivateKey, passphrase, iterations),
-            Role = role,
-            CreatedUtc = now,
-        });
     }
 
     private static Command BuildRename(ToolHost host)
@@ -106,7 +92,7 @@ internal static class ProductCommands
             var values = context.RequireAll(
                 new RequiredInput(ProductIdName, context.ParseResult.GetValue(id), "Product ID"),
                 new RequiredInput("--name", context.ParseResult.GetValue(name), "New display name"));
-            var product = FindProduct(db, values[0]);
+            var product = ProductRules.FindProduct(db, values[0]);
             product.DisplayName = values[1];
             db.SaveChanges();
             context.Console.Error.WriteLine($"Renamed product {product.ProductId} to \"{product.DisplayName}\".");
@@ -145,7 +131,7 @@ internal static class ProductCommands
 
     private static void AddFeature(ToolContext context, ToolDbContext db, string productId, string featureName, string typeText)
     {
-        var product = FindProduct(db, productId);
+        var product = ProductRules.FindProduct(db, productId);
         ProductRules.CheckFeatureName(featureName);
         var type = ProductRules.ParseType(typeText);
 
@@ -224,8 +210,4 @@ internal static class ProductCommands
         });
         return command;
     }
-
-    private static Product FindProduct(ToolDbContext db, string productId) =>
-        db.Products.FirstOrDefault(p => p.ProductId == productId)
-        ?? throw new ToolRefusal($"Unknown product {productId}. Nothing changed.");
 }

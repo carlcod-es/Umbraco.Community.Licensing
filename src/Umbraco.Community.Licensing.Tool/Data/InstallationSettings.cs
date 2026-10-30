@@ -23,6 +23,26 @@ internal sealed record InstallationSettings(string Prefix, bool Shared, bool Sta
             new Setting { Name = ModeName, Value = Shared ? SharedValue : PerProductValue },
             new Setting { Name = StandbyName, Value = StandbyKeys ? "true" : "false" });
 
+    /// <summary>
+    /// Changes the prefix row and saves; the mode and every other row stay as they are (PDR-0030).
+    /// </summary>
+    /// <param name="prefix">A prefix by the prefix rule, or empty for none.</param>
+    /// <returns>The prefix that was set before.</returns>
+    /// <exception cref="ToolRefusal">The settings are missing or damaged.</exception>
+    /// <exception cref="ArgumentException"><paramref name="prefix"/> breaks the prefix rule.</exception>
+    public static string SetPrefix(ToolDbContext db, string prefix)
+    {
+        if (prefix.Length > 0)
+        {
+            _ = KeyPrefix.Of(prefix);
+        }
+
+        var previous = Load(db).Prefix;
+        db.Settings.Single(s => s.Name == PrefixName).Value = prefix;
+        db.SaveChanges();
+        return previous;
+    }
+
     /// <summary>Reads the settings.</summary>
     /// <exception cref="ToolRefusal">A row is missing or holds a value setup never writes (also a database left empty by a setup that was killed).</exception>
     public static InstallationSettings Load(ToolDbContext db)
