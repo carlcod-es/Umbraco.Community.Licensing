@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text;
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Umbraco.Community.Licensing.Tool.Data;
 
@@ -85,7 +84,7 @@ internal static class LicenseRecords
     /// </summary>
     public static string Format(InstallationSettings settings, License license)
     {
-        var entries = license.Entries.OrderBy(e => e.Id).ToList();
+        var entries = Ordered(license);
         var text = new StringBuilder();
         text.AppendLine(DisplayReference(settings, license.Reference));
         text.AppendLine($"  Product: {license.ProductId}");
@@ -166,22 +165,21 @@ internal static class LicenseRecords
         return string.Join(", ", done);
     }
 
-    private static IssueEntry Latest(License license) => license.Entries.OrderBy(e => e.Id).Last();
+    /// <summary>The license's issue entries in issue order (oldest first).</summary>
+    public static List<IssueEntry> Ordered(License license) => [.. license.Entries.OrderBy(e => e.Id)];
+
+    /// <summary>The license's latest issue entry, which holds its current state.</summary>
+    public static IssueEntry Latest(License license) => license.Entries.OrderBy(e => e.Id).Last();
 
     private static string FeaturesText(string json)
     {
-        using var document = JsonDocument.Parse(json);
-        var parts = document.RootElement.EnumerateArray().Select(item =>
+        var parts = FeaturesJson.Read(json).Select(f => $"{f.Name}={f.Value switch
         {
-            var value = item.GetProperty("value");
-            var shown = item.GetProperty("type").GetString() switch
-            {
-                "switch" => value.GetBoolean() ? "on" : "off",
-                "number" => value.GetDecimal().ToString(CultureInfo.InvariantCulture),
-                _ => value.GetString(),
-            };
-            return $"{item.GetProperty("name").GetString()}={shown}";
-        }).ToList();
+            SwitchFeature s => s.IsOn ? "on" : "off",
+            NumberFeature n => n.Value.ToString(CultureInfo.InvariantCulture),
+            TextFeature t => t.Value,
+            _ => throw new InvalidOperationException("A feature needs a value."),
+        }}").ToList();
         return parts.Count == 0 ? "none" : string.Join(", ", parts);
     }
 }

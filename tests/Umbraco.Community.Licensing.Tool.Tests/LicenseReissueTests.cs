@@ -409,6 +409,62 @@ public class LicenseReissueTests
     }
 
     [Fact]
+    public void Date_expiry_issued_during_the_day()
+    {
+        using var tool = WithProducts();
+        var reference = IssueAt(tool, "2025-11-30T14:23:11Z", "2026-11-30");
+        tool.Clock.Set(At("2026-11-20T00:00:00Z"));
+
+        var key = Ok(tool, "license", "renew", reference, "--expires", "suggested");
+
+        Assert.Equal(At("2027-11-30T23:59:59Z"), Verify(tool, key).Expires);
+    }
+
+    [Fact]
+    public void Term_in_whole_days()
+    {
+        using var tool = WithProducts();
+        var reference = IssueAt(tool, "2026-03-10T14:00:00Z", "2026-04-09");
+        tool.Clock.Advance(TimeSpan.FromDays(20));
+
+        var key = Ok(tool, "license", "renew", reference, "--expires", "suggested");
+
+        Assert.Equal(At("2026-05-09T23:59:59Z"), Verify(tool, key).Expires);
+    }
+
+    [Fact]
+    public void Term_within_one_day()
+    {
+        using var tool = WithProducts();
+        var reference = IssueAt(tool, "2026-03-10T09:00:00Z", "2026-03-10T11:00:00Z");
+        tool.Clock.Set(At("2026-03-10T10:00:00Z"));
+
+        var key = Ok(tool, "license", "renew", reference, "--expires", "suggested");
+
+        Assert.Equal(At("2026-03-10T11:00:00Z"), Verify(tool, key).Expires);
+    }
+
+    [Fact]
+    public void Reissue_and_renew_with_nobody_present_name_every_missing_input()
+    {
+        using var tool = WithProducts();
+        var before = Stored(tool);
+
+        foreach (var verb in new[] { "reissue", "renew" })
+        {
+            var (exit, run) = LicenseIssueTests.Run(tool, "license", verb);
+            using (run)
+            {
+                Assert.Equal(1, exit);
+                Assert.Equal("", run.Stdout);
+                Assert.Contains("Missing <reference>, --expires", run.Stderr);
+            }
+        }
+
+        Assert.Equal(before, Stored(tool));
+    }
+
+    [Fact]
     public void A_suggestion_in_the_past_is_refused_by_the_issue_rules_and_stores_nothing()
     {
         using var tool = WithProducts();

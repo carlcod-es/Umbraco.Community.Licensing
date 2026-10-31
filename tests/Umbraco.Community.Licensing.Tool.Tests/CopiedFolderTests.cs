@@ -40,6 +40,7 @@ public class CopiedFolderTests
         keys.Add(Ok(tool, "license", "issue", "acme.commerce", "--expires", "2027-03-01T23:59:59Z",
             "--feature", "ecommerce=on", "--feature", "max-orders=500", "--order-ref", "ORD-CF-1",
             "--email", "owner@example.com"));
+        tool.Clock.Advance(TimeSpan.FromMinutes(1));
         keys.Add(Ok(tool, "license", "issue", "acme.commerce", "--expires", "perpetual",
             "--order-ref", "ORD-CF-2", "--email", "other@example.com"));
 

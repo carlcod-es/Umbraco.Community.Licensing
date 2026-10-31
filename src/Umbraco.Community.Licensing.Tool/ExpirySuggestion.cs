@@ -2,7 +2,7 @@ using Umbraco.Community.Licensing.Tool.Data;
 
 namespace Umbraco.Community.Licensing.Tool;
 
-/// <summary>The expiry suggested when a license is reissued: the current expiry plus the length of the last term.</summary>
+/// <summary>The expiry suggested when a license is reissued: the current expiry plus the length of the last term, measured on UTC dates.</summary>
 internal static class ExpirySuggestion
 {
     /// <summary>
@@ -27,15 +27,24 @@ internal static class ExpirySuggestion
 
         var (start, end) = LastTerm(entries);
 
-        // No usable term (the last renewal made it perpetual, or it ran backwards): nothing to add. The vendor types the expiry.
-        if (end is null || end <= start)
+        // No usable term (the last renewal made it perpetual): nothing to add. The vendor types the expiry.
+        if (end is null)
         {
             return current;
         }
 
-        return WholeMonths(start, end.Value) is { } months
+        // Measured on UTC dates; the current expiry keeps its time of day. A term that starts and ends on the same
+        // date (or runs backwards) has no length, so the suggestion stays at the current expiry.
+        var startDate = DateOnly.FromDateTime(start.UtcDateTime);
+        var endDate = DateOnly.FromDateTime(end.Value.UtcDateTime);
+        if (endDate <= startDate)
+        {
+            return current;
+        }
+
+        return WholeMonths(startDate, endDate) is { } months
             ? AddMonths(current.Value, months)
-            : current.Value + (end.Value - start);
+            : current.Value.AddDays(endDate.DayNumber - startDate.DayNumber);
     }
 
     /// <summary>The length the last renewal granted, or the first issue's length when never renewed.</summary>
@@ -61,26 +70,19 @@ internal static class ExpirySuggestion
         // A renewal is never the first entry. A previous entry that was perpetual (null expiry) has no expiry to
         // run on from, so the term starts at the renewal's issue time.
         var before = renewal > 0 ? entries[renewal - 1].ExpiresUtc : null;
+        // The later of the previous expiry and the renewal's issue time.
         var start = before is { } p && p > r.IssuedUtc ? p : r.IssuedUtc;
         return (start, r.ExpiresUtc);
     }
 
     /// <summary>
     /// The number of calendar months from <paramref name="start"/> to <paramref name="end"/> when it is a whole
-    /// number (same time of day, same day of month, a day past the end of a month counting as its last day);
-    /// otherwise null. Compared in UTC.
+    /// number (same day of month, a day past the end of a month counting as its last day); otherwise null.
     /// </summary>
-    private static int? WholeMonths(DateTimeOffset start, DateTimeOffset end)
+    private static int? WholeMonths(DateOnly start, DateOnly end)
     {
-        var s = start.UtcDateTime;
-        var e = end.UtcDateTime;
-        if (s.TimeOfDay != e.TimeOfDay)
-        {
-            return null;
-        }
-
-        var sameDay = Math.Min(s.Day, DateTime.DaysInMonth(e.Year, e.Month)) == e.Day;
-        var months = ((e.Year - s.Year) * 12) + e.Month - s.Month;
+        var sameDay = Math.Min(start.Day, DateTime.DaysInMonth(end.Year, end.Month)) == end.Day;
+        var months = ((end.Year - start.Year) * 12) + end.Month - start.Month;
         return sameDay && months > 0 ? months : null;
     }
 

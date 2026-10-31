@@ -1,4 +1,3 @@
-using Umbraco.Community.Licensing.Tool;
 using Umbraco.Community.Licensing.Tool.Data;
 
 namespace Umbraco.Community.Licensing.Tool.Tests;
@@ -90,6 +89,38 @@ public class ExpirySuggestionTests
         var suggested = Renew(Entry(IssueKind.Issue, "2026-03-10T09:00:00Z", "2026-04-09T09:00:00Z"));
 
         Assert.Equal(At("2026-05-09T09:00:00Z"), suggested);
+    }
+
+    [Fact]
+    public void Date_expiry_issued_during_the_day()
+    {
+        var suggested = Renew(Entry(IssueKind.Issue, "2025-11-30T14:23:11Z", "2026-11-30T23:59:59Z"));
+
+        Assert.Equal(At("2027-11-30T23:59:59Z"), suggested);
+    }
+
+    [Fact]
+    public void Term_in_whole_days()
+    {
+        var suggested = Renew(Entry(IssueKind.Issue, "2026-03-10T14:00:00Z", "2026-04-09T23:59:59Z"));
+
+        Assert.Equal(At("2026-05-09T23:59:59Z"), suggested);
+    }
+
+    [Fact]
+    public void Term_within_one_day()
+    {
+        var suggested = Renew(Entry(IssueKind.Issue, "2026-03-10T09:00:00Z", "2026-03-10T11:00:00Z"));
+
+        Assert.Equal(At("2026-03-10T11:00:00Z"), suggested);
+    }
+
+    [Fact]
+    public void Term_ending_before_it_starts_suggests_the_current_expiry()
+    {
+        var suggested = Renew(Entry(IssueKind.Issue, "2026-06-10T09:00:00Z", "2026-03-10T09:00:00Z"));
+
+        Assert.Equal(At("2026-03-10T09:00:00Z"), suggested);
     }
 
     [Fact]

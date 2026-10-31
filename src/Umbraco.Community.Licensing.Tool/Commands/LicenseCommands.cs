@@ -294,10 +294,26 @@ internal static class LicenseCommands
 
         // The passphrase first: nothing is asked or written before it is known to be right.
         var passphrase = context.ReadVerifiedPassphrase(db);
-        var reference = context.Require("<reference>", typedReference, "License reference");
+        string reference;
+        if (kind == IssueKind.Resend)
+        {
+            reference = context.Require("<reference>", typedReference, "License reference");
+        }
+        else if (!context.Interactive && string.IsNullOrWhiteSpace(expiresGiven))
+        {
+            // Nobody to ask: one refusal naming everything missing. Always throws, as --expires is missing.
+            reference = context.RequireAll(
+                new RequiredInput("<reference>", typedReference, "License reference"),
+                new RequiredInput("--expires", expiresGiven, "Expiry"))[0];
+        }
+        else
+        {
+            reference = context.Require("<reference>", typedReference, "License reference");
+        }
+
         var license = Issuing.FindLicense(db, InstallationSettings.Load(db), reference);
         var expires = kind == IssueKind.Resend
-            ? Issuing.ExpiryText(license.Entries.OrderBy(e => e.Id).Last().ExpiresUtc)
+            ? Issuing.ExpiryText(LicenseRecords.Latest(license).ExpiresUtc)
             : ResolveExpiry(context, license, expiresGiven, kind == IssueKind.Renewal);
         var issued = Issuing.Reissue(
             context,
@@ -318,7 +334,8 @@ internal static class LicenseCommands
 
     /// <summary>
     /// The new expiry: as given; the suggestion for <c>suggested</c>; otherwise asked for at a terminal with the
-    /// suggestion as the default, and refused when nobody can be asked (the suggestion is taken only on request).
+    /// suggestion as the default (the suggestion is taken only on request). The caller has already refused when
+    /// nobody can be asked.
     /// </summary>
     private static string ResolveExpiry(ToolContext context, License license, string? given, bool isRenewal)
     {
@@ -335,11 +352,6 @@ internal static class LicenseCommands
         if (isSuggested)
         {
             return suggestion;
-        }
-
-        if (!context.Interactive)
-        {
-            throw new ToolRefusal("Missing --expires. Give a date, a UTC date and time, perpetual or suggested. Nothing changed.");
         }
 
         var answer = context.Console.Prompt($"Expiry [{suggestion}]: ")?.Trim();

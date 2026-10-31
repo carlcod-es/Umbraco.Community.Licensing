@@ -150,7 +150,7 @@ internal static class Issuing
 
     /// <summary>The expiry suggested for a reissue of <paramref name="license"/>, as text for <c>--expires</c>.</summary>
     public static string SuggestedExpiry(License license, bool isRenewal) =>
-        ExpiryText(ExpirySuggestion.Suggest([.. license.Entries.OrderBy(e => e.Id)], isRenewal));
+        ExpiryText(ExpirySuggestion.Suggest(LicenseRecords.Ordered(license), isRenewal));
 
     /// <summary>An expiry as <c>--expires</c> takes it: <c>perpetual</c> or a UTC date and time.</summary>
     public static string ExpiryText(DateTimeOffset? expiry) =>
@@ -170,7 +170,7 @@ internal static class Issuing
         var product = ProductRules.FindProduct(db, license.ProductId);
         var definitions = ProductRules.DefinitionsFor(db, product.ProductId);
         var stored = SigningKeyStore.Active(db, settings, product.ProductId);
-        var latest = license.Entries.OrderBy(e => e.Id).Last();
+        var latest = LicenseRecords.Latest(license);
 
         var problems = new List<LicenseProblem>();
         var features = FeaturesJson.Read(latest.FeaturesJson);
