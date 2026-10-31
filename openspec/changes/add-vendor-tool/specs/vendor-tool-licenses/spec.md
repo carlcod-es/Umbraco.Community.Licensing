@@ -56,9 +56,11 @@ expiry the current expiry plus the length of the last term. The last term SHALL 
 the last renewal granted: from the later of the expiry before that renewal and the renewal's
 issue time, to the expiry the renewal set. For a license never renewed it SHALL be from the
 first issue's issue time to the expiry it set. Reissues that are not renewals SHALL NOT change
-the term. The length SHALL be counted in calendar months when the last term was a whole number
-of months (same day of month and time of day; a day past the end of a month counts as its last
-day), and in exact time otherwise. For a reissue that is not a renewal it SHALL suggest the
+the term. The length SHALL be measured on UTC calendar dates, ignoring time of day: in calendar
+months when the start and end share a day of month (a day past the end of a month counts as its
+last day), and in whole days otherwise. The suggestion SHALL keep the current expiry's time of
+day. A last term that starts and ends on the same date SHALL leave the suggestion at the current
+expiry. For a reissue that is not a renewal it SHALL suggest the
 current expiry. A perpetual license SHALL be suggested as perpetual. The vendor SHALL accept or replace
 the suggestion; the suggestion SHALL be used without a prompt only when the vendor asks for it.
 
@@ -100,6 +102,21 @@ the suggestion; the suggestion SHALL be used without a prompt only when the vend
 - **WHEN** a license issued 2026-03-10T09:00:00Z expiring 2026-04-09T09:00:00Z (30 days) is
   renewed
 - **THEN** the suggested expiry is 2026-05-09T09:00:00Z
+
+#### Scenario: Date expiry issued during the day
+- **WHEN** a license first issued 2025-11-30T14:23:11Z with the expiry 2026-11-30 (stored as
+  2026-11-30T23:59:59Z), never renewed, is renewed
+- **THEN** the suggested expiry is 2027-11-30T23:59:59Z (twelve calendar months, not 365 days
+  9 hours)
+
+#### Scenario: Term in whole days
+- **WHEN** a license issued 2026-03-10T14:00:00Z with the expiry 2026-04-09 (stored as
+  2026-04-09T23:59:59Z) is renewed
+- **THEN** the suggested expiry is 2026-05-09T23:59:59Z (30 days by date; time of day kept)
+
+#### Scenario: Term within one day
+- **WHEN** a license issued 2026-03-10T09:00:00Z expiring 2026-03-10T11:00:00Z is renewed
+- **THEN** the suggested expiry is 2026-03-10T11:00:00Z, the current expiry
 
 ### Requirement: Resending a license
 The vendor SHALL resend a license, which reissues it from its record with nothing changed: same

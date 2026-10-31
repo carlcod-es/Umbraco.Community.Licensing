@@ -73,7 +73,7 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q6 | SQL Server | Dropped; a database file inside the folder only (Carl, 2026-10-28). Was an FR-2 constraint | ADR-0013 |
 | Q7 | Protecting private keys | Encrypted with a passphrase set at setup; nothing else encrypted; asked once per command that signs or creates a key; batched runs supply it without a prompt (Carl, 2026-10-28) | PDR-0032 |
 | Q8 | Private-key export | None in this change; FR-11 (Carl, 2026-10-28) | PDR-0032 |
-| Q9 | Suggested expiry on renewal | Vendor types the expiry; tool suggests current expiry plus the last term (Carl, 2026-10-28). Term and months versus exact time: see Q25 | PDR-0034 |
+| Q9 | Suggested expiry on renewal | Vendor types the expiry; tool suggests current expiry plus the last term (Carl, 2026-10-28). Term and months versus exact time: see Q25, Q35 | PDR-0034 |
 | Q10 | Correcting or erasing customer data | Edit or clear order reference and email; no copy of a cleared value kept; records never deleted (Carl, 2026-10-28) | PDR-0033 |
 | Q11 | Trusted keys for a release | Switch asks the reason; trusted list per product; leaked key stays listed until reissues confirmed sent (Carl, 2026-10-28) | PDR-0035 |
 | Q12 | Storing key strings | Not stored; resend is reissue unchanged (Carl, 2026-10-28) | PDR-0033 |
@@ -89,7 +89,7 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q22 | Backup and export formats | Zip of a consistent database snapshot and a manifest; CSV export (Carl approved T6, 2026-10-28) | ADR-0015 |
 | Q23 | Prefix and signing-key mode after setup | Prefix changeable: new issues and reissues use the current prefix, existing licenses keep theirs until reissued, typed references per PDR-0023. Signing-key mode fixed; changing it is FR-17 (Carl, 2026-10-28) | PDR-0030 |
 | Q24 | Passphrase rule | At least 15 characters, length only (NIST SP 800-63B rev 4) (Carl, 2026-10-28) | PDR-0032 |
-| Q25 | Length of the last term | Length the last renewal granted, from the later of the previous expiry and the renewal time to the expiry it set; first issue's term when never renewed; other reissues do not change it. Calendar months when whole months, exact time otherwise (Carl, 2026-10-28) | PDR-0034 |
+| Q25 | Length of the last term | Length the last renewal granted, from the later of the previous expiry and the renewal time to the expiry it set; first issue's term when never renewed; other reissues do not change it. Calendar months when whole months, exact time otherwise (Carl, 2026-10-28); how the length is counted: Q35 | PDR-0034 |
 | Q26 | Where customer fields are held | Email per license; order reference per issue entry; only the latest entry's order reference correctable; clearing removes all of a license's order references at once. Warning on a reused order reference is FR-18 (Carl, 2026-10-28) | PDR-0033 |
 | Q27 | Proposed signing-key mode at setup | Per-product proposed; shared offered. Standby keys follow the mode: one per product signing key, or one for the shared key (Carl, 2026-10-29) | PDR-0030 |
 | Q28 | Scripted setup | Setup only by a person at a terminal; no answers from options, environment or redirected input; refused with nobody present. Every other action stays scriptable. Passphrase always typed twice (Carl, 2026-10-29) | PDR-0030 |
@@ -99,6 +99,7 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q32 | Setup offer edge cases | `--folder` naming a folder with no installation: refused, no offer. Accepted offer: setup runs in full, then the refused action is not run; exit 1 (Carl, 2026-10-29) | PDR-0031 |
 | Q33 | `--passphrase-stdin` with no passphrase | Refused (exit 1) when stdin's first line is empty or stdin is at its end; no fall-through to `UCL_PASSPHRASE`. Refused at a terminal (stdin not redirected), since reading would echo it (Carl, 2026-10-29) | ADR-0012 |
 | Q34 | Non-ASCII passphrases | `--passphrase-stdin` line read as UTF-8; every passphrase normalised to Unicode NFC at every source, setup included, before the check and PEM encryption (Carl, 2026-10-29) | ADR-0014 |
+| Q35 | Measuring the last term | On UTC calendar dates, ignoring time of day: calendar months when the day of month matches, whole days otherwise; current expiry's time of day kept; a same-date term suggests the current expiry. No one-day tolerance (Carl, 2026-10-31). Replaces Q25's months-versus-exact-time rule | PDR-0034 |
 
 ## Decisions
 
@@ -259,9 +260,11 @@ overwrites an existing output file. Signed-key export: CSV (RFC 4180, UTF-8, hea
 Pure function over the license's issue entries, the current expiry and the kind of reissue.
 Term: take the last `renewal` entry R and the entry before it P; start = max(P.ExpiresUtc,
 R.IssuedUtc), end = R.ExpiresUtc. With no renewal entry: start = first entry's `IssuedUtc`, end =
-its `ExpiresUtc`. Renewal of a time-limited license: if start and end share day of month (a day
-past a month's end counting as its last day) and time of day, add the same number of calendar
-months to the current expiry (clamping to month end); otherwise add `end - start`. Perpetual:
+its `ExpiresUtc`. Renewal of a time-limited license: compare the UTC dates of start and end,
+ignoring time of day. If they share a day of month (a day past a month's end counting as its
+last day), add that many calendar months to the current expiry (clamping to month end);
+otherwise add the whole days between the dates. The current expiry's time of day is kept. Start
+and end on the same date: no usable term, suggest the current expiry (Q35). Perpetual:
 perpetual. Other reissues: current expiry. `--expires suggested` takes it without a prompt.
 
 ### Trusted keys
