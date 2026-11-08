@@ -16,13 +16,12 @@ NOT be encrypted. The export SHALL NOT need the passphrase.
 - **THEN** the zip is written, the tool reports its path and time, and no passphrase is asked
 
 ### Requirement: Backup import
-The vendor SHALL import a backup zip into a folder that holds no installation: one named on the
-command or, with a person present, the current folder or `.ucl` in the home folder, offered as
-at setup (vendor-tool-setup: Folder location). With nobody present and no folder named, the
-import SHALL refuse, naming the missing folder. The tool SHALL
+The vendor SHALL import a backup zip into a folder that holds no installation: the current folder or
+`.ucl` in the home folder, offered as at setup (vendor-tool-setup: Folder location). The tool SHALL
 refuse a folder that holds one, saying to move or rename the current folder first, and change
 nothing. Before importing it SHALL show the date the backup was taken and warn that licenses
-issued after that date are not in it. A zip that is not a complete backup, or that was taken by a
+issued after that date are not in it. A backup SHALL import on any supported operating system,
+whichever one it was taken on. A zip that is not a complete backup, or that was taken by a
 newer tool version than the one running, SHALL be refused, changing nothing. After import,
 actions using a private key SHALL accept the passphrase that was in effect when the backup was taken.
 
@@ -31,6 +30,11 @@ actions using a private key SHALL accept the passphrase that was in effect when 
   installation
 - **THEN** the tool shows the backup date and the warning, then creates the installation, and
   every product, license and key from the backup is there
+
+#### Scenario: Restore on another operating system
+- **WHEN** the vendor imports a backup taken on Windows into `~/.ucl` on macOS
+- **THEN** the installation is created with every product, license and key from the backup, and
+  actions using a private key accept the passphrase in effect when the backup was taken
 
 #### Scenario: Folder already holds an installation
 - **WHEN** the vendor imports into a folder holding an installation

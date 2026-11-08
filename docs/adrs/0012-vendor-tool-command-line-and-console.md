@@ -1,6 +1,6 @@
 # ADR-0012: Vendor tool command line and console
 
-- Status: Decided
+- Status: Amended by ADR-0017
 - Date: 2026-10-28
 - Source: `add-vendor-tool` design.md Q19
 

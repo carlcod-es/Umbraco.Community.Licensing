@@ -9,9 +9,10 @@ published, the library is ready to gain its main issuing client.
 
 ## What Changes
 
-- **Vendor tool**: a console application for small vendors who issue keys only through it. Run
-  by hand or from the vendor's own scripts: every action works without prompts when its inputs
-  are given. No store integration. One vendor and one person per installation (PDR-0030).
+- **Vendor tool**: a console application for small vendors who issue keys only through it. Runs in
+  guided mode only: a person at a terminal, who may give inputs on the command and is asked for
+  the rest; the passphrase is always typed at a hidden prompt. Scripted mode, with nobody
+  present, is not offered (PDR-0039). No store integration. One vendor and one person per installation (PDR-0030).
 - **Guided setup**: folder (`~/.ucl` proposed, or the current folder), passphrase, key
   prefix (PDR-0023), one signing key per product or one shared, standby key offered as
   recommended. Setup names what is stored and says it must be backed up and kept out of
@@ -39,14 +40,14 @@ published, the library is ready to gain its main issuing client.
   passphrase change (FR-12), richer console prompts (FR-13), retiring feature definitions
   (FR-14), standby key stored apart (FR-15), importing licenses issued before the tool (FR-16),
   changing signing-key mode (FR-17), warning on a reused order reference (FR-18), issuing several
-  licenses in one run (FR-20). Bulk reissue and leak follow-through stay with FR-5.
+  licenses in one run (FR-20), scripted mode (FR-22). Bulk reissue and leak follow-through stay with FR-5.
 
 ## Capabilities
 
 ### New Capabilities
 
 - `vendor-tool-setup`: setup, folder location and moving, passphrase, prefix, signing-key mode,
-  running by hand or from scripts.
+  guided mode, operating systems and terminals.
 - `vendor-tool-products`: products and feature definitions.
 - `vendor-tool-licenses`: issue, reissue, renewal suggestion, resend, records, finding and
   listing, customer fields.

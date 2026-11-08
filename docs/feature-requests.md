@@ -8,7 +8,7 @@ Cite as FR-N.
 | FR | Title | Raised | Status |
 |---|---|---|---|
 | FR-1 | Vendor-chosen key identifier prefix | Carl, 2026-10-09 | Taken into `add-license-core` (design.md Q20, PDR-0023) |
-| FR-2 | Vendor issuing console tool | Carl, 2026-10-09 | Taken into `add-vendor-tool` (design.md Q1 to Q26; PDR-0030 to PDR-0036, ADR-0011 to ADR-0015). SQL Server dropped (Carl, 2026-10-28). Windows added: design.md Q32, PDR-0038 (Carl, 2026-11-07) |
+| FR-2 | Vendor issuing console tool | Carl, 2026-10-09 | Taken into `add-vendor-tool` (design.md Q1 to Q26; PDR-0030 to PDR-0036, ADR-0011 to ADR-0015). SQL Server dropped (Carl, 2026-10-28). Windows added: design.md Q32, PDR-0038 (Carl, 2026-11-07). Guided mode only; scripted use moved to FR-22: design.md Q33, PDR-0039 (Carl, 2026-11-08) |
 | FR-3 | Example product package | Carl, 2026-10-09 | Open; possible later change |
 | FR-4 | Standby signing key | Carl, 2026-10-10 | Taken into `add-vendor-tool` (design.md Q15, Q16; PDR-0032, PDR-0035). Issue 2 answered by the passphrase; storing apart is FR-15 |
 | FR-5 | Responding to a compromised signing key | Carl, 2026-10-10 | Open; after FR-2 |
@@ -26,8 +26,10 @@ Cite as FR-N.
 | FR-17 | Change signing-key mode after setup | `add-vendor-tool` explore, 2026-10-28 | Open |
 | FR-18 | Warn on a reused order reference | `add-vendor-tool` explore, 2026-10-28 | Open |
 | FR-19 | Change the version line from the release command | Carl, 2026-10-28 | Open; after `add-github-release` |
-| FR-20 | Issue several licenses in one vendor tool run | Carl, 2026-10-29 (`add-vendor-tool` update) | Open |
+| FR-20 | Issue several licenses in one vendor tool run | Carl, 2026-10-29 (`add-vendor-tool` update) | Open; after FR-22 |
 | FR-21 | Optional, vendor-defined call-home | Carl, 2026-11-07 (explore) | Open. Conflicts with the README "Offline" promise; see Issue |
+| FR-22 | Scripted mode for the vendor tool | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open. Moved out of `add-vendor-tool` (design.md Q33, PDR-0039) |
+| FR-23 | Startup menu when the vendor tool is launched with no command | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open. `add-vendor-tool` shows the command list instead (design.md Q35) |
 
 ## FR-1: Vendor-chosen key identifier prefix
 
@@ -445,7 +447,8 @@ passphrase is supplied once. Site owner: keys unchanged.
 3. A refusal part-way: all or nothing, or per-license results.
 4. Whether reissue, renew and resend batch too.
 
-**Related.** PDR-0030 (batched use), PDR-0032 (passphrase once per run), FR-18.
+**Related.** PDR-0030 (batched use), PDR-0032 (passphrase once per run), FR-18. Depends on FR-22:
+with guided mode only (PDR-0039), a batch has no way to receive its passphrase without a person.
 
 ## FR-21: Optional, vendor-defined call-home
 
@@ -616,3 +619,64 @@ signing keys), PDR-0022 (evaluation per request), PDR-0023 (key identifier safe 
 PDR-0024 (format permanent from 1.0), PDR-0030, PDR-0033, PDR-0034 (vendor tool records), FR-5
 (compromised signing key), FR-7 (vendor writes message text), FR-9 (grace period), README
 "Limits of offline licensing", `docs/pre-1.0-considerations.md` (binding as a signed field).
+
+## FR-22: Scripted mode for the vendor tool
+
+**Request.** The vendor tool runs with nobody present, called from a vendor's own script or
+process to issue licenses in batches (Carl, 2026-11-08). Planned for `add-vendor-tool` under
+PDR-0030 ("By hand or batched") and moved out by PDR-0039, which keeps the first version to
+guided mode.
+
+**Terms (PDR-0039).** *Guided mode*: a person is at a terminal and answers the tool; the
+passphrase is typed at a hidden prompt. *Scripted mode*: nobody is present; every input,
+including the passphrase, comes from the command, an environment setting or standard input,
+and the tool asks nothing.
+
+**What was planned** (`add-vendor-tool` before 2026-11-08, starting point only):
+1. Every action except setup runs with all its inputs on the command and asks nothing.
+2. A missing input with nobody present is a refusal naming each missing input, changing nothing.
+3. The passphrase is taken without a prompt from an environment setting or from standard input,
+   never from a plain command argument.
+4. An option makes the tool never prompt, even at a terminal.
+5. The result alone on standard output, messages on standard error; success exit code only when
+   the action completed, a failure code for a refusal.
+6. With nobody present and no installation found, a refusal naming the folders checked and
+   offering nothing; backup import with no target folder named refuses, naming it.
+7. The renewal suggestion is used without a prompt only when the script asks for it.
+8. The tool guide gives scripting examples for each shell: PowerShell and Command Prompt on
+   Windows, and macOS and Linux (setting the passphrase environment setting, passing it on
+   standard input, reading the exit code).
+9. Scenarios: a scripted issue writes the key string alone and exits with success; a missing
+   expiry with nobody present refuses; the same on Windows in PowerShell and Command Prompt.
+
+**Personas.** Vendor: issues from their own process without typing each license. Site owner:
+keys unchanged.
+
+**Issues to settle.**
+1. Whether setup stays guided only (PDR-0030, design.md Q28 say yes).
+2. The passphrase sources, and the guidance on keeping it out of shell history and profiles.
+3. Whether every action is scriptable or only some (issue, reissue, renew, list, export).
+
+**Related.** PDR-0030, PDR-0032, PDR-0034, PDR-0038, PDR-0039, FR-20 (batch in one run, after
+this), FR-13.
+
+## FR-23: Startup menu when the vendor tool is launched with no command
+
+**Request.** Running `ucl` with no command finds the installation as every action does (the
+current folder, then `.ucl` in the home folder), says which one it is using, offers setup when
+none is found, and then shows a menu of actions for the vendor to choose from, asking for each
+action's inputs in turn (Carl, 2026-11-08). In `add-vendor-tool`, `ucl` with no command lists
+the commands instead (design.md Q35).
+
+**Personas.** Vendor: guided mode (PDR-0039) without having to know the command names. Site
+owner: keys unchanged.
+
+**Issues to settle.**
+1. Which actions the menu offers, and how they are grouped (products, licenses, keys, backup).
+2. Whether the menu returns after each action until the vendor quits, or runs one action.
+3. Whether the passphrase is asked once for the menu session or once per action (PDR-0032:
+   not kept after an action ends).
+4. How the menu behaves with nobody present (PDR-0039: refuse).
+
+**Related.** PDR-0031 (finding the installation), PDR-0039 (guided mode), FR-13 (richer
+prompts: selection lists), FR-22 (scripted mode).

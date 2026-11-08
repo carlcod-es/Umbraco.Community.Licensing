@@ -34,22 +34,23 @@ Test strategy.
 ## Goals / Non-Goals
 
 **Goals:** a copied folder or backup never yields a usable signing key without the passphrase;
-every command scriptable; folder portable by copying; no library change; tool and library
+every action guided (a person at a terminal, PDR-0039); runs on Windows, macOS and Linux and
+moves between them (PDR-0038, PDR-0040); folder portable by copying; no library change; tool and library
 released from one tested build.
 
 **Non-Goals:** store integration, a long-running service, multiple users, encrypted database or
 backup, private-key export (FR-11), passphrase change (FR-12), rich console UI (FR-13), bulk
 reissue (FR-5), import of pre-tool keys (FR-16), changing signing-key mode (FR-17), reused
-order reference warning (FR-18), several licenses in one run (FR-20), HSM or vault keys (`pre-1.0-considerations.md`
+order reference warning (FR-18), several licenses in one run (FR-20), scripted mode (FR-22), startup menu (FR-23), HSM or vault keys (`pre-1.0-considerations.md`
 C2), localisation.
 
 ## Requirements
 
 | R | Requirement | Spec | Personas | Records |
 |---|---|---|---|---|
-| R1 | One vendor, one person per installation; manual or scripted | vendor-tool-setup: One vendor and one person per installation; Running by hand or from scripts | Vendor | PDR-0030 |
+| R1 | One vendor, one person per installation; guided mode only | vendor-tool-setup: One vendor and one person per installation; Guided mode | Vendor | PDR-0030, PDR-0039 |
 | R2 | Guided setup; prefix changeable later | vendor-tool-setup: Guided setup; Changing the prefix | Vendor; site owner (prefix and keys set once, keys stay consistent) | PDR-0030, PDR-0023 |
-| R3 | Folder location, moving | vendor-tool-setup: Folder location; Moving an installation | Vendor | PDR-0031 |
+| R3 | Folder location, moving | vendor-tool-setup: Folder location; Moving an installation | Vendor | PDR-0031, PDR-0040, PDR-0041 |
 | R4 | Products and add-only feature definitions | vendor-tool-products | Vendor; site owner (no feature silently lost, PDR-0016) | PDR-0036 |
 | R5 | Issue, reissue, renew, resend from records | vendor-tool-licenses | Vendor; site owner (renewal keeps paid-for days; lost key resent) | PDR-0033, PDR-0034, PDR-0021 |
 | R6 | Records without key strings; customer fields editable and clearable | vendor-tool-licenses | Site owner (copied backup holds no usable key; erasure honoured); vendor | PDR-0033, PDR-0014 |
@@ -57,6 +58,7 @@ C2), localisation.
 | R8 | Standby, switch, trusted keys, export by signing key | vendor-tool-signing-keys | Vendor; implementor (release trusts the right keys); site owner (keys keep working after rotation) | PDR-0035, PDR-0015 |
 | R9 | Backup export and import | vendor-tool-backup | Vendor; site owner (records survive a lost laptop) | PDR-0031 |
 | R10 | Tool released with the library | release-process | Vendor | ADR-0011 |
+| R11 | Windows, macOS and Linux; PowerShell, Windows Terminal, Command Prompt | vendor-tool-setup: Operating systems and terminals | Vendor | PDR-0038 |
 
 Persona check: no requirement harms a higher-priority persona. Key strings are unchanged for site
 owners and implementors. Backoffice editor and site visitor never meet the tool.
@@ -93,9 +95,14 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q26 | Where customer fields are held | Email per license; order reference per issue entry; only the latest entry's order reference correctable; clearing removes all of a license's order references at once. Warning on a reused order reference is FR-18 (Carl, 2026-10-28) | PDR-0033 |
 | Q27 | Proposed signing-key mode at setup | Per-product proposed; shared offered. Standby keys follow the mode: one per product signing key, or one for the shared key (Carl, 2026-10-29) | PDR-0030 |
 | Q28 | Scripted setup | Setup only by a person at a terminal; no answers from options, environment or redirected input; refused with nobody present. Every other action stays scriptable. Passphrase always typed twice (Carl, 2026-10-29) | PDR-0030 |
-| Q29 | Finding the installation; more than one | First of: `--folder`, the current folder when it holds an installation, `~/.ucl`. Setup offers `~/.ucl` (proposed) or the current folder. Nothing remembered; no folder environment setting. Each action states the folder used. No installation: refuse naming the folders checked; at a terminal, offer setup (Carl, 2026-10-29) | PDR-0031, ADR-0013 |
+| Q29 | Finding the installation; more than one | Amended by Q35. First of: `--folder`, the current folder when it holds an installation, `~/.ucl`. Setup offers `~/.ucl` (proposed) or the current folder. Nothing remembered; no folder environment setting. Each action states the folder used. No installation: refuse naming the folders checked; at a terminal, offer setup (Carl, 2026-10-29) | PDR-0031, ADR-0013 |
 | Q30 | Folder state at setup | `~/.ucl` created when missing; a folder holding other files but no installation accepted; only an existing installation refused (Carl, 2026-10-29) | PDR-0031 |
 | Q31 | Next step after setup | Closing message ends with the next steps by mode: `product add` (per-product: creates the signing key, asks the passphrase), then `key trusted`. The guide gives the same first steps (Carl, 2026-10-29) | PDR-0031 |
+| Q32 | Operating systems and terminals | Windows, macOS and Linux; on Windows PowerShell, Windows Terminal and Command Prompt; `~/.ucl` is `.ucl` in each OS's home folder, paths shown in full; sync warning names example services; Windows checked by the automated suite and by hand in all three terminals (Carl, 2026-11-07) | PDR-0038, ADR-0017 |
+| Q33 | Guided or scripted | Guided mode only: a person at a terminal, inputs allowed on the command, passphrase always typed at a hidden prompt, every action refused with nobody present, result may be redirected. Scripted mode is FR-22 (Carl, 2026-11-08) | PDR-0039, ADR-0017 |
+| Q34 | Moving between operating systems | A folder copy or backup moves between any of the three, either direction, same passphrase (Carl, 2026-11-08) | PDR-0040, ADR-0017 |
+| Q35 | Startup | Only the current folder, then `~/.ucl`; no folder option; an unused second installation is noted; setup from the offer ends with a generic retry line; `ucl` alone lists the commands; startup menu is FR-23 (Carl, 2026-11-08) | PDR-0041, ADR-0017 |
+| Q36 | Help, version and PowerShell 5.1 redirect | Help, version and the command list are not actions and work with nobody present; the PowerShell 5.1 redirect encoding is documented, not handled (Carl, 2026-11-08) | PDR-0039, ADR-0017 |
 
 ## Decisions
 
@@ -103,14 +110,14 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 
 ```
   vendor / script
-        |  args, stdin (passphrase), env UCL_PASSPHRASE, current directory
+        |  args, keyboard (prompts, hidden passphrase), current directory, home
         v
   +-- ucl (src/Umbraco.Community.Licensing.Tool) --------------------------+
   |  Program --> ToolApp.Run(args, ToolEnvironment)                       |
   |                 |  System.CommandLine root: setup folder prefix       |
   |                 |                   product license key backup        |
   |                 v                                                      |
-  |  Commands/*  --uses-->  ToolConsole (in, out, err, interactive?,       |
+  |  Commands/*  --uses-->  ToolConsole (in, out, err, person present?,    |
   |     |                    hidden read)                                  |
   |     +--> Installation (folder resolve, open + migrate ToolDbContext)  |
   |     +--> KeyProtection (passphrase check, encrypt / decrypt PEM)      |
@@ -126,14 +133,14 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
   folder (current directory or ~/.ucl):  ucl.db   <- the whole installation
 ```
 
-`ToolEnvironment` carries the console, `TimeProvider`, home folder, current directory,
-environment variables and the PBKDF2 iteration count, so every command runs in-process in tests
+`ToolEnvironment` carries the console (with its person-present flag), `TimeProvider`, home
+folder, current directory and the PBKDF2 iteration count, so every command runs in-process in tests
 against a temp folder.
 
 ### Command surface
 
-Global options: `--folder <path>`, `--passphrase-stdin`, `--no-input` (never prompt, even at a
-terminal). Environment: `UCL_PASSPHRASE`.
+No global options other than `--help` and `--version`. No environment settings are read
+(ADR-0017).
 
 ```
   ucl setup
@@ -160,25 +167,27 @@ terminal). Environment: `UCL_PASSPHRASE`.
   ucl key reissues-sent <signing-key-id>
   ucl key export <signing-key-id> --out <file.csv>
   ucl backup export --out <file.zip>
-  ucl backup import <file.zip> [--folder <empty target>]
+  ucl backup import <file.zip>
 ```
 
 Feature values follow the product's definition: switch `name=on|off`, number `name=500`, text
 `name=eu`. Expiry: `2027-03-01` (date, PDR-0007), `2027-03-01T23:59:59Z`, `perpetual`. A missing
-input at a terminal is prompted; with `--no-input` or redirected stdin it is a refusal naming the
-option. `ucl setup` takes no options: `--folder` or `--passphrase-stdin` on it is a usage error (exit 2)
-naming the option; `UCL_PASSPHRASE` is not read; the folder is asked: `~/.ucl` (proposed) or the
+input is prompted. With stdin redirected (nobody present, ADR-0017) every command except bare
+`ucl`, `--help` and `--version` refuses with exit 1 before doing anything. Bare `ucl` prints help
+to stdout and exits 0. The passphrase is read only at the hidden prompt. `ucl setup` takes no
+options; the folder is asked: `~/.ucl` (proposed) or the
 current directory, with a warning when the current directory is home; `~/.ucl` is created when missing; other files
 in the chosen folder are left alone. The closing message ends with the next steps:
 `ucl product add <product-id> --name <name>` (per-product mode: notes it creates the signing key
-and asks the passphrase), then `ucl key trusted <product-id>`. It runs only when interactive
-(ADR-0012 detection) and otherwise exits 1 (vendor-tool-setup: Setup with nobody present). `--order-ref` on issue, reissue and renew sets the new issue entry's order reference; on
+and asks the passphrase), then `ucl key trusted <product-id>`. `--order-ref` on issue, reissue and renew sets the new issue entry's order reference; on
 `license customer` it corrects the latest entry's. `prefix set` needs no passphrase. Prompts and
 messages go to stderr; the result (key string, file path, list) to stdout. Every command that opens
-an installation first writes `Using <full path>` to stderr. No installation found: exit 1 naming
-the folders checked; when interactive, then `Run setup now? [y/N]`, starting setup on yes.
-`folder show` prints the resolved folder to stdout. `backup import` without `--folder` asks for
-the target as setup does, and with no person present refuses naming `--folder`.
+an installation first writes `Using <full path>` to stderr, then, when the current directory is
+used and `<home>/.ucl` also holds `ucl.db`, a note naming it as not used. No installation found:
+exit 1 naming the folders checked, then `Run setup now? [y/N]`, starting setup on yes; setup
+started this way ends after its closing message with a generic line telling the vendor to run
+their command again, exits 0, and does not run the original command. `folder show` prints the
+resolved folder to stdout. `backup import` asks for the target as setup does.
 Exit codes: 0 done, 1 refused (validation, wrong passphrase, missing installation), 2 usage
 error.
 
@@ -192,12 +201,13 @@ pack folder into a temp tool path and runs `ucl --version` before the push. Amen
 `github-release.mjs` or job `github-release` (ADR-0016; release-process: One link per published
 package).
 
-### Command line and console — ADR-0012
+### Command line and console — ADR-0012, ADR-0017
 
-System.CommandLine 2.0 for parsing, help and validation. Prompts with BCL `Console`: interactive
-when stdin is not redirected and `--no-input` is absent; prompts on stderr so stdout can be
-redirected; hidden passphrase read with `Console.ReadKey(intercept: true)`. Passphrase precedence:
-`--passphrase-stdin` (first line of stdin), `UCL_PASSPHRASE`, prompt.
+System.CommandLine 2.0 for parsing, help and validation. Prompts with BCL `Console`. A person is
+present when stdin is not redirected; redirected stdout or stderr does not count. Prompts on
+stderr so stdout can be redirected; hidden passphrase read with `Console.ReadKey(intercept:
+true)`, the only passphrase source. The tool does not set `Console.OutputEncoding`; key strings
+are ASCII.
 
 ### Database and folder — ADR-0013
 
@@ -205,9 +215,11 @@ EF Core 10 with SQLite, one file `ucl.db` in the folder; the folder holds an ins
 `ucl.db` exists. Schema by EF migrations, applied on open in a transaction; a database holding a
 migration the running tool does not know is refused ("update the tool"). Every connection sets
 `PRAGMA secure_delete = ON` and `journal_mode = DELETE`, so a cleared email leaves no copy in free
-pages or a WAL file (vendor-tool-licenses: Customer details). Folder precedence: `--folder`,
-the current directory when it holds `ucl.db` (parents not searched), `<home>/.ucl`. Nothing is
-stored outside the folder.
+pages or a WAL file (vendor-tool-licenses: Customer details). Folder precedence (ADR-0017): the
+current directory when it holds `ucl.db` (parents not searched), then `<home>/.ucl`, home from
+`Environment.SpecialFolder.UserProfile`; paths shown with `Path.GetFullPath`. Nothing is stored
+outside the folder. No stored value holds an absolute path or anything OS-specific; encrypted
+PEMs are stored with `\n` line endings; backup zip entries use `/` (PDR-0040).
 
 Tables:
 
@@ -278,15 +290,18 @@ active has no `InReleaseUtc`.
 | Level | What | How |
 |---|---|---|
 | Unit | Expiry suggestion (every Suggested expiry scenario plus month-end and leap cases), folder precedence, trusted list, CSV quoting, feature value parsing, passphrase check | xUnit, test names follow spec scenarios |
-| Integration | Every command scenario in the five vendor-tool specs, in-process against a temp folder with a real SQLite file, scripted console (interactive and not), fixed `TimeProvider`, low PBKDF2 count | xUnit; one temp folder per test |
+| Integration | Every command scenario in the five vendor-tool specs, in-process against a temp folder with a real SQLite file, scripted console with a person present (and one test per refusal with nobody present), fixed `TimeProvider`, low PBKDF2 count | xUnit; one temp folder per test |
 | Integration | Issued keys verify with the library's `LicenseEvaluator` trusting the tool's `key trusted` lines | xUnit |
 | Integration | No key string in the folder: issue several licenses, scan every byte of `ucl.db` for each key string; cleared email absent from the file | xUnit |
 | Integration | Encrypted PEM opens with `ECDsa.ImportFromEncryptedPem` and the passphrase; not without | xUnit |
 | Integration | Backup round trip into a new folder; refusals; newer-version manifest | xUnit |
+| Integration | Portability: a folder copied and a backup restored into a different temp home work; no stored value contains the source folder's path | xUnit |
 | Integration | Production iteration count: one test runs a single encrypt/decrypt at 600,000 to confirm it completes (time printed, not asserted) | xUnit |
 | Package | Pack the tool, install it from the pack folder into a temp tool path, run `ucl --version` | `release.yml` step; locally by the worker |
 | Observed | Stored PEM opened with `openssl pkey` and the passphrase | Carl, once, recorded in tasks.md |
-| Observed | Full suite on macOS and Linux before archive (FR-2) | Carl, recorded in tasks.md |
+| Observed | Full suite on macOS, Linux and Windows before archive (FR-2, PDR-0038) | Carl, recorded in tasks.md |
+| Observed | Guided use in Windows PowerShell 5.1, PowerShell 7, Windows Terminal and Command Prompt: setup, hidden passphrase, redirects, non-ASCII home path, nobody-present refusal | Carl, recorded in tasks.md |
+| Observed | Folder copy and backup restore between operating systems (PDR-0040) | Carl, recorded in tasks.md |
 
 Validation for every block: `dotnet build Umbraco.Community.Licensing.slnx`,
 `dotnet test --solution Umbraco.Community.Licensing.slnx`,
@@ -301,8 +316,14 @@ Validation for every block: `dotnet build Umbraco.Community.Licensing.slnx`,
 - [Decrypted PEM lives briefly as a .NET string, which cannot be zeroed] → Accepted for this
   bar; lifetime is one command. `pre-1.0-considerations.md` C2 (`FromECDsa`) would remove the
   string; not in this change.
-- [Passphrase in `UCL_PASSPHRASE` visible to processes of the same user] → Documented;
-  `--passphrase-stdin` offered for scripts that can pipe it.
+- [Passphrase typed once per license; no batch] → Accepted for guided mode (PDR-0039);
+  FR-22 and FR-20.
+- [Windows PowerShell 5.1 writes a redirected key file as UTF-16] → Documented in the guide
+  (PDR-0039); the tool cannot control the shell.
+- [Non-ASCII home path shown as `?` in a legacy-code-page Command Prompt] → Accepted; the tool
+  does not change the console code page (ADR-0017); checked by Carl (tasks.md 13.4).
+- [Stderr redirected hides the prompts while the tool waits] → Person-present detection reads
+  stdin only; the guide says not to redirect stderr.
 - [Cloud-synced folder chosen anyway] → Setup warns; the tool cannot detect sync reliably on
   every OS.
 - [Lost passphrase] → Keys unrecoverable (FR-2 loss case). Setup and the guide say to keep it in a
@@ -320,7 +341,8 @@ Validation for every block: `dotnet build Umbraco.Community.Licensing.slnx`,
 ## Migration Plan
 
 1. Build sections 1 to 12 under the apply-phase team; Carl commits per section.
-2. Carl runs the full suite on macOS and Linux, opens a stored PEM with OpenSSL and rehearses a
-   release (section 13).
+2. Carl runs the full suite on macOS, Linux and Windows, checks the tool by hand in the Windows
+   terminals, moves an installation between operating systems, opens a stored PEM with OpenSSL
+   and rehearses a release (section 13).
 3. Next release (`0.1.0-beta.7` or later) publishes both packages. Rollback: unlist the tool
    version on nuget.org; the library is unaffected.

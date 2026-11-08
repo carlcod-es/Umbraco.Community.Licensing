@@ -23,8 +23,9 @@ Deferred. Update this index in the same change as any status line.
 | [ADR-0009](0009-release-command-version-file-and-log.md) | Release command, version file and release log | Decided |
 | [ADR-0010](0010-bare-package-name.md) | Bare package name for the library | Decided |
 | [ADR-0011](0011-vendor-tool-packaging-and-versioning.md) | Vendor tool packaging and versioning | Decided |
-| [ADR-0012](0012-vendor-tool-command-line-and-console.md) | Vendor tool command line and console | Decided |
-| [ADR-0013](0013-vendor-tool-database-and-folder.md) | Vendor tool database and folder | Decided |
+| [ADR-0012](0012-vendor-tool-command-line-and-console.md) | Vendor tool command line and console | Amended by ADR-0017 |
+| [ADR-0013](0013-vendor-tool-database-and-folder.md) | Vendor tool database and folder | Amended by ADR-0017 |
 | [ADR-0014](0014-vendor-tool-private-key-encryption.md) | Vendor tool private-key encryption | Decided |
 | [ADR-0015](0015-vendor-tool-backup-and-export-formats.md) | Vendor tool backup and export formats | Decided |
 | [ADR-0016](0016-github-release-job.md) | GitHub Release job in the release run | Decided |
+| [ADR-0017](0017-vendor-tool-guided-console-and-startup.md) | Vendor tool guided console and startup | Decided |

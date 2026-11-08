@@ -1,7 +1,9 @@
 ## Purpose
 
 Lets a small vendor set up one issuing installation of the vendor tool, find it again on every
-run and on another machine, and run every action by hand or from their own scripts.
+run and on another machine, and run every action in guided mode: a person at a terminal, with
+the tool asking for whatever the command does not give. Scripted mode, with nobody present, is
+not offered.
 
 ## ADDED Requirements
 
@@ -60,7 +62,7 @@ person at a terminal, and create nothing.
 - **THEN** setup refuses, naming the folder, and nothing in it changes
 
 #### Scenario: Setup with nobody present
-- **WHEN** setup is run by a script with no terminal attached, or told not to ask
+- **WHEN** setup is run by a script with no terminal attached
 - **THEN** it refuses, saying setup is run by a person at a terminal, creates nothing, and exits
   with a failure code
 
@@ -91,11 +93,16 @@ Setup SHALL offer two folders, each shown as a full path: `.ucl` in the vendor's
 proposed, and the current folder. When the current folder is the home folder itself, setup SHALL
 warn that the installation's files would sit loose in it. Setup SHALL create `.ucl` when it does
 not exist, and SHALL accept a chosen folder that holds other files but no installation. Every later action SHALL use the first
-of: a folder named on the command, the current folder when it holds an installation, `.ucl` in
-the home folder. The tool SHALL remember no folder between runs. Every action that uses an
-installation SHALL state the folder's full path on standard error. When no installation is
-found, the action SHALL refuse, naming the folders it checked; with a person present it SHALL
-then offer to run setup, and start it only when the person accepts. The home folder SHALL be the
+of: the current folder when it holds an installation, `.ucl` in the home folder. No other folder
+SHALL be used, and a folder SHALL NOT be named on the command. The tool SHALL remember no folder
+between runs. Every action that uses an installation SHALL state the folder's full path on
+standard error; when the current folder is used and `.ucl` in the home folder also holds an
+installation, the action SHALL also note that one, saying it is not used. When no installation
+is found, the action SHALL refuse, naming the folders it checked, then offer to run setup, and
+start it only when the person accepts. Setup started this way SHALL end after its closing
+message, followed by a line telling the vendor to run their command again, without naming the
+command; the command first given SHALL NOT run. Run with no command, the tool SHALL list its
+commands and check no folder. The home folder SHALL be the
 user's home folder as the operating system defines it (on Windows, the user's profile folder).
 Every path the tool shows SHALL be the full path in the operating system's own form, never
 abbreviated with `~`. In this spec, `~/.ucl` and `~/<name>` stand for `.ucl` and `<name>` in the
@@ -118,16 +125,12 @@ home folder.
 #### Scenario: Current folder used
 - **WHEN** the vendor runs an action in `~/acme-practice`, which holds an installation, while
   `~/.ucl` holds another
-- **THEN** the action uses `~/acme-practice` and states its path
+- **THEN** the action uses `~/acme-practice`, states its path, and notes that `~/.ucl` also
+  holds an installation that is not used
 
 #### Scenario: Home installation used elsewhere
 - **WHEN** the vendor runs an action in a folder holding no installation while `~/.ucl` holds one
 - **THEN** the action uses `~/.ucl` and states its path
-
-#### Scenario: Folder named on the command wins
-- **WHEN** the vendor names `~/acme-practice` on a command run in a folder holding another
-  installation
-- **THEN** the action uses `~/acme-practice`
 
 #### Scenario: No installation found
 - **WHEN** an action runs at a terminal where neither the current folder nor `~/.ucl` holds an
@@ -135,51 +138,82 @@ home folder.
 - **THEN** it refuses, naming both folders, and offers to run setup; setup starts only if the
   vendor accepts
 
-#### Scenario: No installation found with nobody present
-- **WHEN** a script runs an action and no installation is found
-- **THEN** it refuses, naming the folders checked, offers nothing, and exits with a failure code
+#### Scenario: Setup accepted from the prompt
+- **WHEN** the vendor runs the issue action with no installation found and accepts the offer to
+  run setup
+- **THEN** setup runs, ends with its closing message and a line telling the vendor to run their
+  command again, and no license is issued
+
+#### Scenario: Launched with no command
+- **WHEN** the vendor runs the tool with no command
+- **THEN** it lists its commands, checks no folder and offers no setup
 
 ### Requirement: Moving an installation
 An installation SHALL keep working after its folder is copied to another folder or machine,
-with no other file needed. The vendor uses a copied folder by running actions in it, by naming
-it on the command, or by placing it at `.ucl` in the home folder.
+including a machine running another of the supported operating systems (Windows, macOS, Linux),
+in either direction, with no other file needed. The vendor uses a copied folder by running actions in it or by
+placing it at `.ucl` in the home folder.
 
 #### Scenario: New laptop
 - **WHEN** a vendor copies the folder to `~/.ucl` on a new machine with the tool installed
 - **THEN** every action works as on the old machine, and actions using a private key accept the
   same passphrase
 
-### Requirement: Running by hand or from scripts
-Every action except setup (Guided setup) SHALL be runnable with all its inputs given on the
-command, asking nothing. When an
-input is missing and nobody is present to answer, the action SHALL refuse, naming each missing
-input, and change nothing. The passphrase SHALL be accepted without a prompt from an environment
-setting or from standard input, and never as a plain command argument. The result an action
-produces for a script (a key string, a file path, a list) SHALL be written alone to standard
-output; messages SHALL go to standard error. An action SHALL exit with success only when it
-completed; a refusal SHALL exit with a failure code.
+#### Scenario: Moved to another operating system
+- **WHEN** a vendor copies an installation folder made on macOS to `C:\Users\carl\.ucl` on
+  Windows, or one made on Windows to `~/.ucl` on Linux
+- **THEN** every action works as on the old machine, every product, license and key is there,
+  and actions using a private key accept the same passphrase
 
-#### Scenario: Scripted issue
-- **WHEN** a script runs the issue action with product, expiry and features given, and the
-  passphrase in the environment setting, with no terminal attached
-- **THEN** the key string alone is written to standard output and the action exits with success
+### Requirement: Guided mode
+Every action SHALL run in guided mode: a person at a terminal answers the tool. An action MAY be
+given any of its inputs on the command; the tool SHALL ask only for those not given. The
+passphrase SHALL be asked at a hidden prompt every time an action needs it, and SHALL NOT be
+taken from a command argument, an environment setting or standard input. With nobody present to
+answer (no terminal attached for input), every action SHALL refuse before doing anything, saying
+the tool is run by a person at a terminal, and change nothing. Listing the commands, help and
+the tool's version are not actions: they SHALL work with nobody present. The result of an action (a key
+string, a file path, a list) SHALL be written alone to standard output, so a person may redirect
+it to a file; prompts and messages SHALL go to standard error. An action SHALL exit with success
+only when it completed; a refusal SHALL exit with a failure code.
 
-#### Scenario: Missing input with nobody present
-- **WHEN** the issue action runs without an expiry and with no terminal attached
-- **THEN** it refuses, naming the expiry, writes no key, and exits with a failure code
+#### Scenario: Inputs given on the command
+- **WHEN** the vendor runs the issue action at a terminal with product, expiry and features given
+- **THEN** the tool asks only for the passphrase, hidden, and writes the key string
 
 #### Scenario: Prompted by hand
 - **WHEN** the vendor runs the issue action at a terminal without an expiry
 - **THEN** the action asks for the expiry
 
+#### Scenario: Nobody present
+- **WHEN** a script runs the issue action with every input given and no terminal attached
+- **THEN** it refuses, saying the tool is run by a person at a terminal, writes no key, changes
+  nothing, and exits with a failure code
+
+#### Scenario: Help and version with nobody present
+- **WHEN** a script with no terminal attached runs the tool with no command, asks for help, or
+  asks for the version
+- **THEN** the commands, the help or the version are written and the tool exits with success
+
+#### Scenario: Passphrase not taken from the environment
+- **WHEN** the vendor runs the issue action at a terminal with a passphrase in an environment
+  setting or piped to standard input
+- **THEN** the tool does not use it; it asks for the passphrase at the hidden prompt, or refuses
+  as nobody present when standard input is not the terminal
+
+#### Scenario: Result redirected to a file
+- **WHEN** the vendor runs the issue action at a terminal with standard output redirected to a
+  file and types the passphrase at the prompt
+- **THEN** the file holds the key string alone, and the prompts and messages appear on screen
+
 ### Requirement: Operating systems and terminals
 The tool SHALL run on Windows, macOS and Linux. On Windows it SHALL work in PowerShell, Windows
-Terminal and Command Prompt. In each, every action SHALL behave as this spec states, including:
+Terminal and Command Prompt. In each, every action SHALL behave as this spec states, including
 setup, prompts, hidden passphrase entry, the result alone on standard output when it is
-redirected to a file, messages on standard error, the passphrase taken from the environment
-setting or standard input, and the exit code seen by the shell. The tool guide SHALL show the
-scripting examples (setting the passphrase environment setting, passing it on standard input,
-reading the exit code) for each of these shells as well as for macOS and Linux.
+redirected to a file, and messages on standard error. Windows PowerShell 5.1 writes a redirected
+file in its own encoding, which the tool does not control; the tool guide SHALL tell its users
+to copy the key from the screen, use PowerShell 7, or write the file with an explicit plain-text
+encoding.
 
 #### Scenario: Setup in each Windows terminal
 - **WHEN** the vendor runs setup in PowerShell, in Windows Terminal and in Command Prompt
@@ -187,12 +221,6 @@ reading the exit code) for each of these shells as well as for macOS and Linux.
   while typed, and setup completes as on macOS and Linux
 
 #### Scenario: Key redirected to a file on Windows
-- **WHEN** the vendor runs the issue action in Command Prompt or PowerShell with standard output
-  redirected to a file
-- **THEN** the file holds the key string alone, and the messages appear on screen
-
-#### Scenario: Scripted issue on Windows
-- **WHEN** a PowerShell or Command Prompt script sets the passphrase environment setting, or
-  passes the passphrase on standard input, and runs the issue action with all inputs given
-- **THEN** the key string is written with no prompt, and the shell sees a success exit code; a
-  refusal gives a failure exit code
+- **WHEN** the vendor runs the issue action in Command Prompt or PowerShell 7 with standard
+  output redirected to a file
+- **THEN** the file holds the key string alone, and the prompts and messages appear on screen

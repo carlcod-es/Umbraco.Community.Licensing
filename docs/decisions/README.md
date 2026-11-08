@@ -41,15 +41,18 @@ Deferred. Update this index in the same change as any status line.
 | [PDR-0027](0027-release-versioning-and-log.md) | Release versioning and release log | Amended by PDR-0029 |
 | [PDR-0028](0028-test-coverage-per-release.md) | Test coverage per release | Decided |
 | [PDR-0029](0029-release-tag-matches-log.md) | A release tag must match its release log row | Decided |
-| [PDR-0030](0030-vendor-tool-audience-and-operation.md) | Vendor tool audience and operation | Decided |
-| [PDR-0031](0031-tool-folder-moving-and-backups.md) | Tool folder, moving and backups | Amended by PDR-0038 |
-| [PDR-0032](0032-private-keys-protected-by-passphrase.md) | Private keys protected by a passphrase | Decided |
+| [PDR-0030](0030-vendor-tool-audience-and-operation.md) | Vendor tool audience and operation | Amended by PDR-0039 |
+| [PDR-0031](0031-tool-folder-moving-and-backups.md) | Tool folder, moving and backups | Amended by PDR-0038, PDR-0040, PDR-0041 |
+| [PDR-0032](0032-private-keys-protected-by-passphrase.md) | Private keys protected by a passphrase | Amended by PDR-0039 |
 | [PDR-0033](0033-license-records-and-customer-data.md) | License records and customer data | Decided |
-| [PDR-0034](0034-reissue-and-renewal-from-records.md) | Reissue and renewal from records | Decided |
+| [PDR-0034](0034-reissue-and-renewal-from-records.md) | Reissue and renewal from records | Amended by PDR-0039 |
 | [PDR-0035](0035-signing-key-switch-standby-and-trusted-keys.md) | Signing key switch, standby keys and trusted keys | Decided |
 | [PDR-0036](0036-feature-definitions-add-only.md) | Products and feature definitions are add-only | Decided |
 | [PDR-0037](0037-github-release-per-published-release.md) | A GitHub Release for each published release | Decided |
-| [PDR-0038](0038-vendor-tool-operating-systems-and-terminals.md) | Vendor tool operating systems and terminals | Decided |
+| [PDR-0038](0038-vendor-tool-operating-systems-and-terminals.md) | Vendor tool operating systems and terminals | Amended by PDR-0039, PDR-0040 |
+| [PDR-0039](0039-vendor-tool-guided-mode-only.md) | Vendor tool runs in guided mode only | Decided |
+| [PDR-0040](0040-installation-moves-between-operating-systems.md) | An installation moves between operating systems | Decided |
+| [PDR-0041](0041-finding-the-installation-at-startup.md) | Finding the installation at startup | Decided |
 
 ## Template
 

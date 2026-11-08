@@ -4,7 +4,7 @@ Owners per CLAUDE.md and design.md (Ownership): sections 2 to 11 worker-backend;
 `dotnet test --solution Umbraco.Community.Licensing.slnx`,
 `node --test "tools/release/*.test.mjs"`. Bar: production (design.md). Test names follow spec
 scenario names. Specs: `specs/vendor-tool-*/spec.md`, `specs/release-process/spec.md`. Records:
-PDR-0030 to PDR-0036, ADR-0011 to ADR-0016.
+PDR-0030 to PDR-0041, ADR-0011 to ADR-0017.
 
 ## 1. Ownership
 
@@ -22,11 +22,11 @@ Depends on: 1. Owner: worker-backend. Shared files assigned in the brief: the tw
 
 ## 3. Console, commands and folder
 
-Depends on: 2. Owner: worker-backend. Spec: vendor-tool-setup (Folder location; Running by hand or
-from scripts). Records: ADR-0012, ADR-0013, PDR-0030, PDR-0031.
+Depends on: 2. Owner: worker-backend. Spec: vendor-tool-setup (Folder location; Guided mode).
+Records: ADR-0012, ADR-0013, ADR-0017, PDR-0030, PDR-0031, PDR-0039, PDR-0041.
 
-- [ ] 3.1 Implement `ToolApp.Run(args, ToolEnvironment)`, `ToolEnvironment` (console, `TimeProvider`, home, current directory, environment, PBKDF2 iteration count), `ToolConsole` (stdout result, stderr messages and prompts, interactive detection, `--no-input`, hidden read), global options and exit codes 0/1/2 per design.md Command surface, and verify by tests for the "Missing input with nobody present" and "Prompted by hand" scenarios against a stub command
-- [ ] 3.2 Implement folder resolution (`--folder`, current directory holding `ucl.db`, `<home>/.ucl`), the `Using <path>` line on stderr, `ucl folder show`, and the "no installation" refusal with the setup offer when interactive (the offer may start setup once section 6 exists; until then test the offer and a declined answer), and verify by tests for "Current folder used", "Home installation used elsewhere", "Folder named on the command wins", "No installation found" and "No installation found with nobody present", and that stdout carries no `Using` line
+- [ ] 3.1 Implement `ToolApp.Run(args, ToolEnvironment)`, `ToolEnvironment` (console, `TimeProvider`, home, current directory, PBKDF2 iteration count; no environment variables), `ToolConsole` (stdout result, stderr messages and prompts, person present when stdin is not redirected, hidden read), the nobody-present refusal before any action, bare `ucl` printing help with exit 0, `--help` and `--version` exempt from the check, and exit codes 0/1/2 per design.md Command surface and ADR-0017, and verify by tests for "Inputs given on the command", "Prompted by hand", "Nobody present", "Launched with no command" and "Help and version with nobody present" against a stub command, and that `--folder`, `--no-input` and `--passphrase-stdin` are usage errors (exit 2)
+- [ ] 3.2 Implement folder resolution (current directory holding `ucl.db`, then `<home>/.ucl`; no folder option), the `Using <path>` line on stderr with the note naming an unused `<home>/.ucl` installation, `ucl folder show`, and the "no installation" refusal with the setup offer (the offer may start setup once section 6 exists; until then test the offer and a declined answer), and verify by tests for "Current folder used" (with the note), "Home installation used elsewhere" and "No installation found", that paths are shown in full (never `~`), and that stdout carries no `Using` line or note
 
 ## 4. Database
 
@@ -37,18 +37,18 @@ Depends on: 2, 3. Owner: worker-backend. Records: ADR-0013, PDR-0033.
 ## 5. Private key protection
 
 Depends on: 4. Owner: worker-backend. Spec: vendor-tool-signing-keys (Private keys encrypted with
-the passphrase). Records: ADR-0014, PDR-0032.
+the passphrase); vendor-tool-setup (Guided mode). Records: ADR-0014, ADR-0017, PDR-0032, PDR-0039.
 
-- [ ] 5.1 Implement the passphrase check (PBKDF2-SHA256, salt, stored iterations, fixed-time compare), encrypt and decrypt of private keys per ADR-0014, and passphrase sources (`--passphrase-stdin`, `UCL_PASSPHRASE`, hidden prompt), and verify by tests for "Opened by another tool" (`ECDsa.ImportFromEncryptedPem` with and without the passphrase), a wrong passphrase refused before any key is created, and one encrypt/decrypt at 600,000 iterations completing
+- [ ] 5.1 Implement the passphrase check (PBKDF2-SHA256, salt, stored iterations, fixed-time compare), encrypt and decrypt of private keys per ADR-0014 (PEMs stored with `\n` line endings), and the passphrase read only at the hidden prompt (ADR-0017), and verify by tests for "Opened by another tool" (`ECDsa.ImportFromEncryptedPem` with and without the passphrase), "Passphrase not taken from the environment", a wrong passphrase refused before any key is created, and one encrypt/decrypt at 600,000 iterations completing
 
 ## 6. Setup
 
 Depends on: 5. Owner: worker-backend. Spec: vendor-tool-setup (Guided setup; One vendor and one
 person per installation; Moving an installation; Changing the prefix). Records: PDR-0030,
-PDR-0031, PDR-0023.
+PDR-0031, PDR-0023, PDR-0038, PDR-0040, PDR-0041.
 
-- [ ] 6.1 Implement `ucl setup` (folder, passphrase twice, prefix, signing-key mode, standby offer; shared key created in shared mode; folder offered as `~/.ucl` (proposed) or the current directory, with the home-directory warning; closing message with full path, content, backup advice, sync warning and the next steps by mode), and verify by tests for "Setup with defaults" (next steps checked in per-product and shared mode), "Invalid prefix", "Passphrases differ", "Passphrase too short", "Folder already holds an installation", "Second installation", "Setup with nobody present" (redirected stdin, and `--no-input` at a terminal), "Default folder created", "Current folder with other files", and "No installation found" accepted (setup starts), all through the scripted interactive console; tests of later sections create installations through the same console
-- [ ] 6.2 Verify "New laptop": a test copies a set-up folder to another temp home's `.ucl`, runs from an unrelated current directory, and issues a key with the same passphrase (after section 8; tick with 8)
+- [ ] 6.1 Implement `ucl setup` (folder, passphrase twice, prefix, signing-key mode, standby offer; shared key created in shared mode; folder offered as `<home>/.ucl` (proposed) or the current directory, both in full, with the home-directory warning; closing message with full path, content, backup advice, sync warning naming example services, and the next steps by mode; when started from the no-installation offer, a generic line telling the vendor to run their command again, exit 0, original command not run), and verify by tests for "Setup with defaults" (next steps checked in per-product and shared mode), "Invalid prefix", "Passphrases differ", "Passphrase too short", "Folder already holds an installation", "Second installation", "Setup with nobody present" (redirected stdin), "Default folder created", "Default folder on Windows" (shown path equals the full path under the injected home), "Current folder with other files" and "Setup accepted from the prompt" (retry line, no license issued), all through the scripted console with a person present; tests of later sections create installations through the same console
+- [ ] 6.2 Verify "New laptop" and "Moved to another operating system" as far as one OS allows: a test copies a set-up folder to another temp home's `.ucl`, runs from an unrelated current directory, issues a key with the same passphrase, and finds no stored value containing the source folder's path (after section 8; tick with 8). The real move between operating systems is 13.5
 - [ ] 6.3 Implement `ucl prefix show` and `prefix set` (prefix rule, no passphrase, message on what changes, records untouched), and verify by tests for "Prefix changed", "Earlier prefix typed" and "Invalid prefix on change" (after section 8; tick with 8)
 
 ## 7. Products
@@ -59,11 +59,11 @@ Depends on: 6. Owner: worker-backend. Spec: vendor-tool-products. Records: PDR-0
 
 ## 8. Licenses
 
-Depends on: 7. Owner: worker-backend. Spec: vendor-tool-licenses. Records: PDR-0033, PDR-0034,
-PDR-0021, PDR-0023.
+Depends on: 7. Owner: worker-backend. Spec: vendor-tool-licenses; vendor-tool-setup (Guided mode).
+Records: PDR-0033, PDR-0034, PDR-0021, PDR-0023, PDR-0039.
 
 - [ ] 8.1 Implement the expiry suggestion per design.md (term from the last renewal entry, or the first issue when never renewed; calendar months when the term was whole months, exact time otherwise; perpetual; non-renewal), and verify by tests for every "Suggested expiry" scenario (including "Second renewal after an early renewal", "Add-on before renewal" and "Renewal after a lapse") plus month-end (2026-01-31 to 2026-02-28) and leap-day cases
-- [ ] 8.2 Implement `ucl license issue` (feature values parsed by definition, signing with the product's active key, record and issue entry, key string to stdout once), and verify by tests for "License issued", "Undefined feature", "Wrong passphrase" and "Scripted issue", and that the key verifies with `LicenseEvaluator` trusting the product's public keys
+- [ ] 8.2 Implement `ucl license issue` (feature values parsed by definition, signing with the product's active key, record and issue entry, key string to stdout once), and verify by tests for "License issued", "Undefined feature", "Wrong passphrase", "Inputs given on the command" and "Result redirected to a file" (stdout holds the key string alone; prompts on stderr), and that the key verifies with `LicenseEvaluator` trusting the product's public keys
 - [ ] 8.3 Implement `license reissue`, `license renew` (with `--expires suggested`, recorded as kind renewal) and `license resend` (entry with no order reference), with `--order-ref` setting the new entry's order reference, building a `LicenseRequest` with the stored reference and product, and verify by tests for "Add-on bought", "Site owner lost the key", "Renewal keeps the earlier order reference" and each suggested-expiry case through the command
 - [ ] 8.4 Implement `license list` (filters by product, reference under the prefix rule, order reference on any entry, email; row shows email and latest order reference), `license show` (issue entries newest first, each with its order reference) and `license customer` (edit or clear email; correct the latest entry's order reference; `--clear-order-refs` for every entry), and verify by tests for "Find by customer email", "Find by an earlier order reference", "License history", "Correcting the latest order reference", "Clearing order references", "Erasure request" (cleared email and order references absent from every byte of `ucl.db`), "No delete", and "No passphrase for reading" for `license list` and `license show` (no passphrase prompt or source read)
 - [ ] 8.5 Verify "Copied folder": a test issues, reissues and resends licenses, then scans every file in the folder for each key string, and finds none
@@ -80,10 +80,11 @@ PDR-0015, PDR-0032.
 
 ## 10. Backup
 
-Depends on: 8, 9. Owner: worker-backend. Spec: vendor-tool-backup. Records: ADR-0015, PDR-0031.
+Depends on: 8, 9. Owner: worker-backend. Spec: vendor-tool-backup. Records: ADR-0015, ADR-0017, PDR-0031,
+PDR-0040, PDR-0041.
 
 - [ ] 10.1 Implement `ucl backup export` (snapshot, manifest, zip, refuses an existing file, no passphrase), and verify by tests for "Backup taken" and that the zip's private keys are the encrypted PEMs
-- [ ] 10.2 Implement `ucl backup import` (manifest checks, target from `--folder` or asked as at setup, refusal naming `--folder` with nobody present, target without installation, date warning, integrity check, migrations), and verify by tests for "Restore to a new machine", "Folder already holds an installation", "Not a backup" and "Backup from a newer tool version", and that a restored installation issues with the backup's passphrase
+- [ ] 10.2 Implement `ucl backup import` (manifest checks, target offered as at setup: the current directory or `<home>/.ucl`, no folder option; target without installation, date warning, integrity check, migrations), and verify by tests for "Restore to a new machine", "Restore on another operating system" (restored into a different temp home), "Folder already holds an installation", "Not a backup" and "Backup from a newer tool version", and that a restored installation issues with the backup's passphrase
 
 ## 11. Release workflow
 
@@ -97,7 +98,7 @@ packages; Release page for each published release). Records: ADR-0011, ADR-0008,
 
 Depends on: 6 to 11. Owner: Architect.
 
-- [ ] 12.1 Write `docs/vendor-tool.md` (install with the .NET SDK, setup, first steps after setup matching setup's closing message (add a product, define features, print trusted keys for the release, issue a first license), folder and moving, passphrase and loss, scripting with `--no-input` and the passphrase sources, every command, leak and loss steps from FR-2 using the tool, backups and older backups holding cleared emails, vendor responsibility for the database), and verify every command in it against `ucl --help` output
+- [ ] 12.1 Write `docs/vendor-tool.md` (install with the .NET SDK on Windows, macOS and Linux; guided mode: inputs on the command or asked, passphrase always typed, the tool refuses with nobody present; setup; first steps after setup matching setup's closing message (add a product, define features, print trusted keys for the release, issue a first license); the two folders checked, the unused-installation note, changing into a folder to use another installation; home folder and full paths on each OS; Windows PowerShell 5.1, PowerShell 7, Windows Terminal and Command Prompt, including the PowerShell 5.1 redirect encoding and not redirecting stderr; moving and restoring between operating systems; passphrase and loss; every command; leak and loss steps from FR-2 using the tool; backups and older backups holding cleared emails; vendor responsibility for the database), and verify every command in it against `ucl --help` output
 - [ ] 12.2 Add a "Vendor tool" section to `README.md` linking the guide, and verify the link resolves
 - [ ] 12.3 Update `docs/releasing.md` for two packages (job summary, **Pack** and **Package IDs** expectations in the rehearsal steps, Release page with two links, first push of `Umbraco.Community.Licensing.Tool` under Trusted Publishing), and verify every step name it cites matches `release.yml` after 11.1
 
@@ -105,6 +106,8 @@ Depends on: 6 to 11. Owner: Architect.
 
 Depends on: 2 to 12. Owner: Carl.
 
-- [ ] 13.1 Run the validation commands on macOS and on Linux (FR-2), and verify both pass; record the result per OS here
+- [ ] 13.1 Run the validation commands on macOS, on Linux and on Windows (FR-2, PDR-0038), and verify all three pass; record the result per OS here
 - [ ] 13.2 Open a stored private key with `openssl pkey` and the passphrase, and verify it opens with the passphrase and fails without it
 - [ ] 13.3 Run a release rehearsal on a test machine, and verify it packs both packages, the install-and-run step passes, and **Package IDs** prints both package IDs
+- [ ] 13.4 On Windows, in Windows PowerShell 5.1, PowerShell 7, Windows Terminal and Command Prompt, run setup into a fresh home and issue a license, and verify in each: the folder is offered as a full Windows path, the passphrase is hidden, the key copied from the screen verifies, a redirect to a file holds the key alone (Command Prompt and PowerShell 7) or behaves as the guide says (PowerShell 5.1), a non-ASCII home path is shown as recorded in design.md Risks, and a run with stdin redirected is refused; record the result per terminal here
+- [ ] 13.5 Copy an installation folder from macOS to Windows and from Windows to Linux, and restore a backup taken on one OS on another, and verify each issues a license with the same passphrase and holds every product, license and key; record the result here

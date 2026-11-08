@@ -1,6 +1,6 @@
 # PDR-0030: Vendor tool audience and operation
 
-- Status: Decided
+- Status: Amended by PDR-0039
 - Date: 2026-10-28
 - Source: `add-vendor-tool` design.md Q1, Q2, Q3, Q14, Q23, Q27, Q28 (`docs/feature-requests.md` FR-2)
 - Personas: vendor (small: issues through the tool alone). Site owner, implementor: unaffected;
