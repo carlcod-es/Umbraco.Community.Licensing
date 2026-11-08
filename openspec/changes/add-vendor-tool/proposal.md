@@ -34,12 +34,14 @@ published, the library is ready to gain its main issuing client.
 - **Issue, reissue, renew, resend** from stored records. Renewal suggests the current expiry plus
   the last term. Key strings are never stored; resend is a reissue with nothing changed
   (PDR-0033, PDR-0034).
-- **Records**: find and list licenses; optional customer email per license and order reference
-  per issue, editable and clearable; records never deleted (PDR-0033).
+- **Records**: find and list licenses; a license chosen by its reference or by the key itself, as a
+  site owner sends it back; optional customer email per license and order reference per issue,
+  editable and clearable; records never deleted (PDR-0033, PDR-0052).
 - **Signing keys**: switch with a reason (routine, loss, leak); record the signing key of every
   issue; export by signing key; standby key at setup or later; list of products without a
   standby key; the public key lines each product's next release must trust, including the
-  interim list during a leak (PDR-0035).
+  interim list during a leak; each product's release confirmed separately, so a switch warns
+  until every product sharing a key has released it (PDR-0035, PDR-0051).
 - **Typed values**: the product display name, customer email and order reference follow the
   key's text rule, so accents and other scripts are allowed and emoji are not. Email and order
   reference are found ignoring case and accent form, and only by the whole value. The
@@ -89,10 +91,10 @@ published, the library is ready to gain its main issuing client.
   tests with the library's.
 - Library: no public API or behaviour change. The tool reaches the internal text-rule check
   through `InternalsVisibleTo` (ADR-0019).
-- Records: PDR-0030 to PDR-0036, PDR-0038 to PDR-0041, PDR-0043 to PDR-0050 (new); ADR-0011 to
-  ADR-0015, ADR-0017, ADR-0019 to ADR-0021 (new; ADR-0011 amends ADR-0008; ADR-0017 amends
+- Records: PDR-0030 to PDR-0036, PDR-0038 to PDR-0041, PDR-0043 to PDR-0052 (new); ADR-0011 to
+  ADR-0015, ADR-0017, ADR-0019 to ADR-0022 (new; ADR-0011 amends ADR-0008; ADR-0017 amends
   ADR-0012 and ADR-0013; ADR-0019 amends ADR-0003 and ADR-0013; ADR-0020 supersedes ADR-0012 and
-  amends ADR-0013, ADR-0017 and ADR-0019; ADR-0021 amends ADR-0014). `docs/feature-requests.md`: FR-2, FR-4 and FR-23
+  amends ADR-0013, ADR-0017 and ADR-0019; ADR-0021 amends ADR-0014; ADR-0022 amends ADR-0013 and ADR-0021). `docs/feature-requests.md`: FR-2, FR-4 and FR-23
   taken into this change; FR-11 to FR-18, FR-20 and FR-22 to FR-27 added.
 - Dependencies (approved by Carl, 2026-10-28): Microsoft.EntityFrameworkCore.Sqlite,
   Microsoft.EntityFrameworkCore.Design (build only), `dotnet-ef` local tool (creating

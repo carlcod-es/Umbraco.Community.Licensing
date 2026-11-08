@@ -24,7 +24,7 @@ Deferred. Update this index in the same change as any status line.
 | [ADR-0010](0010-bare-package-name.md) | Bare package name for the library | Decided |
 | [ADR-0011](0011-vendor-tool-packaging-and-versioning.md) | Vendor tool packaging and versioning | Decided |
 | [ADR-0012](0012-vendor-tool-command-line-and-console.md) | Vendor tool command line and console | Superseded by ADR-0020 |
-| [ADR-0013](0013-vendor-tool-database-and-folder.md) | Vendor tool database and folder | Amended by ADR-0017, ADR-0019, ADR-0020 |
+| [ADR-0013](0013-vendor-tool-database-and-folder.md) | Vendor tool database and folder | Amended by ADR-0017, ADR-0019, ADR-0020, ADR-0022 |
 | [ADR-0014](0014-vendor-tool-private-key-encryption.md) | Vendor tool private-key encryption | Amended by ADR-0021 |
 | [ADR-0015](0015-vendor-tool-backup-and-export-formats.md) | Vendor tool backup and export formats | Decided |
 | [ADR-0016](0016-github-release-job.md) | GitHub Release job in the release run | Decided |
@@ -32,4 +32,5 @@ Deferred. Update this index in the same change as any status line.
 | [ADR-0018](0018-text-rule-character-table.md) | Text rule character table | Decided |
 | [ADR-0019](0019-vendor-tool-typed-values-and-named-files.md) | Vendor tool typed values, matching and named files | Amended by ADR-0020 |
 | [ADR-0020](0020-vendor-tool-menu-session-and-console.md) | Vendor tool menu session and console | Decided |
-| [ADR-0021](0021-vendor-tool-session-passphrase-and-idle-lock.md) | Vendor tool session passphrase and idle lock | Decided |
+| [ADR-0021](0021-vendor-tool-session-passphrase-and-idle-lock.md) | Vendor tool session passphrase and idle lock | Amended by ADR-0022 |
+| [ADR-0022](0022-vendor-tool-release-marks-installation-switch-and-pasted-keys.md) | Vendor tool release marks, installation switch and pasted keys | Decided |

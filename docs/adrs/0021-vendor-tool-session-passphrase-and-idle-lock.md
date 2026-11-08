@@ -1,6 +1,6 @@
 # ADR-0021: Vendor tool session passphrase and idle lock
 
-- Status: Decided
+- Status: Amended by ADR-0022
 - Date: 2026-11-08
 - Source: `add-vendor-tool` design.md Q60, Q64. Amends ADR-0014.
 
