@@ -12,7 +12,7 @@ ADR-0013 to ADR-0015, ADR-0017, ADR-0018 (from `tighten-text-rule`), ADR-0019 to
 
 Depends on: none. Owner: Architect.
 
-- [ ] 1.1 Add the `.config/**` row (Shared: assigned in the brief) to the CLAUDE.md ownership table, and verify it matches design.md Ownership
+- [x] 1.1 Add the `.config/**` row (Shared: assigned in the brief) to the CLAUDE.md ownership table, and verify it matches design.md Ownership
 
 ## 2. Tool and test projects
 
