@@ -9,7 +9,8 @@ signing key, and tells the vendor which public keys each product release must tr
 Every private signing key, active, standby or replaced, SHALL be stored encrypted with the
 installation's passphrase, in a standard encrypted private key format that other tools can open
 with the passphrase. Nothing else SHALL be encrypted. The first action in a session that signs
-or creates a private key SHALL ask for the passphrase; the session SHALL keep it for later
+or creates a private key SHALL ask for the passphrase, unless the session holds it from setup
+(vendor-tool-setup: Guided setup); the session SHALL keep it for later
 actions until the session ends or the idle lock forgets it (vendor-tool-setup: Idle lock). No
 other action SHALL ask for it. A wrong passphrase SHALL be said to be wrong and asked again, up to
 three tries in all, keeping the action's other answers; after the third wrong try the action SHALL
@@ -25,6 +26,12 @@ no way to export a private key.
 - **WHEN** the vendor adds a product in per-product mode and then issues two licenses in one
   session, within the idle lock time
 - **THEN** the passphrase is asked once, at the product add
+
+#### Scenario: Product added straight after setup
+- **WHEN** the vendor completes setup in per-product mode and adds a product in the same session,
+  within the idle lock time
+- **THEN** no passphrase is asked; the product's signing key is encrypted with the passphrase set
+  at setup
 
 #### Scenario: Wrong passphrase three times
 - **WHEN** an action asks for the passphrase and the vendor types a wrong one three times
@@ -83,7 +90,7 @@ The switch needs the passphrase.
 
 #### Scenario: Confirmation declined
 - **WHEN** the tool asks for confirmation before a switch and the vendor declines
-- **THEN** no key changes role, no key is created, and the tool exits with a failure code
+- **THEN** no key changes role, no key is created, and the Signing keys menu is shown
 
 ### Requirement: Trusted public keys per product
 The vendor SHALL print, for a product, the public key lines its next release must trust, one per

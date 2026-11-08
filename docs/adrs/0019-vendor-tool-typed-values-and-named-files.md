@@ -1,6 +1,6 @@
 # ADR-0019: Vendor tool typed values, matching and named files
 
-- Status: Decided
+- Status: Amended by ADR-0020
 - Date: 2026-11-08
 - Source: `add-vendor-tool` design.md Q37, Q38, Q39, Q40, Q42. Amends ADR-0003, ADR-0013.
 

@@ -33,6 +33,7 @@ Cite as FR-N.
 | FR-24 | Move the vendor tool's records to a central SQL Server database | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open; after `add-vendor-tool`. One-way move, PDR-0046 |
 | FR-25 | Vendor tool works against the central database | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open; after FR-24 |
 | FR-26 | Shop integration: licenses issued and renewed on purchase | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open; after FR-24, FR-22. Reopens PDR-0030, PDR-0031, PDR-0032, PDR-0033, PDR-0039 |
+| FR-27 | Ctrl+C cancels the current action in the vendor tool | Carl, 2026-11-08 (`add-vendor-tool` update) | Open. `/cancel` stays (design.md Q61, ADR-0020) |
 
 ## FR-1: Vendor-chosen key identifier prefix
 
@@ -763,3 +764,19 @@ PDR-0032 (passphrase typed for every signing), PDR-0033 (who can read customer d
 (guided mode only). Each carries a "to revisit: FR-26" note.
 
 **Related.** PDR-0046, FR-18, FR-22, FR-24, FR-25.
+
+## FR-27: Ctrl+C cancels the current action in the vendor tool
+
+**Request.** In the menu session, Ctrl+C cancels the action in progress and returns to its menu,
+as `/cancel` does, instead of ending the session (Carl, 2026-11-08, `add-vendor-tool` update).
+
+**Personas.** Vendor: the key most terminal users reach for first. Site owner, implementor:
+unaffected.
+
+**Issues to settle.**
+1. What an interrupted line read returns after Ctrl+C on Windows, macOS and Linux, and in each
+   Windows terminal (PDR-0038); the reason it was left out of `add-vendor-tool` (ADR-0020).
+2. Whether Ctrl+C at the main menu quits, and whether a second Ctrl+C ends the session.
+3. The guide and vendors used to Ctrl+C ending the session.
+
+**Related.** PDR-0048, PDR-0050, ADR-0020, FR-13.

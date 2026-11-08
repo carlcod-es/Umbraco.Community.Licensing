@@ -36,7 +36,7 @@ Test strategy.
 ## Goals / Non-Goals
 
 **Goals:** a copied folder or backup never yields a usable signing key without the passphrase;
-every action guided (a person at a terminal, PDR-0039); runs on Windows, macOS and Linux and
+every action guided in a menu session (a person at a terminal, PDR-0039, PDR-0048); runs on Windows, macOS and Linux and
 moves between them (PDR-0038, PDR-0040); folder portable by copying; records complete enough to
 move to another database (PDR-0046); no library API or behaviour change; tool and library
 released from one tested build.
@@ -52,7 +52,7 @@ C2), localisation.
 
 | R | Requirement | Spec | Personas | Records |
 |---|---|---|---|---|
-| R1 | One vendor, one person per installation; menu session only | vendor-tool-setup: One vendor and one person per installation; Menu session; Answers at a prompt | Vendor; site owner (summary before signing) | PDR-0030, PDR-0039, PDR-0048 |
+| R1 | One vendor, one person per installation; menu session only | vendor-tool-setup: One vendor and one person per installation; Menu session; Answers at a prompt | Vendor; site owner (summary before signing) | PDR-0030, PDR-0039, PDR-0048, PDR-0050 |
 | R2 | Guided setup; prefix changeable later | vendor-tool-setup: Guided setup; Changing the prefix | Vendor; site owner (prefix and keys set once, keys stay consistent) | PDR-0030, PDR-0023 |
 | R3 | Folder location, moving, second installation | vendor-tool-setup: Folder location; New installation in the current folder; Moving an installation | Vendor | PDR-0031, PDR-0040, PDR-0041, PDR-0048 |
 | R4 | Products and add-only feature definitions | vendor-tool-products | Vendor; site owner (no feature silently lost, PDR-0016) | PDR-0036 |
@@ -93,7 +93,7 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q16 | Standby key after setup (FR-4 issues 1, 4) | Can be added later; marked "not yet in a release" until confirmed; switch warns; list of products without a standby key (Carl, 2026-10-28). Amended by Q45: switch also warns with no standby | PDR-0035, PDR-0047 |
 | Q17 | Changing feature definitions | Add-only; product ID fixed; display name editable; retiring a feature is FR-14 (Carl, 2026-10-28) | PDR-0036 |
 | Q18 | Distribution, packaging, versioning | .NET tool package `Umbraco.Community.Licensing.Tool`, command `ucl`, .NET SDK prerequisite; same version as the library, released together (Carl, 2026-10-28) | ADR-0011 |
-| Q19 | Command line and prompts | System.CommandLine; BCL console prompts; Spectre.Console is FR-13 (Carl, 2026-10-28) | ADR-0012 |
+| Q19 | Command line and prompts | System.CommandLine; BCL console prompts; Spectre.Console is FR-13 (Carl, 2026-10-28). Amended by Q59: no System.CommandLine | ADR-0012, ADR-0020 |
 | Q20 | Database and folder resolution | EF Core + SQLite in the folder; option, environment, pointer file, default (Carl, 2026-10-28); resolution replaced by Q29 | ADR-0013 |
 | Q21 | Private-key encryption format | Encrypted PKCS#8 PEM, PBES2 AES-256-CBC + PBKDF2-SHA256 (Carl, 2026-10-28) | ADR-0014 |
 | Q22 | Backup and export formats | Zip of a consistent database snapshot and a manifest; CSV export (Carl approved T6, 2026-10-28) | ADR-0015 |
@@ -133,34 +133,50 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q56 | Getting a key out | Shown once on screen, then offered to save to a file the vendor names, under the never-replace rule (Carl, 2026-11-08) | PDR-0048 |
 | Q57 | Second installation | Settings offers a new installation in the current folder, by setup or restore; refused in the home folder or a folder holding one; the session continues with it (Carl, 2026-11-08) | PDR-0048 |
 | Q58 | Stale rows | Q1, Q7, Q29, Q33, Q35, Q36, Q41 and Q42 marked amended by Q46 to Q57 (Carl, 2026-11-08) | PDR-0048, PDR-0049 |
+| Q59 | Console for a menu session | Arguments handled by hand (help, version, anything else refused with exit 2); System.CommandLine removed; everything in the session on stdout; answers by `Console.ReadLine`; menus numbered, `0` Back or Quit (Carl approved removing System.CommandLine, 2026-11-08) | ADR-0020 |
+| Q60 | Holding the passphrase for a session | Passphrase held as pinned bytes, never a string; no decrypted key outlives its action; idle lock by a `TimeProvider` timer restarted on each answer plus a check on each use; fake clock written in the test project (Carl, 2026-11-08) | ADR-0021 |
+| Q61 | How a question is cancelled | Answer `/cancel` at any question, the hidden prompt included; `/remove` removes a number or text feature at reissue; a value equal to either cannot be entered; Ctrl+C cancelling an action is FR-27 (Carl, 2026-11-08). Amended by Q65: `/remove` also for display name and vendor tag | ADR-0020 |
+| Q62 | Switch confirmation declined | Nothing changes and the Signing keys menu is shown, not a failure exit (Carl, 2026-11-08) | PDR-0050 |
+| Q63 | Who counts as present | Input and output both a terminal; a redirected output is refused like nobody present (Carl, 2026-11-08) | PDR-0050, ADR-0020 |
+| Q64 | Passphrase typed at setup | Kept for the session in both signing-key modes, under the idle lock; the closing message says the first product's key uses it (Carl, 2026-11-08) | PDR-0050, ADR-0021 |
+| Q65 | Removing a display name or vendor tag at reissue | Allowed with the remove answer, as for number and text features (Carl, 2026-11-08) | PDR-0050 |
 
 ## Open questions
 
-None. Q37 to Q58 were raised in `opsx:explore` (Carl, 2026-11-08) and are settled above. Q37,
-Q38 and Q40 use the text rule from `tighten-text-rule` (PDR-0042); this change waits for it.
+None. Q37 to Q58 were raised in `opsx:explore` and Q59 to Q65 in `opsx:update` (Carl,
+2026-11-08); all are settled above. Q37, Q38 and Q40 use the text rule from
+`tighten-text-rule` (PDR-0042); this change waits for it.
 
 ## Decisions
 
 ### Components
 
 ```
-  vendor / script
-        |  args, keyboard (prompts, hidden passphrase), current directory, home
+  vendor at a terminal
+        |  args (help / version only), keyboard (answers, hidden passphrase),
+        |  current directory, home
         v
   +-- ucl (src/Umbraco.Community.Licensing.Tool) --------------------------+
   |  Program --> ToolApp.Run(args, ToolEnvironment)                       |
-  |                 |  System.CommandLine root: setup folder prefix       |
-  |                 |                   product license key backup        |
+  |                 |  args check -> person present? -> Startup           |
   |                 v                                                      |
-  |  Commands/*  --uses-->  ToolConsole (in, out, err, person present?,    |
-  |     |                    hidden read)                                  |
+  |  Startup (folder resolve, Using line, no-installation offer)          |
+  |     v                                                                  |
+  |  Menu loop (main menu, submenus, Back, Quit)                          |
+  |     |  runs one action at a time; cancel -> back to its menu          |
+  |     v                                                                  |
+  |  Actions/*  --uses-->  Questions (proposed value, rule, ask again,    |
+  |     |                  lists, yes/no, /cancel, /remove, paths)        |
+  |     |                     --> ToolConsole (read line, read hidden,     |
+  |     |                         write, write error, person present?)    |
+  |     +--> SessionLock (held passphrase bytes, idle timer, zeroing)     |
   |     +--> Installation (folder resolve, open + migrate ToolDbContext)  |
   |     +--> KeyProtection (passphrase check, encrypt / decrypt PEM)      |
   |     +--> Issuing (records -> LicenseRequest, FeatureDefinitions,      |
-  |     |             ExpirySuggestion)                                    |
+  |     |             ExpirySuggestion, summary)                           |
   |     +--> TypedValues (text rule via library, email, order ref,        |
-  |     |                 match key, passphrase rule)                      |
-  |     +--> NamedFiles (output and import path checks, ask again)        |
+  |     |                 match key, passphrase rule, idle lock rule)      |
+  |     +--> NamedFiles (output and import path checks)                   |
   |     +--> TrustedKeys (list per product), SignedExport (CSV)           |
   |     +--> Backup (snapshot + manifest -> zip; zip -> new folder)       |
   +----------------|-------------------------------------------------------+
@@ -172,66 +188,110 @@ Q38 and Q40 use the text rule from `tighten-text-rule` (PDR-0042); this change w
 ```
 
 `ToolEnvironment` carries the console (with its person-present flag), `TimeProvider`, home
-folder, current directory and the PBKDF2 iteration count, so every command runs in-process in tests
-against a temp folder.
+folder, current directory and the PBKDF2 iteration count, so a whole session runs in-process in
+tests against a temp folder.
 
-### Command surface
+### Menu session
 
-No global options other than `--help` and `--version`. No environment settings are read
-(ADR-0017).
+`ucl` takes no argument other than `--help` (`-h`, `-?`) and `--version` (ADR-0020). No
+environment settings are read (ADR-0017). Startup, in order:
+
+1. Arguments: help or version is written to stdout, exit 0. Any other argument is refused on
+   stderr (takes no command other than help and version; used from its menu), exit 2, nothing
+   read or written.
+2. Person present (neither stdin nor stdout redirected, PDR-0050): otherwise refused on stderr, exit 1, nothing read or
+   written.
+3. Folder (Database and folder): the current directory when it holds `ucl.db`, else
+   `<home>/.ucl`. Found: open it (a database the tool cannot open is refused on stderr, exit 1),
+   write `Using <full path>`, and when the current directory is used and `<home>/.ucl` holds
+   `ucl.db`, a note naming it as not used. Then the main menu.
+4. None found: name both folders checked and offer `1 Set up a new installation`, `2 Restore from
+   a backup`, `0 Quit`. Setup or restore asks for the folder (`<home>/.ucl` proposed, or the
+   current directory, both in full; a warning when the current directory is home), and on
+   completion the session writes `Using <full path>` and shows the main menu. Quit exits 0.
+
+The menu tree (numbers as shown; `0` is Back in a submenu, Quit in the main menu):
 
 ```
-  ucl setup
-  ucl folder show
-  ucl prefix show | ucl prefix set LIC|<prefix>|none
-  ucl product add <product-id> --name <display name>
-  ucl product rename <product-id> --name <display name>
-  ucl product feature add <product-id> <feature> --type switch|number|text
-  ucl product list
-  ucl license issue <product-id> --expires <date|instant|perpetual> [--feature name=value]...
-                    [--display-name] [--vendor-tag] [--order-ref] [--email]
-  ucl license reissue <reference> [--expires <...|suggested>] [--feature name=value]...
-                    [--remove-feature name]... [--display-name] [--vendor-tag] [--order-ref] [--email]
-  ucl license renew <reference> [--expires <...|suggested>] [--order-ref] [--email]
-  ucl license resend <reference>
-  ucl license list [--product] [--reference] [--order-ref] [--email]
-  ucl license show <reference>
-  ucl license customer <reference> [--order-ref <v> | --clear-order-refs] [--email <v> | --clear-email]
-  ucl key status [--without-standby]
-  ucl key add-standby <product-id|shared>
-  ucl key switch <product-id|shared> --reason routine|loss|leak [--yes]
-  ucl key trusted <product-id>
-  ucl key released <product-id>
-  ucl key reissues-sent <signing-key-id>
-  ucl key export <signing-key-id> --out <file.csv>
-  ucl backup export --out <file.zip>
-  ucl backup import <file.zip>
+  1 Products        1 Add a product            product ID, display name
+                    2 Rename a product         product (list), display name (current shown)
+                    3 Add a feature            product (list), feature name, type switch|number|text
+                    4 List products
+  2 Licenses        1 Issue                    product (list), expiry, display name, vendor tag,
+                                               each defined feature in turn, order reference,
+                                               customer email -> summary -> sign
+                    2 Reissue                  reference, expiry (current), display name (current;
+                                               /remove), vendor tag (current; /remove), each
+                                               defined feature (current; /remove for number or
+                                               text), order reference,
+                                               customer email (current) -> summary -> sign
+                    3 Renew                    reference, expiry (suggested), order reference,
+                                               customer email (current) -> summary -> sign
+                    4 Resend                   reference -> summary -> sign
+                    5 Find and list            product, reference, order reference, customer email
+                                               (each optional; all empty lists every license)
+                    6 Show a license           reference
+                    7 Customer details         reference, then 1 change email, 2 clear email,
+                                               3 correct latest order reference, 4 clear all
+                                               order references
+  3 Signing keys    1 Status                   only those without a standby key? [y/N]
+                    2 Add a standby key        signing key without one (list)
+                    3 Switch                   signing key (list: products, or shared), reason
+                                               routine|loss|leak, confirmation when the new
+                                               active key is not in a release
+                    4 Trusted keys             product (list)
+                    5 Release confirmed        product (list), list shown, confirm [y/N]
+                    6 Reissues sent            signing key replaced for leak (list), confirm [y/N]
+                    7 Export by signing key    signing key (list), file path
+  4 Backup          1 Export                   file path
+                    2 Restore into the current folder
+                                               file path (current directory only; refused in the
+                                               home folder or a folder holding an installation)
+  5 Settings        1 Folder in use            full path, and the unused-installation note
+                    2 Prefix                   current shown; new prefix LIC|<prefix>|none
+                    3 Idle lock                current shown; minutes 1 to 1440 or never
+                    4 New installation in the current folder
+                                               1 Set up, 2 Restore from a backup (refused in the
+                                               home folder or a folder holding an installation)
+  0 Quit
 ```
 
-Feature values follow the product's definition: switch `name=on|off`, number `name=500`, text
-`name=eu`. `off` leaves a switch out of the key at issue and removes it at reissue, as
-`--remove-feature`. A command giving one feature twice, or giving it and removing it, exits 1
-naming the feature (PDR-0044). Expiry: `2027-03-01` (date, PDR-0007), `2027-03-01T23:59:59Z`, `perpetual`. A missing
-input is prompted. With stdin redirected (nobody present, ADR-0017) every command except bare
-`ucl`, `--help` and `--version` refuses with exit 1 before doing anything. Bare `ucl` prints help
-to stdout and exits 0. The passphrase is read only at the hidden prompt. `ucl setup` takes no
-options; the folder is asked: `~/.ucl` (proposed) or the
-current directory, with a warning when the current directory is home; `~/.ucl` is created when missing; other files
-in the chosen folder are left alone. The closing message ends with the next steps:
-`ucl product add <product-id> --name <name>` (per-product mode: notes it creates the signing key
-and asks the passphrase), then `ucl key trusted <product-id>`. `--order-ref` on issue, reissue and renew sets the new issue entry's order reference; on
-`license customer` it corrects the latest entry's. `prefix set` needs no passphrase. Prompts and
-messages go to stderr; the result (key string, file path, list) to stdout. Every command that opens
-an installation first writes `Using <full path>` to stderr, then, when the current directory is
-used and `<home>/.ucl` also holds `ucl.db`, a note naming it as not used. No installation found:
-exit 1 naming the folders checked, then `Run setup now? [y/N]`, starting setup on yes; setup
-started this way ends after its closing message with a generic line telling the vendor to run
-their command again, exits 0, and does not run the original command. `folder show` prints the
-resolved folder to stdout. `backup import` asks for the target as setup does. A path for
-`--out` or `backup import` that fails the named-file checks (ADR-0019) is reported with its full
-path and asked again at the prompt, also when it was given on the command.
-Exit codes: 0 done, 1 refused (validation, wrong passphrase, missing installation), 2 usage
-error.
+Questions (ADR-0020): each shows what it accepts, the proposed or current value (Enter accepts
+it) and `/cancel`; a refused answer names the rule and asks that question again, keeping the
+action's earlier answers. Lists are numbered; the answer is the number or the ID. Values typed:
+expiry `2027-03-01` (date, PDR-0007), `2027-03-01T23:59:59Z` or `perpetual`; switch `on` or
+`off` (`off` leaves it out at issue, removes it at reissue, PDR-0044); number and text by the
+definition's type; empty skips an optional input at issue and keeps the current value at reissue.
+The suggested expiry is the proposed answer at renewal (Expiry suggestion).
+
+Setup questions, in order: folder (startup offer only; from Settings the current directory is the
+only folder and is not asked), passphrase twice (hidden), prefix (`LIC` proposed), signing-key
+mode (per product proposed, or shared), standby keys (`[Y/n]`, recommended), idle lock (15
+proposed). Setup creates the folder and database only after the last answer, in one step, so a
+cancelled setup leaves nothing behind. The closing message names the full path, the content,
+backup advice, the sync warning naming example services, and the next steps as menu entries:
+Products > Add a product (per-product mode: creates its signing key under the passphrase just
+set), then Signing keys > Trusted keys. In both modes the session keeps the passphrase typed at
+setup, under the idle lock (PDR-0050, ADR-0021). The session then writes `Using <full path>` and shows the main menu.
+
+Signing: issue, reissue, renew and resend show the summary (product, reference when known,
+expiry, display name, vendor tag, features, customer email, order reference) and ask `Sign this
+license? [Y/n]`; no stores nothing and shows the Licenses menu. Then the passphrase when the
+session holds none (ADR-0021), the signing, and one transaction writing the record. The key
+string is written once, on its own line, then `Save the key to a file? [y/N]`; yes asks for a path
+under the named-file checks and writes the key string alone (ADR-0020).
+
+The passphrase is asked, when the session does not hold it, only by actions that sign or create a key: Add a product in per-product
+mode, issue, reissue, renew, resend, Add a standby key and Switch. Up to three tries per action
+(ADR-0021). Prefix and idle lock changes need no passphrase; an idle lock change is stored and
+applies from the next session.
+
+Restore (startup offer, Backup menu, or Settings) asks for the backup's path, shows the date it
+was taken and the warning, imports, writes `Using <full path>` and continues the session with the
+restored installation (Backup and export).
+
+Exit codes: 0 Quit, help, version, Quit at the startup offer; 1 nobody present, end of input, a
+database the tool cannot open; 2 any other argument.
 
 ### Packaging and release — ADR-0011
 
@@ -245,13 +305,29 @@ pushes `*.nupkg`; a step installs the tool from the pack folder into a temp tool
 `github-release.mjs` or job `github-release` (ADR-0016; release-process: One link per published
 package).
 
-### Command line and console — ADR-0012, ADR-0017
+### Console and session — ADR-0020, ADR-0021, ADR-0017
 
-System.CommandLine 2.0 for parsing, help and validation. Prompts with BCL `Console`. A person is
-present when stdin is not redirected; redirected stdout or stderr does not count. Prompts on
-stderr so stdout can be redirected; hidden passphrase read with `Console.ReadKey(intercept:
-true)`, the only passphrase source. The tool does not set `Console.OutputEncoding`; key strings
-are ASCII.
+- Arguments handled by hand; no System.CommandLine (ADR-0020, superseding ADR-0012).
+- A person is present when neither stdin nor stdout is redirected (`Console.IsInputRedirected`
+  and `Console.IsOutputRedirected` both false), checked once after the arguments; a redirected
+  stderr does not count (vendor-tool-setup: Menu session, PDR-0050).
+- Inside the session everything goes to stdout. stderr carries only the refusals written before
+  the session opens.
+- Answers read with `Console.ReadLine`, trimmed before their rule is checked; `null` (end of
+  input) ends the session with exit 1, storing nothing from the action in progress. Ctrl+C is
+  not intercepted.
+- `/cancel` (any question) and `/remove` (reissue: display name, vendor tag, number and text
+  features) are reserved, whole answer,
+  any case.
+- Hidden passphrase: `Console.ReadKey(intercept: true)` into a pinned buffer, nothing echoed,
+  Backspace and Enter handled, the only passphrase source.
+- Each action asks every question first and writes in one transaction at the end; cancelling
+  is an exception the menu loop catches.
+- Passphrase held for the session as pinned bytes in `SessionLock`; idle lock by a
+  `TimeProvider` timer restarted on each answer, plus a check on each use; zeroed at Quit, end
+  of input and the end of the run; no decrypted key outlives its action (ADR-0021).
+- The tool does not set `Console.OutputEncoding`; key strings are ASCII. A key saved to a file is
+  ASCII, no byte order mark, no line ending.
 
 ### Database and folder — ADR-0013
 
@@ -269,7 +345,7 @@ Tables:
 
 | Table | Columns (key first) |
 |---|---|
-| `Settings` | `Name`, `Value` — prefix, signing-key mode, standby on, passphrase check (salt, iterations, hash) |
+| `Settings` | `Name`, `Value` — prefix, signing-key mode, standby on, idle lock (minutes or `never`), passphrase check (salt, iterations, hash) |
 | `Products` | `ProductId`, `DisplayName`, `CreatedUtc` |
 | `FeatureDefinitions` | `ProductId` + `Name`, `Type`, `AddedUtc` |
 | `SigningKeys` | `SigningKeyId`, `ProductId` (null in shared mode), `PublicKey` (export line), `EncryptedPrivateKeyPem`, `Role` (active / standby / replaced), `CreatedUtc`, `ReplacedUtc`, `ReplacedReason`, `InReleaseUtc`, `ReissuesSentUtc` |
@@ -287,7 +363,7 @@ other files and readable with a plain SQLite connection (PDR-0046).
 
 - The library project adds `InternalsVisibleTo` for the tool, and `ContentRules.CheckText`
   changes from private to internal. No public type or behaviour changes.
-- Product display name: `ContentRules.CheckDisplayName` at `product add` and `product rename`.
+- Product display name: `ContentRules.CheckDisplayName` at Add a product and Rename a product.
 - Customer email: `CheckText` (field `customerEmail`, maximum 254). Then at least 3 characters,
   exactly one `@` with text before and after, and no U+0020.
 - Order reference: `CheckText` (field `orderRef`, maximum 64).
@@ -296,9 +372,10 @@ other files and readable with a plain SQLite connection (PDR-0046).
   equality.
 - Passphrase rule at setup: every character U+0020 to U+007E, 15 to 256, first and last not
   U+0020.
-- Output files (backup export, key export): full path from `Path.GetFullPath`. The tool asks
-  again when the path is an existing file, a folder, or has a missing parent folder. The file is
-  opened with `FileMode.CreateNew`.
+- Idle lock: a whole number 1 to 1440 (ASCII digits only) or `never`, any case.
+- Output files (backup export, key export, key saved to a file), always asked at a question:
+  full path from `Path.GetFullPath`. The tool asks again when the path is an existing file, a
+  folder, or has a missing parent folder. The file is opened with `FileMode.CreateNew`.
 - Import path: asked again when it is missing or a folder.
 
 ### Private keys — ADR-0014
@@ -306,10 +383,11 @@ other files and readable with a plain SQLite connection (PDR-0046).
 Create: `SigningKeyPair.Create()` → `ExportPem()` → `ECDsa.ImportFromPem` →
 `ExportEncryptedPkcs8PrivateKeyPem(passphrase, PBES2 AES-256-CBC, PBKDF2-HMAC-SHA256, 600,000
 iterations)`. Use: `ECDsa.ImportFromEncryptedPem` → `ExportPkcs8PrivateKeyPem` →
-`SigningPrivateKey.FromPem`, disposed when the command ends. The passphrase is checked first
+`SigningPrivateKey.FromPem`, disposed before the action returns. The passphrase is checked first
 against the `Settings` passphrase check (PBKDF2-SHA256, 16-byte salt, same iteration count,
 `CryptographicOperations.FixedTimeEquals`), so a mistyped passphrase in per-product mode cannot
-encrypt a new key under a different passphrase. Tests pass a low iteration count through
+encrypt a new key under a different passphrase. Every step takes the passphrase as bytes from
+`SessionLock`, never as a string (ADR-0021). Tests pass a low iteration count through
 `ToolEnvironment`; the count is stored with each PEM and check, so decrypting reads it back.
 
 ### Backup and export — ADR-0015
@@ -330,16 +408,17 @@ R.IssuedUtc), end = R.ExpiresUtc. With no renewal entry: start = first entry's `
 its `ExpiresUtc`. Renewal of a time-limited license: if start and end share day of month (a day
 past a month's end counting as its last day) and time of day, add the same number of calendar
 months to the current expiry (clamping to month end); otherwise add `end - start`. Perpetual:
-perpetual. Other reissues: current expiry. `--expires suggested` takes it without a prompt.
+perpetual. Other reissues: current expiry. The result is the proposed answer to the expiry
+question.
 
 ### Trusted keys
 
 Per product (or the shared key set): active, standby, every replaced key with reason routine or
-loss, and a key replaced for leak while `ReissuesSentUtc` is null. `key released` sets
-`InReleaseUtc` on every listed key that lacks it. `key switch` warns and asks `[y/N]` when the key
+loss, and a key replaced for leak while `ReissuesSentUtc` is null. Release confirmed sets
+`InReleaseUtc` on every listed key that lacks it. Switch warns and asks `[y/N]` when the key
 becoming active has no `InReleaseUtc`: a standby not yet released, or the new key pair created
 when there is no standby (it never has one), for every reason (PDR-0047). Declining writes
-nothing and exits 1; `--yes` gives the answer on the command.
+nothing and shows the Signing keys menu (PDR-0050).
 
 ### Ownership
 
@@ -354,21 +433,30 @@ nothing and exits 1; `--yes` gives the answer on the command.
 
 ## Test strategy
 
+The bar is unchanged (production). Every scenario is driven through `ToolApp.Run` as a whole
+session: the scripted console holds the answers in order (menu numbers included), a fake
+`TimeProvider` (written in the test project, ADR-0021) can be advanced before any answer, and the
+transcript of everything written is asserted. A test ends with Quit, so the exit code and the
+return to each menu are checked as well.
+
 | Level | What | How |
 |---|---|---|
-| Unit | Expiry suggestion (every Suggested expiry scenario plus month-end and leap cases), folder precedence, trusted list, CSV quoting, feature value parsing (including `off` and contradictions), passphrase check, passphrase rule, email and order reference rules, match key (case, both accent forms, spaces, no partial match), named-file checks | xUnit, test names follow spec scenarios |
-| Integration | Every command scenario in the five vendor-tool specs, in-process against a temp folder with a real SQLite file, scripted console with a person present (and one test per refusal with nobody present), fixed `TimeProvider`, low PBKDF2 count | xUnit; one temp folder per test |
-| Integration | Issued keys verify with the library's `LicenseEvaluator` trusting the tool's `key trusted` lines | xUnit |
+| Unit | Expiry suggestion (every Suggested expiry scenario plus month-end and leap cases), folder precedence, trusted list, CSV quoting, feature value parsing (including `off` and `/remove`), passphrase check, passphrase rule, idle lock rule, email and order reference rules, match key (case, both accent forms, spaces, no partial match), named-file checks, argument handling (help, version, everything else refused) | xUnit, test names follow spec scenarios |
+| Unit | Questions: proposed value, rule named and asked again, earlier answers kept, numbered lists by number or ID, yes/no, `/cancel` at a line and at the hidden prompt, end of input | xUnit against a stub action |
+| Unit | `SessionLock`: held after unlock, locked when the fake clock passes the idle time with no answer (timer fired, bytes zeroed), each answer restarts the timer, check on use when the timer has not run, `never` never locks, zeroed at Quit and at end of input | xUnit, fake `TimeProvider` |
+| Integration | Every scenario in the five vendor-tool specs, as whole sessions in-process against a temp folder with a real SQLite file, a person present, fake `TimeProvider`, low PBKDF2 count; nobody present as one run per refusal (input redirected, output redirected) | xUnit; one temp folder per test |
+| Integration | Issued keys verify with the library's `LicenseEvaluator` trusting the lines printed by Trusted keys | xUnit |
 | Integration | No key string in the folder: issue several licenses, scan every byte of `ucl.db` for each key string; cleared email, order references and their match keys absent from the file | xUnit |
 | Integration | Records complete without the folder: read every table with a plain SQLite connection (no EF Core) and reissue a license from those values alone; no value holds the folder path, home path or machine name (PDR-0046) | xUnit |
 | Integration | Encrypted PEM opens with `ECDsa.ImportFromEncryptedPem` and the passphrase; not without | xUnit |
-| Integration | Backup round trip into a new folder; refusals; newer-version manifest | xUnit |
+| Integration | Backup round trip into a new folder from each entry point (startup offer, Backup menu, Settings); refusals; newer-version manifest | xUnit |
 | Integration | Portability: a folder copied and a backup restored into a different temp home work; no stored value contains the source folder's path | xUnit |
 | Integration | Production iteration count: one test runs a single encrypt/decrypt at 600,000 to confirm it completes (time printed, not asserted) | xUnit |
 | Package | Pack the tool, install it from the pack folder into a temp tool path, run `ucl --version` | `release.yml` step; locally by the worker |
 | Observed | Stored PEM opened with `openssl pkey` and the passphrase | Carl, once, recorded in tasks.md |
 | Observed | Full suite on macOS, Linux and Windows before archive (FR-2, PDR-0038) | Carl, recorded in tasks.md |
-| Observed | Guided use in Windows PowerShell 5.1, PowerShell 7, Windows Terminal and Command Prompt: setup, hidden passphrase, redirects, non-ASCII home path, nobody-present refusal | Carl, recorded in tasks.md |
+| Observed | Menu session in Windows PowerShell 5.1, PowerShell 7, Windows Terminal and Command Prompt: setup, hidden passphrase, line editing at a question, `/cancel`, a key saved to a file, non-ASCII home path, refusal with input or output redirected | Carl, recorded in tasks.md |
+| Observed | Idle lock in a real terminal: left past the idle time, the next signing asks again | Carl, once, recorded in tasks.md |
 | Observed | Folder copy and backup restore between operating systems (PDR-0040) | Carl, recorded in tasks.md |
 
 Validation for every block: `dotnet build Umbraco.Community.Licensing.slnx`,
@@ -382,29 +470,28 @@ Validation for every block: `dotnet build Umbraco.Community.Licensing.slnx`,
   `EnsureCreated` with no migrations, which cannot upgrade a vendor's database in a later
   version.
 - [Decrypted PEM lives briefly as a .NET string, which cannot be zeroed] → Accepted for this
-  bar; lifetime is one command. `pre-1.0-considerations.md` C2 (`FromECDsa`) would remove the
+  bar; lifetime is one signing. `pre-1.0-considerations.md` C2 (`FromECDsa`) would remove the
   string; not in this change.
-- [Passphrase typed once per license; no batch] → Accepted for guided mode (PDR-0039);
-  FR-22 and FR-20.
-- [Windows PowerShell 5.1 writes a redirected key file as UTF-16] → Documented in the guide
-  (PDR-0039); the tool cannot control the shell.
+- [Passphrase held in memory while the session is unlocked] → Pinned bytes, zeroed at the idle
+  lock, Quit and end of input (ADR-0021). With `never`, only quitting clears it; the guide says to
+  quit when leaving the terminal (PDR-0049).
+- [Ctrl+C or a closed terminal ends the process without zeroing] → Memory goes with the process;
+  an action interrupted before its last question stores nothing (one transaction at the end).
+- [A value of exactly `/cancel` or `/remove` cannot be entered] → Accepted; stated in the guide
+  (ADR-0020).
 - [Non-ASCII home path shown as `?` in a legacy-code-page Command Prompt] → Accepted; the tool
   does not change the console code page (ADR-0017); checked by Carl (tasks.md 13.4).
-- [Stderr redirected hides the prompts while the tool waits] → Person-present detection reads
-  stdin only; the guide says not to redirect stderr.
 - [Cloud-synced folder chosen anyway] → Setup warns; the tool cannot detect sync reliably on
   every OS.
 - [Lost passphrase] → Keys unrecoverable (FR-2 loss case). Setup and the guide say to keep it in a
   password manager, apart from backups.
 - [Older backups hold cleared emails] → Stated in the guide (PDR-0033).
-- [600,000 PBKDF2 iterations cost about half a second per command that signs] → Acceptable; once
-  per command.
+- [600,000 PBKDF2 iterations cost about half a second per unlock and per signing] → Acceptable
+  for a person at a terminal (ADR-0021).
 - [First push of a new package ID under Trusted Publishing] → The policy is per repository and
   workflow (ADR-0008); if nuget.org refuses, Carl publishes the first tool version with a
   short-lived API key and records it in follow-ups.md.
 - [Lockstep versions: a tool-only fix bumps the library version] → Accepted in beta (ADR-0011).
-- [System.CommandLine API differs between 2.0 betas and 2.0 stable] → Pin the stable 2.0.x
-  exactly; the brief names it.
 - [Tool uses library internals through `InternalsVisibleTo`] → Safe: the tool package bundles
   the library assembly it was built with, and both release at one version (ADR-0011). A library
   refactor that breaks the tool fails the same build (ADR-0019).

@@ -62,15 +62,24 @@ record SHALL hold everything needed to reissue the license.
 
 ### Requirement: Reissuing from the record
 The vendor SHALL reissue a license from its record, keeping product and reference, and changing
-any of expiry, display name, vendor tag and features. The reissue SHALL be checked and signed as
-an issue, with the product's current active signing key, and SHALL add an issue entry to the
-same license record. An order reference MAY be given for the new issue entry, and the customer
-email MAY be changed at the same time. A renewal SHALL be recorded as a renewal.
+any of expiry, display name, vendor tag and features. The display name and vendor tag SHALL
+each be asked showing the current value: an empty answer SHALL keep it, a new value SHALL change
+it, and a remove answer SHALL remove it, so the new key carries none. The reissue SHALL be
+checked and signed as an issue, with the product's current active signing key, and SHALL add an
+issue entry to the same license record. An order reference MAY be given for the new issue entry,
+and the customer email MAY be changed at the same time. A renewal SHALL be recorded as a
+renewal.
 
 #### Scenario: Add-on bought
 - **WHEN** the vendor reissues `LIC-8F3AK-M7RXB` adding switch `shipping`
 - **THEN** a new key string with the same reference, the earlier features plus `shipping` and the
   current expiry is shown, and the record gains an issue entry
+
+#### Scenario: Display name removed at reissue
+- **WHEN** the vendor reissues `LIC-8F3AK-M7RXB`, which carries display name "Acme Shop EU", and
+  answers remove for the display name
+- **THEN** the new key carries no display name, and its features, expiry and vendor tag are
+  unchanged
 
 ### Requirement: Switch values and features at reissue
 At issue and at reissue, a switch answered `on` SHALL be granted and a switch answered `off`

@@ -33,9 +33,10 @@ encrypted; license records; customer emails and order references, not encrypted)
 folder must be backed up and kept out of folders synced to cloud storage, naming a few such
 services as examples (for instance OneDrive, iCloud Drive or Dropbox) without presenting them as
 a complete list, and then the next steps, named as menu entries:
-add a product (in per-product mode, saying this creates its signing key and asks for the
-passphrase), then print the public key lines its release must trust. The session SHALL then
-continue to the menu with the new installation. The signing-key mode
+add a product (in per-product mode, saying this creates its signing key under the passphrase
+just set), then print the public key lines its release must trust. The session SHALL then
+continue to the menu with the new installation, keeping the passphrase typed at setup in either
+signing-key mode, under the idle lock (Idle lock). The signing-key mode
 SHALL NOT change after setup; the prefix MAY (Changing the prefix), and so MAY the idle lock time. Setup SHALL refuse a folder that already holds an
 installation, changing nothing. Setup SHALL take no answer from options, environment settings or
 redirected input.
@@ -257,7 +258,8 @@ Backup SHALL offer export, and restore into the current folder (New installation
 folder). Settings SHALL offer the folder in use, the prefix, the idle lock and a new installation
 in the current folder. After each action, and after a cancelled one, the session SHALL return to
 the menu it was chosen from, until the vendor quits. The tool SHALL accept no command other than
-help and version, and no input on the command. With nobody present to answer (no terminal attached for input), the tool SHALL
+help and version, and no input on the command. A person is present only when both the tool's
+input and its output are a terminal. With nobody present, the tool SHALL
 refuse before doing anything, saying it is run by a person at a terminal, and change nothing;
 help and the version SHALL work with nobody present. Quitting SHALL end the session, forgetting
 the passphrase and every decrypted private key, and exit with success.
@@ -270,6 +272,11 @@ the passphrase and every decrypted private key, and exit with success.
 
 #### Scenario: Nobody present
 - **WHEN** a script starts the tool with no terminal attached
+- **THEN** it refuses, saying the tool is run by a person at a terminal, changes nothing, and
+  exits with a failure code
+
+#### Scenario: Output redirected
+- **WHEN** the vendor starts the tool at a terminal with its output redirected to a file
 - **THEN** it refuses, saying the tool is run by a person at a terminal, changes nothing, and
   exits with a failure code
 

@@ -1,6 +1,6 @@
 # ADR-0013: Vendor tool database and folder
 
-- Status: Amended by ADR-0017, ADR-0019
+- Status: Amended by ADR-0017, ADR-0019, ADR-0020
 - Date: 2026-10-28
 - Source: `add-vendor-tool` design.md Q6, Q20, Q29
 

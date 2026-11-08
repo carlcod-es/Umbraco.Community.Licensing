@@ -1,6 +1,6 @@
 # ADR-0017: Vendor tool guided console and startup
 
-- Status: Decided
+- Status: Amended by ADR-0020
 - Date: 2026-11-08
 - Source: `add-vendor-tool` design.md Q32, Q33, Q34, Q35, Q36. Amends ADR-0012, ADR-0013.
 

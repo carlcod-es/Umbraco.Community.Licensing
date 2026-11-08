@@ -1,6 +1,6 @@
 # PDR-0039: Vendor tool runs in guided mode only
 
-- Status: Amended by PDR-0048, PDR-0049; to revisit: FR-26 (PDR-0046)
+- Status: Amended by PDR-0048, PDR-0049, PDR-0050; to revisit: FR-26 (PDR-0046)
 - Date: 2026-11-08
 - Source: `add-vendor-tool` design.md Q33. Amends PDR-0030, PDR-0032, PDR-0034, PDR-0038.
   Scripted mode moved to `docs/feature-requests.md` FR-22.

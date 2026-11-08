@@ -89,13 +89,15 @@ published, the library is ready to gain its main issuing client.
   tests with the library's.
 - Library: no public API or behaviour change. The tool reaches the internal text-rule check
   through `InternalsVisibleTo` (ADR-0019).
-- Records: PDR-0030 to PDR-0036, PDR-0038 to PDR-0041, PDR-0043 to PDR-0049 (new); ADR-0011 to
-  ADR-0015, ADR-0017, ADR-0019 (new; ADR-0011 amends ADR-0008; ADR-0017 amends ADR-0012 and
-  ADR-0013; ADR-0019 amends ADR-0003 and ADR-0013). `docs/feature-requests.md`: FR-2, FR-4 and FR-23
-  taken into this change; FR-11 to FR-18, FR-20 and FR-22 to FR-26 added.
-- Dependencies (approved by Carl, 2026-10-28): System.CommandLine,
-  Microsoft.EntityFrameworkCore.Sqlite, Microsoft.EntityFrameworkCore.Design (build only),
-  `dotnet-ef` local tool (creating migrations).
+- Records: PDR-0030 to PDR-0036, PDR-0038 to PDR-0041, PDR-0043 to PDR-0050 (new); ADR-0011 to
+  ADR-0015, ADR-0017, ADR-0019 to ADR-0021 (new; ADR-0011 amends ADR-0008; ADR-0017 amends
+  ADR-0012 and ADR-0013; ADR-0019 amends ADR-0003 and ADR-0013; ADR-0020 supersedes ADR-0012 and
+  amends ADR-0013, ADR-0017 and ADR-0019; ADR-0021 amends ADR-0014). `docs/feature-requests.md`: FR-2, FR-4 and FR-23
+  taken into this change; FR-11 to FR-18, FR-20 and FR-22 to FR-27 added.
+- Dependencies (approved by Carl, 2026-10-28): Microsoft.EntityFrameworkCore.Sqlite,
+  Microsoft.EntityFrameworkCore.Design (build only), `dotnet-ef` local tool (creating
+  migrations). System.CommandLine, approved then, is dropped: the menu session needs no command
+  parser (ADR-0020).
 - Prerequisite for vendors: the .NET SDK.
 - Personas: vendor (records, safe keys, guided rotation). Site owner (primary): keys unchanged;
   renewals keep paid-for days; lost keys resent from records; a copied backup holds no usable
