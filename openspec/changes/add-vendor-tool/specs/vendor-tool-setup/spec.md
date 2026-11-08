@@ -26,7 +26,9 @@ products), and whether to create a standby key with each signing key, presented 
 In shared mode setup SHALL create the shared signing key (and its standby key when chosen).
 Setup SHALL end by naming the folder's full path, what it holds (private signing keys,
 encrypted; license records; customer emails and order references, not encrypted), and that the
-folder must be backed up and kept out of folders synced to cloud storage, and then the next steps:
+folder must be backed up and kept out of folders synced to cloud storage, naming a few such
+services as examples (for instance OneDrive, iCloud Drive or Dropbox) without presenting them as
+a complete list, and then the next steps:
 add a product (in per-product mode, saying this creates its signing key and asks for the
 passphrase), then print the public key lines its release must trust. The signing-key mode
 SHALL NOT change after setup; the prefix MAY (Changing the prefix). Setup SHALL refuse a folder that already holds an
@@ -39,7 +41,7 @@ person at a terminal, and create nothing.
   and keeps the standby key
 - **THEN** an installation is created in `~/.ucl` with prefix `LIC`, one signing key per product
   and standby keys on, and the final message names the full folder path, the content, the
-  backup advice, the sync warning and the next steps
+  backup advice, the sync warning with example services and the next steps
 
 #### Scenario: Invalid prefix
 - **WHEN** the vendor types prefix `acme-shop`
@@ -93,7 +95,16 @@ of: a folder named on the command, the current folder when it holds an installat
 the home folder. The tool SHALL remember no folder between runs. Every action that uses an
 installation SHALL state the folder's full path on standard error. When no installation is
 found, the action SHALL refuse, naming the folders it checked; with a person present it SHALL
-then offer to run setup, and start it only when the person accepts.
+then offer to run setup, and start it only when the person accepts. The home folder SHALL be the
+user's home folder as the operating system defines it (on Windows, the user's profile folder).
+Every path the tool shows SHALL be the full path in the operating system's own form, never
+abbreviated with `~`. In this spec, `~/.ucl` and `~/<name>` stand for `.ucl` and `<name>` in the
+home folder.
+
+#### Scenario: Default folder on Windows
+- **WHEN** user `carl` runs setup on Windows with no `.ucl` in the profile folder
+- **THEN** setup proposes `C:\Users\carl\.ucl`, shown in full, and on acceptance creates it and
+  names that path in the closing message
 
 #### Scenario: Default folder created
 - **WHEN** setup runs on a machine with no `~/.ucl` and the vendor accepts the proposed folder
@@ -160,3 +171,28 @@ completed; a refusal SHALL exit with a failure code.
 #### Scenario: Prompted by hand
 - **WHEN** the vendor runs the issue action at a terminal without an expiry
 - **THEN** the action asks for the expiry
+
+### Requirement: Operating systems and terminals
+The tool SHALL run on Windows, macOS and Linux. On Windows it SHALL work in PowerShell, Windows
+Terminal and Command Prompt. In each, every action SHALL behave as this spec states, including:
+setup, prompts, hidden passphrase entry, the result alone on standard output when it is
+redirected to a file, messages on standard error, the passphrase taken from the environment
+setting or standard input, and the exit code seen by the shell. The tool guide SHALL show the
+scripting examples (setting the passphrase environment setting, passing it on standard input,
+reading the exit code) for each of these shells as well as for macOS and Linux.
+
+#### Scenario: Setup in each Windows terminal
+- **WHEN** the vendor runs setup in PowerShell, in Windows Terminal and in Command Prompt
+- **THEN** in each, the folder is offered as a full Windows path, the passphrase is not shown
+  while typed, and setup completes as on macOS and Linux
+
+#### Scenario: Key redirected to a file on Windows
+- **WHEN** the vendor runs the issue action in Command Prompt or PowerShell with standard output
+  redirected to a file
+- **THEN** the file holds the key string alone, and the messages appear on screen
+
+#### Scenario: Scripted issue on Windows
+- **WHEN** a PowerShell or Command Prompt script sets the passphrase environment setting, or
+  passes the passphrase on standard input, and runs the issue action with all inputs given
+- **THEN** the key string is written with no prompt, and the shell sees a success exit code; a
+  refusal gives a failure exit code

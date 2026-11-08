@@ -8,7 +8,7 @@ Cite as FR-N.
 | FR | Title | Raised | Status |
 |---|---|---|---|
 | FR-1 | Vendor-chosen key identifier prefix | Carl, 2026-10-09 | Taken into `add-license-core` (design.md Q20, PDR-0023) |
-| FR-2 | Vendor issuing console tool | Carl, 2026-10-09 | Taken into `add-vendor-tool` (design.md Q1 to Q26; PDR-0030 to PDR-0036, ADR-0011 to ADR-0015). SQL Server dropped (Carl, 2026-10-28) |
+| FR-2 | Vendor issuing console tool | Carl, 2026-10-09 | Taken into `add-vendor-tool` (design.md Q1 to Q26; PDR-0030 to PDR-0036, ADR-0011 to ADR-0015). SQL Server dropped (Carl, 2026-10-28). Windows added: design.md Q32, PDR-0038 (Carl, 2026-11-07) |
 | FR-3 | Example product package | Carl, 2026-10-09 | Open; possible later change |
 | FR-4 | Standby signing key | Carl, 2026-10-10 | Taken into `add-vendor-tool` (design.md Q15, Q16; PDR-0032, PDR-0035). Issue 2 answered by the passphrase; storing apart is FR-15 |
 | FR-5 | Responding to a compromised signing key | Carl, 2026-10-10 | Open; after FR-2 |
@@ -27,6 +27,7 @@ Cite as FR-N.
 | FR-18 | Warn on a reused order reference | `add-vendor-tool` explore, 2026-10-28 | Open |
 | FR-19 | Change the version line from the release command | Carl, 2026-10-28 | Open; after `add-github-release` |
 | FR-20 | Issue several licenses in one vendor tool run | Carl, 2026-10-29 (`add-vendor-tool` update) | Open |
+| FR-21 | Optional, vendor-defined call-home | Carl, 2026-11-07 (explore) | Open. Conflicts with the README "Offline" promise; see Issue |
 
 ## FR-1: Vendor-chosen key identifier prefix
 
@@ -128,7 +129,7 @@ vendor's choice.
 **Cross-platform testing (Carl, 2026-10-12).** The change that builds the tool runs the full
 test suite (library and tool) on macOS and Linux, on Carl's machines, before it is archived.
 The library has run only on macOS so far (`add-license-core`); this closes that gap until CI
-exists. Windows is not covered by these machines.
+exists. Windows is not covered by these machines. Update (Carl, 2026-11-07): `add-vendor-tool` also runs the suite on Windows and checks the tool by hand in PowerShell, Windows Terminal and Command Prompt (design.md Q32, PDR-0038).
 
 **Personas.** Vendor: issue and reissue from records instead of from the key a site owner
 presents. Site owner: unaffected; keys are the same.
@@ -445,3 +446,173 @@ passphrase is supplied once. Site owner: keys unchanged.
 4. Whether reissue, renew and resend batch too.
 
 **Related.** PDR-0030 (batched use), PDR-0032 (passphrase once per run), FR-18.
+
+## FR-21: Optional, vendor-defined call-home
+
+**Request.** A product can optionally call a service the vendor builds and hosts, and the vendor
+defines that call: when it is made, what it sends, and what the product does with the answer
+(Carl, 2026-11-07). The library makes the call and handles the answer; the vendor's service is
+the vendor's own. Whether the library also supplies the vendor's side is open (question 1).
+
+**Issue.** This reverses a headline promise. The README says "**Offline.** A key is checked
+entirely on the site. No licensing server, no phone-home, no network call, nothing to go down",
+and the license-validation spec says an evaluation SHALL work with no network access. The
+README "Limits of offline licensing" (no revocation, no binding, trusted clock, bearer token)
+are the limits call-home would address. The change that takes this up must reword the promise
+(for example "works fully offline; calling home is optional and off by default") and state
+which limits still apply. Evaluation itself stays offline and under 1 ms (PDR-0022): a call is
+never made inside a page request.
+
+**Principle proposed (explore, 2026-11-07).** The signed key stays the source of truth. An
+answer can inform, take away (binding mode only) or deliver a new signed key; it can never grant
+anything by itself. A forged answer can then at most take away, and must first pass the check
+that it came from the vendor.
+
+**Personas.**
+- Site owner (primary): a renewed key arrives before expiry; a vendor outage or a vendor going
+  out of business must not switch off a product they paid for.
+- Implementor: needs to see that a product calls home, what it sends, when it last succeeded,
+  and why it fails; firewalled or air-gapped sites must keep working; local, staging and
+  production must not count as three sites.
+- Vendor: revocation (refunds, leaked keys, FR-5), activation and seat limits, status messages.
+- Backoffice editor: cannot trigger calls; sees only what the product chooses to show.
+- Site visitor: never in the page path; never sees licensing messages; no failure reaches a page.
+
+### Explored options
+
+**Capabilities.** A later change may take up some, not all.
+
+| Capability | Serves | Risk to |
+|---|---|---|
+| Revocation check | Vendor | Site owner, if a wrong answer switches off a paid product |
+| Activation / seat limit | Vendor | Implementor (environments counted as sites) |
+| Key refresh (renewed or reissued key fetched by the site) | Site owner | Little, if optional |
+| Status messages from the vendor | Site owner, implementor | Editor if noisy; never the visitor |
+| Usage reporting | Vendor | Site owner privacy (PDR-0014) |
+
+**Modes.**
+
+| Mode | If the vendor service never answers | Suits |
+|---|---|---|
+| Off (today) | Key alone decides | Everyone who wants offline only |
+| Advisory | Key alone decides; answers add messages and new keys only | Site owner |
+| Binding | Key decides for a grace window, then not licensed | Vendor (revocation and seats work) |
+
+Explore leaning: off by default; advisory when enabled; binding as an explicit vendor opt-in
+with a library-set minimum grace window.
+
+**When: a fixed menu of triggers the vendor combines**, not free rules, so implementors see the
+same behaviour across products. Named presets may sit on top ("status only", "auto-renew",
+"activation").
+
+```
+ installed       ...in use...        expiry window      expires      after expiry
+     |                                   |                 |              |
+ [on install /   [on site start]    [N days before]   [on becoming   [while expired,
+  key change]    [every N hours/      expiry]           expired]       every N]
+                  days]
+                 [on demand: a person presses "check now"]
+                 [product asks explicitly, e.g. before taking a seat]
+                 [retry after failure, backing off]
+
+ NEVER: inside a page request.
+ Library enforces: minimum gap between calls, calls spread across sites, a maximum frequency.
+```
+
+An optional trigger: state not valid (`NotSupported`, `WrongProduct`), asking whether a working
+key or product version exists.
+
+**What: payload in three groups.**
+
+```
+  SAFE (base payload)          CAREFUL (vendor enables;       NEVER
+                               disclosed to site owner)
+  -------------------          ------------------------       -----
+  trigger that fired           site address / domain          full key string (bearer token)
+  key identifier (PDR-0023)    environment name               editor names or emails
+  product ID, license ref      installation ID (random,       site visitor data
+  signing key ID                 per site)                    site content
+  library and product version  usage figures named by the     personal data (PDR-0014)
+  locally evaluated state        vendor (e.g. orders vs
+  expiry, last-checked time      max-orders)
+  proof the key is held        vendor-defined extra fields
+```
+
+The connection itself reveals the site's network address; vendor documentation says so.
+
+**After the answer.**
+
+| Answer | What happens |
+|---|---|
+| Confirmed | Last-successful time recorded and visible to the implementor |
+| Replacement key | Verified locally like any key (signature, product, trusted signing key), then handed to the host to store |
+| Revoked | Binding mode only; changes the result (question 9) |
+| Seat granted / limit reached | Binding mode only; as revoked |
+| Message | Passed to the product to show the site owner or implementor; vendor writes all text (FR-7 withdrawn) |
+| Next-check hint | Adjusts the schedule within the library's bounds |
+| Unreachable, error, or not proven to come from the vendor | The mode's fallback rule |
+
+**Requirements found in explore** (to carry into the change's specs):
+1. Never called inside a page request; evaluation stays offline and under 1 ms (PDR-0022).
+2. Off unless the vendor enables it.
+3. The site proves it holds the key without sending the key.
+4. The answer proves it came from the vendor; an unproven answer counts as no answer.
+5. A new key from an answer is verified exactly as an installed key is.
+6. The implementor can see what would be sent, what was sent, and when a call last succeeded.
+7. A binding answer survives a restart; a revoked site taken offline does not get its license
+   back.
+8. Calls are rate-limited and spread across sites; failures back off.
+
+### Questions to answer
+
+> **Blocking: may an answer ever reduce what a valid signed key grants?** Advisory only keeps
+> PDR-0002 unchanged and the change small, but leaves revocation unsolved. Binding allows
+> revocation and seats, and brings questions 9 to 12. Most questions below depend on this
+> (question 2).
+
+1. **Scope of the library.** Client only: the library defines what is asked and what answer is
+   expected, and each vendor builds a service to that contract. Or client and vendor side: the
+   library also supplies the answering side, possibly next to the vendor tool's records
+   (PDR-0030, PDR-0033, PDR-0034); a service is a different audience and operation from a
+   console tool.
+2. **Advisory or binding** (the blocking question above).
+3. **Who may turn it off.** Can the implementor or site owner disable call-home for a product?
+   In advisory mode no harm follows; in binding mode it equals being unreachable. Persona
+   priority favours the site owner.
+4. **Trigger menu.** Which triggers are offered; whether presets are offered; the library's
+   minimum gap, maximum frequency and spreading rule.
+5. **Where the vendor defines it.** Fixed in the product, in the signed key (a key format change,
+   to decide before 1.0 or not at all: PDR-0024, `docs/pre-1.0-considerations.md`), or both.
+   Can different keys for one product call home differently?
+6. **Site identity.** Address, environment name, installation ID, or none; which are on by
+   default; how environments are told apart so they are not counted as seats.
+7. **Vendor-defined payload fields.** Allowed or not; name, type and length rules (PDR-0010,
+   PDR-0017); no personal-data scanning, as PDR-0014.
+8. **Disclosure.** How the site owner and implementor are told a product calls home and what it
+   sends: vendor documentation only, or something the library shows.
+9. **Revoked and seat-refused states.** A new evaluation state (amends PDR-0002 and every host's
+   state table) or a flag on an otherwise valid result. First action and audience for each.
+10. **Fallback when unreachable** in binding mode: grace window length, who sets it, the library
+    minimum, and what the site owner is told during it.
+11. **Remembering answers.** What the host must keep across restarts, and what happens when that
+    store is lost or cleared.
+12. **A clock check.** Whether the service's time may be used to detect a site clock set back
+    (README "site's clock is trusted"), and what follows.
+13. **Replacement keys.** Applied at once or only after the host stores them; whether a key that
+    grants less, expires sooner or is older than the installed key is accepted; whether the
+    implementor is told.
+14. **Messages.** Audience (site owner, implementor; never visitor), length limits, and whether
+    the backoffice editor may see them.
+15. **Who may trigger on demand.** Implementor and site owner only; how the product enforces it.
+16. **Not-valid trigger.** Whether a `NotSupported` or `WrongProduct` key may call home to ask
+    for a working key or product version.
+17. **Usage reporting.** In scope at all, or left to vendors outside the library.
+18. **README and positioning.** The new wording of the "Offline" promise and the "Limits of
+    offline licensing" section.
+
+**Related.** PDR-0001 (an older key stays valid: "inherent offline limit"), PDR-0002 (states),
+PDR-0010 and PDR-0017 (field rules), PDR-0014 (personal data), PDR-0015 and PDR-0035 (trusted
+signing keys), PDR-0022 (evaluation per request), PDR-0023 (key identifier safe to share),
+PDR-0024 (format permanent from 1.0), PDR-0030, PDR-0033, PDR-0034 (vendor tool records), FR-5
+(compromised signing key), FR-7 (vendor writes message text), FR-9 (grace period), README
+"Limits of offline licensing", `docs/pre-1.0-considerations.md` (binding as a signed field).
