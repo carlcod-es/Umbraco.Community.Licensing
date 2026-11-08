@@ -50,6 +50,27 @@ email MAY be changed at the same time. A renewal SHALL be recorded as a renewal.
 - **THEN** a new key string with the same reference, the earlier features plus `shipping` and the
   current expiry is shown, and the record gains an issue entry
 
+### Requirement: Switch values and contradictory features
+At issue and at reissue, a switch given as `on` SHALL be granted and a switch given as `off`
+SHALL NOT be: at issue it is left out of the key, as if not given; at reissue it is removed, the
+same as removing the feature. A command that gives the same feature more than once, or gives a
+feature and also removes it, SHALL be refused naming the feature.
+
+#### Scenario: Switch given as off
+- **WHEN** the vendor issues `acme.commerce` with `ecommerce` off and `max-orders` 500
+- **THEN** the key carries `max-orders` and no `ecommerce`, and the issue entry records the
+  same features
+
+#### Scenario: Contradictory features
+- **WHEN** the vendor gives `ecommerce` on and also removes `ecommerce` in one command, or gives
+  `max-orders` twice
+- **THEN** the command is refused naming the feature, and nothing is issued or stored
+
+#### Scenario: Switch turned off at reissue
+- **WHEN** the vendor reissues `LIC-8F3AK-M7RXB`, which grants `ecommerce` and `shipping`, with
+  `shipping` off
+- **THEN** the new key grants `ecommerce` and not `shipping`, the same as removing `shipping`
+
 ### Requirement: Suggested expiry
 When the vendor reissues a time-limited license as a renewal, the tool SHALL suggest as the new
 expiry the current expiry plus the length of the last term. The last term SHALL be the length
@@ -111,11 +132,35 @@ an issue entry with no order reference.
 - **THEN** a new key string with the same reference and contents is shown, and the record gains
   an issue entry
 
+### Requirement: Customer email and order reference values
+A customer email SHALL be 3 to 254 characters of the characters the key's text rule allows, with
+exactly one `@` that has text before and after it, and no spaces. An order reference SHALL be 1
+to 64 characters of the characters the key's text rule allows. Each SHALL be stored exactly as
+typed. A value outside its rule SHALL be refused naming the field and its rule, storing nothing.
+
+#### Scenario: Accented email address
+- **WHEN** the vendor issues a license with customer email `jürgen@müller.de`
+- **THEN** the email is stored exactly as typed
+
+#### Scenario: Email outside the rule
+- **WHEN** the vendor gives customer email `owner`, `a@b@example.com` or `owner @example.com`
+- **THEN** the tool refuses, naming the customer email rule, and stores nothing
+
+#### Scenario: Order references from shops
+- **WHEN** the vendor gives order reference `#1042`, `INV-2026-0042`, `ORD 1042`, `UMB:1042` or
+  `pi_3NqXk2LkdIwHu7ix0yJ8`
+- **THEN** each is accepted and stored exactly as typed
+
+#### Scenario: Order reference outside the rule
+- **WHEN** the vendor gives order reference `ORD-1042 ⭐` or one of 65 characters
+- **THEN** the tool refuses, naming the order reference rule, and stores nothing
+
 ### Requirement: Finding and listing licenses
 The vendor SHALL list licenses, filtered by any of product, reference (as typed under the prefix
 rule), order reference (matching any issue entry) and customer email, each row showing
 reference, product, current expiry, customer email and the latest issue entry's order reference.
-The vendor SHALL show one license with every issue entry, newest first.
+The vendor SHALL show one license with every issue entry, newest first. Finding by customer email or
+order reference SHALL follow Matching when finding.
 
 #### Scenario: Find by customer email
 - **WHEN** the vendor lists licenses for customer email `owner@example.com`
@@ -130,6 +175,37 @@ The vendor SHALL show one license with every issue entry, newest first.
 - **WHEN** the vendor shows `LIC-8F3AK-M7RXB`, issued once and reissued twice
 - **THEN** three issue entries are shown, newest first, each with issue time, expiry, features,
   order reference, key identifier and signing key ID
+
+### Requirement: Matching when finding
+Finding by customer email or order reference SHALL match the whole value, ignoring case, and
+SHALL treat the two forms of an accented letter (one character, or a letter and a combining
+mark) as the same. Spaces in an order reference SHALL match exactly. A part of a value SHALL NOT
+match.
+
+#### Scenario: Email found ignoring case
+- **WHEN** a license holds customer email `Owner@Example.com` and the vendor lists licenses for
+  `owner@example.com`
+- **THEN** that license is shown
+
+#### Scenario: Accented letter typed in the other form
+- **WHEN** a license holds `jürgen@müller.de` typed with `ü` as one character, and the vendor
+  lists licenses for the same address typed with `u` and a combining mark
+- **THEN** that license is shown
+
+#### Scenario: Order reference found ignoring case
+- **WHEN** a license was issued with order reference `ORD-1042` and the vendor lists licenses for
+  `ord-1042`
+- **THEN** that license is shown
+
+#### Scenario: Part of an order reference
+- **WHEN** a license was issued with order reference `ORD-1042` and the vendor lists licenses for
+  `1042`
+- **THEN** that license is not shown
+
+#### Scenario: Spaces in an order reference
+- **WHEN** a license was issued with order reference `ORD 1042` and the vendor lists licenses for
+  `ORD  1042` (two spaces)
+- **THEN** that license is not shown
 
 ### Requirement: Customer details editable and clearable
 The customer email SHALL be optional, held once per license, and editable or clearable at any

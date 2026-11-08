@@ -1,6 +1,6 @@
 # PDR-0036: Products and feature definitions are add-only
 
-- Status: Decided
+- Status: Amended by PDR-0043
 - Date: 2026-10-28
 - Source: `add-vendor-tool` design.md Q17. Builds on PDR-0016.
 - Personas: site owner (primary: no paid feature silently read as not granted). Vendor: a typo is

@@ -15,6 +15,33 @@ NOT be encrypted. The export SHALL NOT need the passphrase.
 - **WHEN** the vendor exports a backup to `~/Backups/ucl-2026-10-28.zip`
 - **THEN** the zip is written, the tool reports its path and time, and no passphrase is asked
 
+### Requirement: Files named by the vendor
+The tool SHALL NOT replace an existing file or create a folder for a file it writes. When a file
+it would write exists, it SHALL say so, showing the full path, and ask for another name, whether
+the name was given on the command or at the prompt. When its folder does not exist, it SHALL say
+so, showing the full path, and ask for the path again. This applies to the backup export and the
+export by signing key. Setup creating `.ucl` in the home folder is unchanged.
+
+#### Scenario: Backup file already exists
+- **WHEN** the vendor exports a backup to `~/Backups/ucl-2026-10-28.zip`, which exists
+- **THEN** the tool says the file exists, showing its full path, asks for another name, and the
+  existing file is unchanged
+
+#### Scenario: Backup folder missing
+- **WHEN** the vendor exports a backup to `~/Dropbx/ucl-2026-11-08.zip` and `~/Dropbx` does not
+  exist
+- **THEN** the tool says the folder does not exist, showing its full path, asks for the path
+  again, and creates no folder
+
+### Requirement: Files read by the tool
+When a file the tool would read does not exist, or the path is a folder, the tool SHALL say so,
+showing the full path, and ask again. This applies to the backup import.
+
+#### Scenario: Import file not found
+- **WHEN** the vendor imports `~/Backups/ucl-2026-11-01.zip`, which does not exist
+- **THEN** the tool says the file does not exist, showing its full path, asks again, and nothing
+  is created
+
 ### Requirement: Backup import
 The vendor SHALL import a backup zip into a folder that holds no installation: the current folder or
 `.ucl` in the home folder, offered as at setup (vendor-tool-setup: Folder location). The tool SHALL

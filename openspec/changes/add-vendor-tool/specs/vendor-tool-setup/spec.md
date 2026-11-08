@@ -22,7 +22,7 @@ another folder.
 
 ### Requirement: Guided setup
 Setup SHALL run once per installation, only with a person answering at a terminal, and SHALL ask, in order, for: the folder (Folder location), the passphrase
-(at least 15 characters, typed twice, hidden), the key prefix (`LIC` by default, the vendor's own, or none, by the
+(Passphrase rule; typed twice, hidden), the key prefix (`LIC` by default, the vendor's own, or none, by the
 prefix rule), the signing-key mode (one signing key per product, proposed, or one shared across all
 products), and whether to create a standby key with each signing key, presented as recommended.
 In shared mode setup SHALL create the shared signing key (and its standby key when chosen).
@@ -57,6 +57,11 @@ person at a terminal, and create nothing.
 - **WHEN** the passphrase is shorter than 15 characters
 - **THEN** setup names the minimum length and asks again
 
+#### Scenario: Passphrase with an accented letter
+- **WHEN** the vendor types `Grüße aus München 2026` as the passphrase
+- **THEN** setup says the passphrase uses only letters A to Z, digits, spaces and the symbols on a
+  standard keyboard, and asks again
+
 #### Scenario: Folder already holds an installation
 - **WHEN** setup is run for a folder that already holds an installation
 - **THEN** setup refuses, naming the folder, and nothing in it changes
@@ -65,6 +70,24 @@ person at a terminal, and create nothing.
 - **WHEN** setup is run by a script with no terminal attached
 - **THEN** it refuses, saying setup is run by a person at a terminal, creates nothing, and exits
   with a failure code
+
+### Requirement: Passphrase rule
+The passphrase SHALL be 15 to 256 characters, each a printable ASCII character (letters A to Z
+and a to z, digits, space and the symbols on a standard keyboard). Spaces inside it SHALL be
+allowed; a leading or trailing space SHALL be refused. No other rule SHALL apply. Setup SHALL
+check the passphrase against this rule and, when it fails, name the rule broken and ask again.
+
+#### Scenario: Passphrase of words
+- **WHEN** the vendor types `correct horse battery staple` twice at setup
+- **THEN** setup accepts it
+
+#### Scenario: Passphrase with a trailing space
+- **WHEN** the vendor types a passphrase ending in a space
+- **THEN** setup says a passphrase cannot start or end with a space, and asks again
+
+#### Scenario: Passphrase too long
+- **WHEN** the vendor types a passphrase of 257 characters
+- **THEN** setup names the maximum length and asks again
 
 ### Requirement: Changing the prefix
 The vendor SHALL show the installation's prefix and change it to `LIC`, their own or none, by the
@@ -164,6 +187,23 @@ placing it at `.ucl` in the home folder.
   Windows, or one made on Windows to `~/.ucl` on Linux
 - **THEN** every action works as on the old machine, every product, license and key is there,
   and actions using a private key accept the same passphrase
+
+### Requirement: Records can move to another database
+Every record the tool keeps (products, feature definitions, licenses, issue entries, customer
+fields, signing keys with their encrypted private keys, and the installation's settings) SHALL
+be complete enough to move to another database with nothing lost. No record SHALL depend on the
+folder, machine or operating system it was made on.
+
+#### Scenario: Records hold no local path
+- **WHEN** an installation has products, licenses, issue entries and signing keys, and every
+  stored value is read
+- **THEN** no value holds the installation's folder path, the home folder path or the machine
+  name
+
+#### Scenario: Records complete without the folder
+- **WHEN** every stored record of an installation is read, without the folder's other files
+- **THEN** each product, feature definition, license, issue entry, customer field, signing key
+  with its encrypted private key, and setting is there, and a license can be reissued from them
 
 ### Requirement: Guided mode
 Every action SHALL run in guided mode: a person at a terminal answers the tool. An action MAY be

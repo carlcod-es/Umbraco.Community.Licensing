@@ -85,10 +85,16 @@ release.
 The vendor SHALL export, for a chosen signing key, one row per issue entry signed by it: reference,
 key identifier, product, issue time, expiry. No key strings. Rows SHALL include issues since
 superseded by a reissue and issues already expired. The export SHALL be a file the vendor names,
-readable by spreadsheet tools.
+readable by spreadsheet tools, written under the rules for files named by the vendor
+(vendor-tool-backup: Files named by the vendor).
 
 #### Scenario: Leak export
 - **WHEN** the vendor exports for leaked key A, which signed two issues of `LIC-8F3AK-M7RXB` and
   one of `LIC-2V5C9-HKD3P`
 - **THEN** the file holds three rows with reference, key identifier, product, issue time and
   expiry, and no key string
+
+#### Scenario: Export file already exists
+- **WHEN** the vendor exports for leaked key A to `leak-a.csv`, which exists
+- **THEN** the tool says the file exists, showing its full path, asks for another name, and the
+  existing file is unchanged

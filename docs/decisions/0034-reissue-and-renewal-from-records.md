@@ -1,6 +1,6 @@
 # PDR-0034: Reissue and renewal from records
 
-- Status: Amended by PDR-0039
+- Status: Amended by PDR-0039, PDR-0044
 - Date: 2026-10-28
 - Source: `add-vendor-tool` design.md Q9, Q25. Builds on PDR-0013, PDR-0021.
 - Personas: site owner (primary: renewing early loses no days; add-ons keep the expiry). Vendor:

@@ -1,6 +1,6 @@
 # PDR-0032: Private keys protected by a passphrase
 
-- Status: Amended by PDR-0039
+- Status: Amended by PDR-0039, PDR-0043; to revisit: FR-26 (PDR-0046)
 - Date: 2026-10-28
 - Source: `add-vendor-tool` design.md Q7, Q8, Q14, Q15, Q24 (`docs/feature-requests.md` FR-4
   issue 2)

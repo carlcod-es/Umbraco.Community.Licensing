@@ -8,7 +8,7 @@ Cite as FR-N.
 | FR | Title | Raised | Status |
 |---|---|---|---|
 | FR-1 | Vendor-chosen key identifier prefix | Carl, 2026-10-09 | Taken into `add-license-core` (design.md Q20, PDR-0023) |
-| FR-2 | Vendor issuing console tool | Carl, 2026-10-09 | Taken into `add-vendor-tool` (design.md Q1 to Q26; PDR-0030 to PDR-0036, ADR-0011 to ADR-0015). SQL Server dropped (Carl, 2026-10-28). Windows added: design.md Q32, PDR-0038 (Carl, 2026-11-07). Guided mode only; scripted use moved to FR-22: design.md Q33, PDR-0039 (Carl, 2026-11-08) |
+| FR-2 | Vendor issuing console tool | Carl, 2026-10-09 | Taken into `add-vendor-tool` (design.md Q1 to Q26; PDR-0030 to PDR-0036, ADR-0011 to ADR-0015). SQL Server dropped (Carl, 2026-10-28); returns as later work in FR-24 and FR-25 (Carl, 2026-11-08). Windows added: design.md Q32, PDR-0038 (Carl, 2026-11-07). Guided mode only; scripted use moved to FR-22: design.md Q33, PDR-0039 (Carl, 2026-11-08) |
 | FR-3 | Example product package | Carl, 2026-10-09 | Open; possible later change |
 | FR-4 | Standby signing key | Carl, 2026-10-10 | Taken into `add-vendor-tool` (design.md Q15, Q16; PDR-0032, PDR-0035). Issue 2 answered by the passphrase; storing apart is FR-15 |
 | FR-5 | Responding to a compromised signing key | Carl, 2026-10-10 | Open; after FR-2 |
@@ -30,6 +30,9 @@ Cite as FR-N.
 | FR-21 | Optional, vendor-defined call-home | Carl, 2026-11-07 (explore) | Open. Conflicts with the README "Offline" promise; see Issue |
 | FR-22 | Scripted mode for the vendor tool | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open. Moved out of `add-vendor-tool` (design.md Q33, PDR-0039) |
 | FR-23 | Startup menu when the vendor tool is launched with no command | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open. `add-vendor-tool` shows the command list instead (design.md Q35) |
+| FR-24 | Move the vendor tool's records to a central SQL Server database | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open; after `add-vendor-tool`. One-way move, PDR-0046 |
+| FR-25 | Vendor tool works against the central database | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open; after FR-24 |
+| FR-26 | Shop integration: licenses issued and renewed on purchase | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open; after FR-24, FR-22. Reopens PDR-0030, PDR-0031, PDR-0032, PDR-0033, PDR-0039 |
 
 ## FR-1: Vendor-chosen key identifier prefix
 
@@ -680,3 +683,74 @@ owner: keys unchanged.
 
 **Related.** PDR-0031 (finding the installation), PDR-0039 (guided mode), FR-13 (richer
 prompts: selection lists), FR-22 (scripted mode).
+
+## FR-24: Move the vendor tool's records to a central SQL Server database
+
+**Request.** The vendor moves an installation's records into a central SQL Server database,
+which then becomes the single source of truth for issuing (Carl, 2026-11-08). The first step
+towards shop integration (FR-26).
+
+**Settled (PDR-0046).** The move is one-way: afterwards the local installation no longer issues,
+reissues or changes keys, and says where its records went. Before the move starts, the tool
+warns the vendor that it is one-way and that the local installation will stop issuing, and asks
+for confirmation. `add-vendor-tool` keeps every record complete and free of local paths so the
+move loses nothing.
+
+**Personas.** Vendor: one place holding every record, ready for the shop. Site owner: keys
+unchanged; one source of truth means no reissue loses paid-for days.
+
+**Issues to settle.**
+1. What the local installation can still do after the move: read only, or nothing beyond saying
+   where the records went.
+2. Whether a move can be repeated into an empty central database (for example after a failed
+   first attempt) and how a half-finished move is detected.
+3. Backups once the records are central: the database's own backups, the tool's zip, or both
+   (PDR-0031).
+4. Where the private keys live after the move, and who can reach them (PDR-0032).
+
+**Related.** PDR-0031, PDR-0032, PDR-0046, FR-25, FR-26.
+
+## FR-25: Vendor tool works against the central database
+
+**Request.** The vendor tool connects directly to the central SQL Server database instead of a
+local installation folder (Carl, 2026-11-08).
+
+**Personas.** Vendor: issues by hand from the tool while the shop issues automatically, both
+against one source of truth. Site owner: keys unchanged.
+
+**Issues to settle.**
+1. How the tool is pointed at the central database, given that PDR-0041 allows no folder option
+   and no remembered setting.
+2. More than one person or machine using the tool at once (PDR-0030: one person per
+   installation; no user accounts).
+3. Two issues of one license at the same moment, from the tool and the shop.
+4. What the tool states on every action in place of the folder path (PDR-0031).
+
+**Related.** PDR-0030, PDR-0031, PDR-0041, PDR-0046, FR-24, FR-26.
+
+## FR-26: Shop integration: licenses issued and renewed on purchase
+
+**Request.** The vendor's own e-commerce shop issues and renews licenses automatically when a
+customer completes a purchase, through an API library that reads and writes the central
+database (Carl, 2026-11-08).
+
+**Personas.** Vendor: no hand issuing for routine sales and renewals. Site owner (primary):
+receives the key at purchase; renewals keep paid-for days (PDR-0034); a shop breach must not
+become a signing leak. Implementor: keys unchanged.
+
+**Issues to settle.**
+1. **Unlocking private keys with nobody present.** Every signing today needs the passphrase
+   typed at a hidden prompt (PDR-0032, PDR-0039). The shop must sign unattended. The hardest
+   question of this phase.
+2. Which actions the API offers: issue, renew, reissue, resend, find; whether key switches stay
+   in the tool only.
+3. Customer data read by the shop's systems (PDR-0033: the vendor's responsibility).
+4. How a purchase maps to a product, features, expiry and order reference, and whether a
+   repeated purchase notification issues twice (FR-18: reused order reference).
+5. The relation to scripted mode (FR-22).
+
+**Reopens.** PDR-0030 (no store integration; one person), PDR-0031 (one folder; zip backups),
+PDR-0032 (passphrase typed for every signing), PDR-0033 (who can read customer data), PDR-0039
+(guided mode only). Each carries a "to revisit: FR-26" note.
+
+**Related.** PDR-0046, FR-18, FR-22, FR-24, FR-25.
