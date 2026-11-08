@@ -1,6 +1,6 @@
 # PDR-0047: A switch confirms whenever the new active key is not in a release
 
-- Status: Amended by PDR-0050
+- Status: Amended by PDR-0050, PDR-0051
 - Date: 2026-11-08
 - Source: `add-vendor-tool` design.md Q45. Amends PDR-0035.
 - Personas: site owner (primary: newly issued keys are not broken by a switch without the vendor

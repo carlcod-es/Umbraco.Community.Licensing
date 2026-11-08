@@ -1,6 +1,6 @@
 # PDR-0049: Passphrase kept for a session, with an idle lock
 
-- Status: Amended by PDR-0050
+- Status: Amended by PDR-0050, PDR-0052
 - Date: 2026-11-08
 - Source: `add-vendor-tool` design.md Q49 to Q51. Amends PDR-0032, PDR-0039.
 - Personas: vendor (one passphrase entry for a sitting of several signing actions; their own

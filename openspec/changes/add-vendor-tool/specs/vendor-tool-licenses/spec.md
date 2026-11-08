@@ -52,6 +52,38 @@ vendor), the file holding the key string alone.
 - **THEN** the tool says the passphrase is wrong and asks again (vendor-tool-signing-keys:
   Private keys encrypted with the passphrase), and nothing is stored until it is right
 
+### Requirement: Choosing a license
+Every question that asks for a license SHALL accept its reference, typed under the prefix rule,
+or a whole key string. A key string SHALL be accepted when signed by any of the installation's
+signing keys, expired or not; its reference chooses the license and nothing else from it is used
+or kept. A key string not signed by the installation, or with no record, SHALL be refused and
+the question asked again. Choosing a license SHALL NOT need the passphrase.
+
+#### Scenario: Key pasted to reissue
+- **WHEN** the vendor reissues and, at the license question, pastes the key string of
+  `LIC-8F3AK-M7RXB` that the site owner sent
+- **THEN** `LIC-8F3AK-M7RXB` is chosen, and the reissue's questions show the values from its
+  record
+
+#### Scenario: Key from before a prefix change
+- **WHEN** after the prefix changed from `LIC` to `ACME`, the vendor shows a license by pasting a
+  key string whose key identifier starts `LIC-8F3AK-M7RXB`
+- **THEN** license `8F3AK-M7RXB` is shown
+
+#### Scenario: Expired key pasted to renew
+- **WHEN** the vendor renews by pasting a key string that expired last month and was signed by a
+  key since replaced (routine)
+- **THEN** the license is chosen and the renewal continues with its suggested expiry
+
+#### Scenario: Key from another vendor
+- **WHEN** the vendor pastes a key string signed by a key the installation does not hold
+- **THEN** the tool says the key was not issued by this installation and asks again
+
+#### Scenario: Key with no record
+- **WHEN** the vendor pastes a key string signed by one of the installation's keys whose reference
+  has no record
+- **THEN** the tool says there is no record of that license and asks again
+
 ### Requirement: Key strings are not stored
 The tool SHALL NOT store any license key string, in the database or elsewhere in the folder. A
 record SHALL hold everything needed to reissue the license.
@@ -194,8 +226,8 @@ typed. A value outside its rule SHALL be refused naming the field and its rule, 
 - **THEN** the tool refuses, naming the order reference rule, and stores nothing
 
 ### Requirement: Finding and listing licenses
-The vendor SHALL list licenses, filtered by any of product, reference (as typed under the prefix
-rule), order reference (matching any issue entry) and customer email, each row showing
+The vendor SHALL list licenses, filtered by any of product, reference (Choosing a license), order
+reference (matching any issue entry) and customer email, each row showing
 reference, product, current expiry, customer email and the latest issue entry's order reference.
 The vendor SHALL show one license with every issue entry, newest first. Finding by customer email or
 order reference SHALL follow Matching when finding.

@@ -94,7 +94,8 @@ check the passphrase against this rule and, when it fails, name the rule broken 
 
 ### Requirement: Idle lock
 Setup SHALL ask for the idle lock time: a whole number of minutes from 1 to 1440, or `never`,
-with 15 proposed. A session left with no answer typed for that long SHALL forget the passphrase
+with 15 proposed. A session left with nothing typed for that long, neither an answer nor a menu
+choice, SHALL forget the passphrase
 and every decrypted private key; the next action that needs the passphrase, including one in
 progress, SHALL ask for it again. With `never` the passphrase is kept until the session ends.
 Settings SHALL show the idle lock time and change it, by the same rule, without the passphrase;
@@ -108,6 +109,11 @@ a change SHALL take effect from the next session.
 #### Scenario: Idle lock never
 - **WHEN** the idle lock is `never` and the vendor issues licenses an hour apart in one session
 - **THEN** the passphrase is asked only for the first
+
+#### Scenario: Menu choices keep the session unlocked
+- **WHEN** the idle lock is 15 minutes, the vendor issues a license, then for 30 minutes chooses
+  menu entries at least every 10 minutes without starting a signing action, then issues another
+- **THEN** the second issue asks for no passphrase
 
 #### Scenario: Idle lock outside the rule
 - **WHEN** the vendor types `0`, `1441` or `ten` as the idle lock time
@@ -142,8 +148,9 @@ prefix: the earlier prefix is refused, the 10-character form is accepted.
 
 ### Requirement: Folder location
 Setup SHALL offer two folders, each shown as a full path: `.ucl` in the vendor's home folder,
-proposed, and the current folder. When the current folder is the home folder itself, setup SHALL
-warn that the installation's files would sit loose in it. Setup SHALL create `.ucl` when it does
+proposed, and the current folder. An installation SHALL never sit directly in the home folder:
+when the current folder is the home folder itself, setup SHALL offer only `.ucl` in it. Setup
+SHALL create `.ucl` when it does
 not exist, and SHALL accept a chosen folder that holds other files but no installation. A session SHALL use the first
 of: the current folder when it holds an installation, `.ucl` in the home folder. No other folder
 SHALL be used, and a folder SHALL NOT be named on the command. The tool SHALL remember no folder
@@ -166,6 +173,10 @@ home folder.
 #### Scenario: Default folder created
 - **WHEN** setup runs on a machine with no `~/.ucl` and the vendor accepts the proposed folder
 - **THEN** `~/.ucl` is created and holds the installation
+
+#### Scenario: Started in the home folder
+- **WHEN** setup runs from the startup offer in a session started in the home folder
+- **THEN** only `~/.ucl` is offered, shown in full, and the home folder itself is not
 
 #### Scenario: Current folder with other files
 - **WHEN** setup runs in `~/acme-issuing`, which holds other files but no installation, and the
@@ -200,7 +211,9 @@ home folder.
 Settings SHALL offer a new installation in the current folder, by setup or by restoring a backup,
 with the current folder as the only folder offered. It SHALL be refused, changing nothing, when
 the current folder is the home folder or holds an installation. When it completes, the session
-SHALL continue with the new installation and state its full path.
+SHALL continue with the new installation and state its full path, holding the passphrase only
+when it was set by this setup (vendor-tool-signing-keys: Private keys encrypted with the
+passphrase).
 
 #### Scenario: New installation from Settings
 - **WHEN** the session started in `~/acme-practice` uses `~/.ucl`, and the vendor chooses a new
