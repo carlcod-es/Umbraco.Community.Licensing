@@ -35,12 +35,23 @@ published, the library is ready to gain its main issuing client.
   issue; export by signing key; standby key at setup or later; list of products without a
   standby key; the public key lines each product's next release must trust, including the
   interim list during a leak (PDR-0035).
+- **Typed values**: the product display name, customer email and order reference follow the
+  key's text rule, so accents and other scripts are allowed and emoji are not. Email and order
+  reference are found ignoring case and accent form, and only by the whole value. The
+  passphrase is printable ASCII, 15 to 256 characters (PDR-0043).
+- **Switch off**: a switch typed as `off` is not granted. Contradictory features are refused
+  (PDR-0044).
+- **Named files**: an export or backup never replaces a file and never creates a folder. A
+  missing import file is asked again (PDR-0045).
+- **Portable records**: every record is complete and free of local paths, ready for a later
+  one-way move to a central database (PDR-0046).
 - **Release**: the release run publishes the tool package alongside the library, same version.
 - Out of this change, logged as feature requests: private-key export for larger vendors (FR-11),
   passphrase change (FR-12), richer console prompts (FR-13), retiring feature definitions
   (FR-14), standby key stored apart (FR-15), importing licenses issued before the tool (FR-16),
   changing signing-key mode (FR-17), warning on a reused order reference (FR-18), issuing several
-  licenses in one run (FR-20), scripted mode (FR-22). Bulk reissue and leak follow-through stay with FR-5.
+  licenses in one run (FR-20), scripted mode (FR-22), startup menu (FR-23), central database and
+  shop integration (FR-24, FR-25, FR-26). Bulk reissue and leak follow-through stay with FR-5.
 
 ## Capabilities
 
@@ -63,17 +74,19 @@ published, the library is ready to gain its main issuing client.
 ## Impact
 
 - Depends on `tighten-text-rule`, which tightens the key's text rule first; the tool's typed text
-  fields use that rule (design.md Open questions Q37 to Q43). The tool package carries
+  fields use that rule (design.md Q37, Q38, Q40; PDR-0043). The tool package carries
   `THIRD-PARTY-NOTICES.md` (ADR-0018).
 - New: tool project and its test project; tool user guide; README section. The README is slim
   (`tighten-text-rule`): the section is one bullet and a row in its Documentation table linking
   the tool guide; detail stays in the guide.
 - Changed: release workflow packs and pushes two packages; CI and release checks run the tool's
   tests with the library's.
-- Library: no change.
-- Records: PDR-0030 to PDR-0036 (new); ADR-0011 to ADR-0015 (new; ADR-0011 amends ADR-0008).
-  `docs/feature-requests.md`: FR-2 and FR-4 taken into this change; FR-11 to FR-18 and FR-20
-  added.
+- Library: no public API or behaviour change. The tool reaches the internal text-rule check
+  through `InternalsVisibleTo` (ADR-0019).
+- Records: PDR-0030 to PDR-0036, PDR-0038 to PDR-0041, PDR-0043 to PDR-0046 (new); ADR-0011 to
+  ADR-0015, ADR-0017, ADR-0019 (new; ADR-0011 amends ADR-0008; ADR-0017 amends ADR-0012 and
+  ADR-0013; ADR-0019 amends ADR-0003 and ADR-0013). `docs/feature-requests.md`: FR-2 and FR-4
+  taken into this change; FR-11 to FR-18, FR-20 and FR-22 to FR-26 added.
 - Dependencies (approved by Carl, 2026-10-28): System.CommandLine,
   Microsoft.EntityFrameworkCore.Sqlite, Microsoft.EntityFrameworkCore.Design (build only),
   `dotnet-ef` local tool (creating migrations).

@@ -1,6 +1,6 @@
 # ADR-0003: Packaging, naming, clock and dependencies
 
-- Status: Amended by ADR-0006, ADR-0010
+- Status: Amended by ADR-0006, ADR-0010, ADR-0019
 - Date: 2026-10-09
 - Source: `add-license-core` design.md Q3 (`CLEAN-PROJECT-PROMPT.md` section 10, technology
   item 3)

@@ -7,7 +7,8 @@ creates a GitHub Release with one nuget.org link per package ID its **Package ID
 the pack folder (ADR-0016). `0.1.0-beta.6` is on nuget.org.
 
 The library already gives the tool everything it signs and checks with, so this change needs no
-library change:
+library API or behaviour change. The one library edit gives the tool internal access to the
+existing text check (ADR-0019):
 
 | Tool need | Library API |
 |---|---|
@@ -17,6 +18,7 @@ library change:
 | Issue, and reissue from a record (reference typed into a request, PDR-0023) | `LicenseIssuer.Issue(LicenseRequest, ...)` with `Reference` set |
 | Feature checks against definitions | `FeatureDefinitions` (PDR-0016) |
 | Features and expiry from stored values | `FeatureList.Of`, `LicenseFeature`, `LicenseExpiry.At` / `On` / `Perpetual` |
+| Text rule for the tool's own fields (PDR-0043) | internal `ContentRules.CheckDisplayName` and `CheckText`, through `InternalsVisibleTo` (ADR-0019) |
 
 `ReissueRequest.From` needs a verified key string, which the tool never stores (PDR-0033). The
 tool builds a `LicenseRequest` with the stored reference and enforces the PDR-0021 rule (product
@@ -35,13 +37,15 @@ Test strategy.
 
 **Goals:** a copied folder or backup never yields a usable signing key without the passphrase;
 every action guided (a person at a terminal, PDR-0039); runs on Windows, macOS and Linux and
-moves between them (PDR-0038, PDR-0040); folder portable by copying; no library change; tool and library
+moves between them (PDR-0038, PDR-0040); folder portable by copying; records complete enough to
+move to another database (PDR-0046); no library API or behaviour change; tool and library
 released from one tested build.
 
 **Non-Goals:** store integration, a long-running service, multiple users, encrypted database or
 backup, private-key export (FR-11), passphrase change (FR-12), rich console UI (FR-13), bulk
 reissue (FR-5), import of pre-tool keys (FR-16), changing signing-key mode (FR-17), reused
-order reference warning (FR-18), several licenses in one run (FR-20), scripted mode (FR-22), startup menu (FR-23), HSM or vault keys (`pre-1.0-considerations.md`
+order reference warning (FR-18), several licenses in one run (FR-20), scripted mode (FR-22), startup menu (FR-23), central
+database and shop integration (FR-24, FR-25, FR-26), HSM or vault keys (`pre-1.0-considerations.md`
 C2), localisation.
 
 ## Requirements
@@ -59,6 +63,10 @@ C2), localisation.
 | R9 | Backup export and import | vendor-tool-backup | Vendor; site owner (records survive a lost laptop) | PDR-0031 |
 | R10 | Tool released with the library | release-process | Vendor | ADR-0011 |
 | R11 | Windows, macOS and Linux; PowerShell, Windows Terminal, Command Prompt | vendor-tool-setup: Operating systems and terminals | Vendor | PDR-0038 |
+| R12 | Typed values: product display name, customer email and order reference by the key's text rule; finding ignores case and accent form, whole value only; passphrase printable ASCII, 15 to 256 | vendor-tool-products: Adding a product; Feature definitions are add-only. vendor-tool-licenses: Customer email and order reference values; Matching when finding. vendor-tool-setup: Passphrase rule | Vendor; site owner (passphrase types the same on the next machine, so signing keys are not lost) | PDR-0043, PDR-0042 |
+| R13 | Switch typed as off is not granted; contradictory features refused | vendor-tool-licenses: Switch values and contradictory features | Vendor; site owner and implementor unaffected (same key) | PDR-0044, PDR-0010 |
+| R14 | Named files never replaced, folders never created, asked again | vendor-tool-backup: Files named by the vendor; Files read by the tool. vendor-tool-signing-keys: Export by signing key | Site owner (an older backup survives); vendor | PDR-0045 |
+| R15 | Records complete and free of local paths | vendor-tool-setup: Records can move to another database | Site owner (reissues survive a later move); vendor | PDR-0046 |
 
 Persona check: no requirement harms a higher-priority persona. Key strings are unchanged for site
 owners and implementors. Backoffice editor and site visitor never meet the tool.
@@ -67,13 +75,13 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 
 | Q | Question | Answer | Record |
 |---|---|---|---|
-| Q1 | How keys are issued | By hand, or batched from the vendor's own process; every command runs from arguments alone; no store integration (Carl, 2026-10-28) | PDR-0030 |
+| Q1 | How keys are issued | By hand, or batched from the vendor's own process; every command runs from arguments alone; no store integration (Carl, 2026-10-28). Amended by Q33: guided mode only; inputs may be given on the command | PDR-0030, PDR-0039 |
 | Q2 | Jobs in this change | FR-2 minimum; products and feature definitions; issue and reissue from records; find and list; standby key (FR-4). Import of pre-tool keys out, FR-16 (Carl, 2026-10-28) | PDR-0030 |
 | Q3 | Audience | Small vendors issuing only through the tool. Larger vendors use the library directly; private-key export for them is FR-11 (Carl, 2026-10-28) | PDR-0030, PDR-0032 |
 | Q4 | Folder location | Propose `~/.ucl`, show the full path, vendor may override; setup names the content, backup advice and sync warning (Carl, 2026-10-28); folder offer and resolution amended by Q29 | PDR-0031 |
 | Q5 | Moving and backups | Folder portable by copying; zip export and import (Carl, 2026-10-28) | PDR-0031 |
 | Q6 | SQL Server | Dropped; a database file inside the folder only (Carl, 2026-10-28). Was an FR-2 constraint | ADR-0013 |
-| Q7 | Protecting private keys | Encrypted with a passphrase set at setup; nothing else encrypted; asked once per command that signs or creates a key; batched runs supply it without a prompt (Carl, 2026-10-28) | PDR-0032 |
+| Q7 | Protecting private keys | Encrypted with a passphrase set at setup; nothing else encrypted; asked once per command that signs or creates a key; batched runs supply it without a prompt (Carl, 2026-10-28). Amended by Q33: always typed at the hidden prompt | PDR-0032, PDR-0039 |
 | Q8 | Private-key export | None in this change; FR-11 (Carl, 2026-10-28) | PDR-0032 |
 | Q9 | Suggested expiry on renewal | Vendor types the expiry; tool suggests current expiry plus the last term (Carl, 2026-10-28). Term and months versus exact time: see Q25 | PDR-0034 |
 | Q10 | Correcting or erasing customer data | Edit or clear order reference and email; no copy of a cleared value kept; records never deleted (Carl, 2026-10-28) | PDR-0033 |
@@ -103,22 +111,19 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q34 | Moving between operating systems | A folder copy or backup moves between any of the three, either direction, same passphrase (Carl, 2026-11-08) | PDR-0040, ADR-0017 |
 | Q35 | Startup | Only the current folder, then `~/.ucl`; no folder option; an unused second installation is noted; setup from the offer ends with a generic retry line; `ucl` alone lists the commands; startup menu is FR-23 (Carl, 2026-11-08) | PDR-0041, ADR-0017 |
 | Q36 | Help, version and PowerShell 5.1 redirect | Help, version and the command list are not actions and work with nobody present; the PowerShell 5.1 redirect encoding is documented, not handled (Carl, 2026-11-08) | PDR-0039, ADR-0017 |
+| Q37 | Customer email: characters, length, matching | PDR-0042 text rule, exactly one `@` with text before and after, no spaces, 3 to 254; accented addresses allowed; stored as typed; finding matches the whole address, ignoring case and the form of an accented letter (Carl, 2026-11-08) | PDR-0043, ADR-0019 |
+| Q38 | Order reference: characters and length | PDR-0042 text rule, 1 to 64; stored as typed; finding as Q37, spaces matched exactly, never part of a value (Carl, 2026-11-08) | PDR-0043, ADR-0019 |
+| Q39 | Passphrase characters and maximum | Printable ASCII only, 15 to 256, spaces inside allowed, no leading or trailing space (Carl, 2026-11-08) | PDR-0043, ADR-0019 |
+| Q40 | Product display name rule (moved from `tighten-text-rule` Q7) | The key's display-name rule (PDR-0042), 1 to 64, checked at `product add` and `product rename` through the library, not a copy; a refused rename keeps the earlier name. The tool reaches the internal check through `InternalsVisibleTo` (Carl, 2026-11-08) | PDR-0043, ADR-0019 |
+| Q41 | `--feature name=off` | Not granted: left out at issue, removed at reissue as `--remove-feature`; a feature given twice, or given and removed, refused (Carl, 2026-11-08) | PDR-0044 |
+| Q42 | Output and import files | An output file is never replaced and its folder never created; the tool says so with the full path and asks again, also when the path was given on the command. An import path that is missing or a folder is asked again (Carl, 2026-11-08) | PDR-0045, ADR-0019 |
+| Q43 | Stale rows | Q1 and Q7 marked amended by Q33 (Carl, 2026-11-08) | PDR-0039 |
+| Q44 | Records and a later central database | Every record complete and free of local paths, so it can move to another database with nothing lost. The later move is one-way and settled in FR-24 to FR-26 (Carl, 2026-11-08) | PDR-0046 |
 
 ## Open questions
 
-Raised in `opsx:explore` (Carl, 2026-11-08). Every value is typed by a person; names and email
-addresses must allow common characters such as umlauts and accents; no emoji. The key's own
-text rule is tightened first in `tighten-text-rule`; this change waits for it.
-
-| Q | Question | Notes |
-|---|---|---|
-| Q37 | Customer email: characters, length, matching | Draft 3 to 254 characters, one `@`. Open: accented addresses (`jürgen@müller.de`) or ASCII only; finding by email ignores case; two forms of one accented letter match |
-| Q38 | Order reference: characters and length | Draft: the vendor tag's characters `A-Z a-z 0-9 - _ . # /`, 1 to 64 (`ORD-1042`, `#1042`, `2026/1042`) |
-| Q39 | Passphrase: "typed characters only" (Carl) and maximum length | Printable ASCII only (safest when moving to a machine with another keyboard layout, PDR-0040, with a hidden prompt giving no feedback) or accented letters too; no emoji either way; two forms of one accented letter treated as the same passphrase if accents are allowed. Maximum at least 64 |
-| Q40 | Product display name rule (moved from `tighten-text-rule` Q7) | Follow `tighten-text-rule`'s display-name rule, 1 to 64. The rule now exists: PDR-0042 (Unicode 16.0.0, ADR-0018). A license's display name and text feature values are already checked by the library at issue. Open: whether `product add` and `product rename` check the product display name against the same rule (through the library, not a copy) when it is stored |
-| Q41 | `--feature name=off` | The key format has no off switch (an off switch is absent). `off` on issue: refused or ignored; on reissue: same as `--remove-feature`, or refused |
-| Q42 | Output and import files | `--out` when the file exists (refuse, ask, overwrite) or its folder is missing (refuse, create); same for `backup import` input path checks |
-| Q43 | Stale rows | Q1 ("every command runs from arguments alone") and Q7 ("batched runs supply it without a prompt") describe scripted mode; mark them amended by Q33 (PDR-0039). Q29 is already marked amended by Q35 |
+None. Q37 to Q44 were raised in `opsx:explore` (Carl, 2026-11-08) and are settled above. Q37,
+Q38 and Q40 use the text rule from `tighten-text-rule` (PDR-0042); this change waits for it.
 
 ## Decisions
 
@@ -139,12 +144,15 @@ text rule is tightened first in `tighten-text-rule`; this change waits for it.
   |     +--> KeyProtection (passphrase check, encrypt / decrypt PEM)      |
   |     +--> Issuing (records -> LicenseRequest, FeatureDefinitions,      |
   |     |             ExpirySuggestion)                                    |
+  |     +--> TypedValues (text rule via library, email, order ref,        |
+  |     |                 match key, passphrase rule)                      |
+  |     +--> NamedFiles (output and import path checks, ask again)        |
   |     +--> TrustedKeys (list per product), SignedExport (CSV)           |
   |     +--> Backup (snapshot + manifest -> zip; zip -> new folder)       |
   +----------------|-------------------------------------------------------+
                    | project reference
                    v
-         Umbraco.Community.Licensing (unchanged)
+         Umbraco.Community.Licensing (public API unchanged)
 
   folder (current directory or ~/.ucl):  ucl.db   <- the whole installation
 ```
@@ -187,7 +195,9 @@ No global options other than `--help` and `--version`. No environment settings a
 ```
 
 Feature values follow the product's definition: switch `name=on|off`, number `name=500`, text
-`name=eu`. Expiry: `2027-03-01` (date, PDR-0007), `2027-03-01T23:59:59Z`, `perpetual`. A missing
+`name=eu`. `off` leaves a switch out of the key at issue and removes it at reissue, as
+`--remove-feature`. A command giving one feature twice, or giving it and removing it, exits 1
+naming the feature (PDR-0044). Expiry: `2027-03-01` (date, PDR-0007), `2027-03-01T23:59:59Z`, `perpetual`. A missing
 input is prompted. With stdin redirected (nobody present, ADR-0017) every command except bare
 `ucl`, `--help` and `--version` refuses with exit 1 before doing anything. Bare `ucl` prints help
 to stdout and exits 0. The passphrase is read only at the hidden prompt. `ucl setup` takes no
@@ -203,7 +213,9 @@ used and `<home>/.ucl` also holds `ucl.db`, a note naming it as not used. No ins
 exit 1 naming the folders checked, then `Run setup now? [y/N]`, starting setup on yes; setup
 started this way ends after its closing message with a generic line telling the vendor to run
 their command again, exits 0, and does not run the original command. `folder show` prints the
-resolved folder to stdout. `backup import` asks for the target as setup does.
+resolved folder to stdout. `backup import` asks for the target as setup does. A path for
+`--out` or `backup import` that fails the named-file checks (ADR-0019) is reported with its full
+path and asked again at the prompt, also when it was given on the command.
 Exit codes: 0 done, 1 refused (validation, wrong passphrase, missing installation), 2 usage
 error.
 
@@ -247,13 +259,33 @@ Tables:
 | `Products` | `ProductId`, `DisplayName`, `CreatedUtc` |
 | `FeatureDefinitions` | `ProductId` + `Name`, `Type`, `AddedUtc` |
 | `SigningKeys` | `SigningKeyId`, `ProductId` (null in shared mode), `PublicKey` (export line), `EncryptedPrivateKeyPem`, `Role` (active / standby / replaced), `CreatedUtc`, `ReplacedUtc`, `ReplacedReason`, `InReleaseUtc`, `ReissuesSentUtc` |
-| `Licenses` | `Reference` (10 characters), `ProductId`, `CustomerEmail`, `CreatedUtc` |
-| `IssueEntries` | `Id`, `Reference`, `Kind` (issue / reissue / renewal / resend), `IssuedUtc`, `ExpiresUtc` (null = perpetual), `DisplayName`, `VendorTag`, `FeaturesJson`, `OrderRef`, `KeyIdentifier`, `SigningKeyId` |
+| `Licenses` | `Reference` (10 characters), `ProductId`, `CustomerEmail`, `CustomerEmailKey`, `CreatedUtc` |
+| `IssueEntries` | `Id`, `Reference`, `Kind` (issue / reissue / renewal / resend), `IssuedUtc`, `ExpiresUtc` (null = perpetual), `DisplayName`, `VendorTag`, `FeaturesJson`, `OrderRef`, `OrderRefKey`, `KeyIdentifier`, `SigningKeyId` |
 
 `KeyIdentifier` keeps the prefix each entry was issued with, so a prefix change needs no data
-change. `OrderRef` is indexed for find by order reference.
+change. `CustomerEmailKey` and `OrderRefKey` hold the match key (ADR-0019) and are indexed for
+finding; each is set, corrected and cleared together with its value.
 
-No column holds a key string.
+No column holds a key string. Timestamps are UTC. Every record is complete without the folder's
+other files and readable with a plain SQLite connection (PDR-0046).
+
+### Typed values and named files — ADR-0019
+
+- The library project adds `InternalsVisibleTo` for the tool, and `ContentRules.CheckText`
+  changes from private to internal. No public type or behaviour changes.
+- Product display name: `ContentRules.CheckDisplayName` at `product add` and `product rename`.
+- Customer email: `CheckText` (field `customerEmail`, maximum 254). Then at least 3 characters,
+  exactly one `@` with text before and after, and no U+0020.
+- Order reference: `CheckText` (field `orderRef`, maximum 64).
+- A refused value names the field and its rule and stores nothing.
+- Match key: `Normalize(NormalizationForm.FormC).ToLowerInvariant()`; finding compares keys for
+  equality.
+- Passphrase rule at setup: every character U+0020 to U+007E, 15 to 256, first and last not
+  U+0020.
+- Output files (backup export, key export): full path from `Path.GetFullPath`. The tool asks
+  again when the path is an existing file, a folder, or has a missing parent folder. The file is
+  opened with `FileMode.CreateNew`.
+- Import path: asked again when it is missing or a folder.
 
 ### Private keys — ADR-0014
 
@@ -272,8 +304,8 @@ Export: `VACUUM INTO` a temp file (consistent snapshot, no free pages), then a z
 `manifest.json` (`format` 1, `toolVersion`, `lastMigration`, `takenUtc`) and `ucl.db`. Import: read
 the manifest; refuse an unknown format, a missing entry, or a `lastMigration` the tool does not
 know; check the target folder has no `ucl.db`; show `takenUtc` and the warning; extract;
-`PRAGMA integrity_check`; apply pending migrations. Neither command
-overwrites an existing output file. Signed-key export: CSV (RFC 4180, UTF-8, header
+`PRAGMA integrity_check`; apply pending migrations. Backup export and key export write the
+named file under the named-file checks (ADR-0019). Signed-key export: CSV (RFC 4180, UTF-8, header
 `reference,key_identifier,product,issued_utc,expires_utc`, `perpetual` for no expiry).
 
 ### Expiry suggestion
@@ -299,6 +331,7 @@ active has no `InReleaseUtc`.
 |---|---|
 | `src/Umbraco.Community.Licensing.Tool/**`, `tests/Umbraco.Community.Licensing.Tool.Tests/**` | worker-backend (under `src/**`, `tests/**`) |
 | `Umbraco.Community.Licensing.slnx` | worker-backend, for the two new project entries |
+| `src/Umbraco.Community.Licensing/Umbraco.Community.Licensing.csproj` (`InternalsVisibleTo` the tool) and `src/Umbraco.Community.Licensing/Format/ContentRules.cs` (`CheckText` internal) | worker-backend (under `src/**`). No public API or behaviour change (ADR-0019) |
 | `.github/workflows/release.yml` | Shared (CI): assigned to worker-backend in the brief |
 | `.config/dotnet-tools.json` (new top-level path, `dotnet-ef` for creating migrations) | Shared: assigned to worker-backend in the brief. `dotnet-ef` approved by Carl, 2026-10-28 |
 | `docs/vendor-tool.md`, `docs/releasing.md`, `README.md`, records | Architect |
@@ -307,10 +340,11 @@ active has no `InReleaseUtc`.
 
 | Level | What | How |
 |---|---|---|
-| Unit | Expiry suggestion (every Suggested expiry scenario plus month-end and leap cases), folder precedence, trusted list, CSV quoting, feature value parsing, passphrase check | xUnit, test names follow spec scenarios |
+| Unit | Expiry suggestion (every Suggested expiry scenario plus month-end and leap cases), folder precedence, trusted list, CSV quoting, feature value parsing (including `off` and contradictions), passphrase check, passphrase rule, email and order reference rules, match key (case, both accent forms, spaces, no partial match), named-file checks | xUnit, test names follow spec scenarios |
 | Integration | Every command scenario in the five vendor-tool specs, in-process against a temp folder with a real SQLite file, scripted console with a person present (and one test per refusal with nobody present), fixed `TimeProvider`, low PBKDF2 count | xUnit; one temp folder per test |
 | Integration | Issued keys verify with the library's `LicenseEvaluator` trusting the tool's `key trusted` lines | xUnit |
-| Integration | No key string in the folder: issue several licenses, scan every byte of `ucl.db` for each key string; cleared email absent from the file | xUnit |
+| Integration | No key string in the folder: issue several licenses, scan every byte of `ucl.db` for each key string; cleared email, order references and their match keys absent from the file | xUnit |
+| Integration | Records complete without the folder: read every table with a plain SQLite connection (no EF Core) and reissue a license from those values alone; no value holds the folder path, home path or machine name (PDR-0046) | xUnit |
 | Integration | Encrypted PEM opens with `ECDsa.ImportFromEncryptedPem` and the passphrase; not without | xUnit |
 | Integration | Backup round trip into a new folder; refusals; newer-version manifest | xUnit |
 | Integration | Portability: a folder copied and a backup restored into a different temp home work; no stored value contains the source folder's path | xUnit |
@@ -355,6 +389,11 @@ Validation for every block: `dotnet build Umbraco.Community.Licensing.slnx`,
 - [Lockstep versions: a tool-only fix bumps the library version] → Accepted in beta (ADR-0011).
 - [System.CommandLine API differs between 2.0 betas and 2.0 stable] → Pin the stable 2.0.x
   exactly; the brief names it.
+- [Tool uses library internals through `InternalsVisibleTo`] → Safe: the tool package bundles
+  the library assembly it was built with, and both release at one version (ADR-0011). A library
+  refactor that breaks the tool fails the same build (ADR-0019).
+- [`ToLowerInvariant` is simple case mapping, not full case folding: `ß` does not find `SS`] →
+  Accepted; rare in emails and order references (ADR-0019).
 
 ## Migration Plan
 
