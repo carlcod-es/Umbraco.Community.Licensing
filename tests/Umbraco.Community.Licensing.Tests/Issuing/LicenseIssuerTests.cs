@@ -496,7 +496,7 @@ public class LicenseIssuerTests : IDisposable
     [Fact]
     public void KeyTooLong_RejectedNamingFeaturesAndTheExcess()
     {
-        var request = Minimal() with { Features = KeyLengthSupport.TextFeatures(50, KeyLengthSupport.Emoji(256)) };
+        var request = Minimal() with { Features = KeyLengthSupport.TextFeatures(50, KeyLengthSupport.Katakana(256)) };
         var length = KeyLengthSupport.KeyLength(_key.SigningKeyId, new DateTimeOffset(2026, 10, 1, 8, 0, 0, TimeSpan.Zero), request.Product!, null, null, request.Features);
 
         var ex = Assert.Throws<LicenseIssueException>(() => Issuer().Issue(request, _key));
@@ -514,7 +514,7 @@ public class LicenseIssuerTests : IDisposable
         var request = Minimal() with
         {
             Product = "Not Valid",
-            Features = KeyLengthSupport.TextFeatures(50, KeyLengthSupport.Emoji(256)),
+            Features = KeyLengthSupport.TextFeatures(50, KeyLengthSupport.AstralLetters(256)),
         };
 
         var ex = Assert.Throws<LicenseIssueException>(() => Issuer().Issue(request, _key));
@@ -526,8 +526,8 @@ public class LicenseIssuerTests : IDisposable
     [Fact]
     public void KeyLength_Exactly32767_IsIssued_OneMoreIsRejected()
     {
-        // Emoji take the key close to the limit; single letters then walk the length to the exact value.
-        var baseValue = KeyLengthSupport.Emoji(256);
+        // Four-byte letters take the key close to the limit; single letters then walk the length to the exact value.
+        var baseValue = KeyLengthSupport.AstralLetters(256);
         var features = KeyLengthSupport.TextFeatures(22, baseValue).With("pad", new string('a', 256));
         var padded = features;
         var length = 0;

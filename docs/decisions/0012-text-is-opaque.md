@@ -1,6 +1,6 @@
 # PDR-0012: Text values are opaque; no text set
 
-- Status: Decided
+- Status: Amended by PDR-0042
 - Date: 2026-10-09
 - Source: `add-license-core` design.md R2 (`CLEAN-PROJECT-PROMPT.md` section 12, decision 2)
 - Personas: vendor (carry a list such as domains), implementor.

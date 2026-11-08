@@ -98,10 +98,10 @@ public class PayloadReaderTests
     [Fact]
     public void TryRead_EscapedAllowedCharacters_AreAccepted()
     {
-        var payload = ReadOk(Valid("\"t\":\"\\u0041-\\u0030\\/\\u0023\"", "\"n\":\"\\u0043af\\u00e9 \\ud83d\\ude00\""));
+        var payload = ReadOk(Valid("\"t\":\"\\u0041-\\u0030\\/\\u0023\"", "\"n\":\"\\u0043af\\u00e9 \\ud840\\udc00\""));
 
         Assert.Equal("A-0/#", payload.VendorTag);
-        Assert.Equal("Caf\u00e9 \U0001F600", payload.DisplayName);
+        Assert.Equal("Caf\u00e9 \U00020000", payload.DisplayName);
     }
 
     [Fact]
@@ -151,11 +151,11 @@ public class PayloadReaderTests
     [Fact]
     public void TryRead_TextAndDisplayNameAtLimitInScalarValues_AreAccepted()
     {
-        var emoji64 = string.Concat(Enumerable.Repeat("\\ud83d\\ude00", 64));
-        var emoji256 = string.Concat(Enumerable.Repeat("\\ud83d\\ude00", 256));
+        var astral64 = string.Concat(Enumerable.Repeat("\\ud840\\udc00", 64));
+        var astral256 = string.Concat(Enumerable.Repeat("\\ud840\\udc00", 256));
 
-        ReadOk(Valid("\"n\":\"" + emoji64 + "\""));
-        ReadOk(WithFeatures("{\"t\":\"" + emoji256 + "\"}"));
+        ReadOk(Valid("\"n\":\"" + astral64 + "\""));
+        ReadOk(WithFeatures("{\"t\":\"" + astral256 + "\"}"));
     }
 
     [Theory]
@@ -184,7 +184,7 @@ public class PayloadReaderTests
             "acme.commerce",
             IssuedAt,
             new DateTimeOffset(2027, 3, 1, 23, 59, 59, TimeSpan.Zero),
-            "Commerce Pro \u00e9\U0001F600",
+            "Commerce Pro \u00e9\U00020000",
             "CUST-0042",
             [
                 FeatureInput.Switch("ecommerce", true),
@@ -575,7 +575,7 @@ public class PayloadReaderTests
     {
         ReadOk(Valid("\"n\":\"" + new string('x', 64) + "\""));
         AssertRefused(Valid("\"n\":\"" + new string('x', 65) + "\""));
-        AssertRefused(Valid("\"n\":\"" + string.Concat(Enumerable.Repeat("\\ud83d\\ude00", 65)) + "\""));
+        AssertRefused(Valid("\"n\":\"" + string.Concat(Enumerable.Repeat("\\ud840\\udc00", 65)) + "\""));
     }
 
     [Theory]
@@ -655,7 +655,28 @@ public class PayloadReaderTests
 
     [Fact]
     public void TryRead_ValidEscapedSurrogatePair_IsAccepted() =>
-        Assert.Equal("\U0001F600", ReadOk(Valid("\"n\":\"\\uD83D\\uDE00\"")).DisplayName);
+        Assert.Equal("\U00020000", ReadOk(Valid("\"n\":\"\\uD840\\uDC00\"")).DisplayName);
+
+    // Text rule (PDR-0042) ---------------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("\"n\":\"Pro \u2B50\"")]
+    [InlineData("\"n\":\"Pro\\u2B50\"")]
+    [InlineData("\"n\":\"Pro\\u3164\"")]
+    [InlineData("\"f\":{\"t\":\"a\\u200Bb\"}")]
+    [InlineData("\"f\":{\"t\":\"a\u200Bb\"}")]
+    [InlineData("\"f\":{\"t\":\"a\\u00A0b\"}")]
+    [InlineData("\"f\":{\"t\":\"\\ud83d\\ude00\"}")]
+    public void TryRead_TextBreakingTheTextRule_IsRefused(string field) => AssertRefused(Valid(field));
+
+    [Fact]
+    public void TryRead_TextInAnyScript_IsReportedUnchanged()
+    {
+        var payload = ReadOk(Valid("\"n\":\"\u30B3\u30DE\u30FC\u30B9 Pro\"", "\"f\":{\"t\":\"\u0391\u03BA\u03C1\u03CC\u03C0\u03BF\u03BB\u03B7 \u0141\u00F3d\u017A\"}"));
+
+        Assert.Equal("\u30B3\u30DE\u30FC\u30B9 Pro", payload.DisplayName);
+        Assert.Equal("\u0391\u03BA\u03C1\u03CC\u03C0\u03BF\u03BB\u03B7 \u0141\u00F3d\u017A", payload.Features[0].Text);
+    }
 
     // Depth -------------------------------------------------------------------------------------------------
 

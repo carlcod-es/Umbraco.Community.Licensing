@@ -130,9 +130,40 @@ letter; each name once. The type is the JSON token type:
 
 `false`, `null`, arrays and nested objects are not feature values.
 
-**Text rule** (display name, text features). Length counted in Unicode scalar values, so an
-emoji counts as 1. No control characters (Unicode category Cc, U+2028, U+2029). No leading or
-trailing whitespace. No unpaired surrogates.
+**Text rule** (display name, text features; PDR-0042). Length counted in Unicode scalar values.
+Characters are judged by **Unicode 16.0.0**, the same at issue and at read on every machine and
+runtime: the library carries its own table, generated from the Unicode Character Database
+(`extracted/DerivedGeneralCategory.txt` and `DerivedCoreProperties.txt`), and does not use the
+runtime's Unicode data (ADR-0018). Outside ASCII a character is allowed when its general category
+is L, Mn, Mc, Nd or P and it is not Default_Ignorable_Code_Point. A later Unicode version is a
+format change; between versions these categories have so far only grown, so a move is expected
+to widen the rule. A move that would remove a character is a narrowing, decided separately
+(PDR-0042).
+
+| Characters | Unicode general category | Examples | Rule |
+|---|---|---|---|
+| Printable ASCII, U+0020 to U+007E | any | `a Z 0 . , - + = < > ~ \| $ ^ @ :` and space | allowed |
+| Letters, any script | L (Lu, Ll, Lt, Lm, Lo) | `é ü ß ł α ж コ 中` | allowed |
+| Combining marks | Mn, Mc | the accent in `e` + U+0301; Hindi and Thai vowel signs | allowed, except the ignorable-by-default characters below (variation selectors U+FE00 to U+FE0F and U+E0100 to U+E01EF among them) |
+| Decimal digits | Nd | `٣ ३` | allowed |
+| Punctuation | P (Pc, Pd, Ps, Pe, Pi, Pf, Po) | `– — « » ¿ ¡ ・ 、` | allowed |
+| Symbols outside ASCII | S (Sm, Sc, Sk, So) | `⭐ ❤ ™ © ® € ± →`, emoji, skin-tone modifiers | refused |
+| Enclosing marks | Me | the keycap U+20E3 in `1️⃣` | refused |
+| Other numbers | Nl, No | `① ² ½ Ⅻ` | refused |
+| Spaces other than U+0020 | Zs, Zl, Zp | no-break U+00A0, ideographic U+3000, en and em spaces, U+2028, U+2029 | refused; U+2028 and U+2029 are reported as control characters |
+| Ignorable by default | Unicode property Default_Ignorable_Code_Point, in any category | Hangul fillers U+115F, U+1160, U+3164, U+FFA0; combining grapheme joiner U+034F; Mongolian variation selectors U+180B to U+180D and U+180F; Khmer U+17B4, U+17B5 | refused, even where the category above allows it |
+| Invisible formatting | Cf | zero-width space U+200B, joiners U+200C and U+200D, direction overrides U+202A to U+202E and U+2066 to U+2069, soft hyphen U+00AD | refused |
+| Control characters | Cc: U+0000 to U+001F, U+007F to U+009F | tab, line feed | refused |
+| Unassigned, private use, surrogates | Cn, Co, Cs | | refused; an unpaired surrogate is refused |
+
+No leading or trailing whitespace. Repeated spaces inside are allowed. Text is signed exactly as
+supplied, never cleaned or normalised: an accented letter typed as one character or as a letter
+and a combining mark is accepted either way, as two different strings. A rule that is unsure
+refuses; allowing more later breaks no issued key.
+
+Releases up to 0.1.0-beta.6 refused only control characters, U+2028, U+2029, leading or
+trailing whitespace and unpaired surrogates. A key issued by them with a character now refused
+reads as *not supported* and is reissued (PDR-0024).
 
 **String encoding.** Written as raw UTF-8; only `"` (`\"`), `\` (`\\`) and U+0000 to U+001F
 (`\uXXXX`) are escaped. A reader accepts any valid JSON escape.

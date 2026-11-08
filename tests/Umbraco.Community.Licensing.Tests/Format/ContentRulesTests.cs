@@ -24,7 +24,8 @@ public class ContentRulesTests
     private static readonly string Nbsp = ((char)0xA0).ToString();
     private static readonly string Kelvin = ((char)0x212A).ToString();
 
-    private static string Emoji(int count) => string.Concat(Enumerable.Repeat("\U0001F600", count));
+    // A 4-byte letter (CJK Extension B), so length tests count surrogate pairs without using refused emoji.
+    private static string Astral(int count) => string.Concat(Enumerable.Repeat("\U00020000", count));
 
     private static string Product(int length) => "a." + new string('b', length - 2);
 
@@ -70,7 +71,7 @@ public class ContentRulesTests
     {
         using var scope = new CultureScope(culture);
 
-        foreach (var name in new[] { "Commerce Pro", "Commerce Pro – Édition", "x", new string('x', 64), "😀 pack", Emoji(64) })
+        foreach (var name in new[] { "Commerce Pro", "Commerce Pro – Édition", "x", new string('x', 64), "\U00020000 pack", Astral(64) })
         {
             Assert.Empty(Run(p => ContentRules.CheckDisplayName(name, p)));
         }
@@ -85,7 +86,7 @@ public class ContentRulesTests
         var invalid = new[]
         {
             "", " Pro", "Pro ", "a\nb", "a\r\nb", "a\tb", "a" + Nul + "b", "a" + LineSep + "b", "a" + ParaSep + "b", "a" + Nel + "b",
-            new string('x', 65), Emoji(65), Nbsp + "Pro", "ab" + High, Low + "ab", "a" + High + "b",
+            new string('x', 65), Astral(65), Nbsp + "Pro", "ab" + High, Low + "ab", "a" + High + "b",
         };
         foreach (var name in invalid)
         {
@@ -96,9 +97,262 @@ public class ContentRulesTests
     [Fact]
     public void DisplayNameLength_CountsScalarValuesNotCodeUnits()
     {
-        // 64 emoji are 128 UTF-16 code units but 64 characters.
-        Assert.Empty(Run(p => ContentRules.CheckDisplayName(Emoji(64), p)));
+        // 64 four-byte letters are 128 UTF-16 code units but 64 characters.
+        Assert.Empty(Run(p => ContentRules.CheckDisplayName(Astral(64), p)));
         Assert.Single(Run(p => ContentRules.CheckDisplayName("ab" + High, p)));
+    }
+
+    // Text rule (PDR-0042, ADR-0018)
+
+    private static List<LicenseProblem> DisplayName(string name) => Run(p => ContentRules.CheckDisplayName(name, p));
+
+    private static List<LicenseProblem> TextValue(string name, string value) =>
+        Run(p => ContentRules.CheckFeatures([FeatureInput.OfText(name, value)], p));
+
+    private static string Cp(int value) => char.ConvertFromUtf32(value);
+
+    [Theory]
+    [MemberData(nameof(Cultures))]
+    public void TextRule_AnyScriptAccepted(string culture)
+    {
+        using var scope = new CultureScope(culture);
+
+        foreach (var name in new[] { "Ακρόπολη Pro", "コマース Pro", "Łódź Edition", "Commerce Pro – Édition" })
+        {
+            Assert.Empty(DisplayName(name));
+            Assert.Empty(TextValue("t", name));
+        }
+    }
+
+    [Theory]
+    [InlineData("eu+uk")]
+    [InlineData("a=b")]
+    [InlineData("<none>")]
+    [InlineData("$100 | ~50%")]
+    public void TextRule_PrintableAsciiUnchanged(string value)
+    {
+        Assert.Empty(TextValue("t", value));
+        Assert.Empty(DisplayName(value));
+    }
+
+    [Fact]
+    public void TextRule_EveryPrintableAsciiCharacterAccepted()
+    {
+        for (var c = 0x20; c <= 0x7E; c++)
+        {
+            var value = "a" + (char)c + "b";
+            Assert.Empty(TextValue("t", value));
+            Assert.Empty(DisplayName(value));
+        }
+    }
+
+    [Theory]
+    [InlineData("Pro ⭐")]
+    [InlineData("Pro™")]
+    [InlineData("Pro ©")]
+    [InlineData("Pro €")]
+    [InlineData("Pro ±")]
+    [InlineData("Pro \U0001F600")]
+    public void TextRule_EmojiAndSymbolsRefused(string name)
+    {
+        Assert.Equal(["displayName"], Fields(DisplayName(name)));
+    }
+
+    [Theory]
+    [InlineData("1\uFE0F\u20E3")]
+    [InlineData("Pro\uFE0F")]
+    [InlineData("\U0001F44D\U0001F3FB")]
+    [InlineData("Pro\u20E3")]
+    public void TextRule_EmojiBuildingBlocksRefused(string name)
+    {
+        Assert.Equal(["displayName"], Fields(DisplayName(name)));
+    }
+
+    [Theory]
+    [InlineData(0x200B)]
+    [InlineData(0x200C)]
+    [InlineData(0x200D)]
+    [InlineData(0x202E)]
+    [InlineData(0x00AD)]
+    public void TextRule_InvisibleCharactersRefused(int codePoint)
+    {
+        var problems = TextValue("licensed-domains", "a" + Cp(codePoint) + "b");
+
+        Assert.Equal(["features.licensed-domains"], Fields(problems));
+    }
+
+    [Theory]
+    [InlineData(0x3164)]
+    [InlineData(0x034F)]
+    public void TextRule_InvisibleLettersAndMarksRefused(int codePoint)
+    {
+        Assert.Equal(["displayName"], Fields(DisplayName("Pro" + Cp(codePoint) + "x")));
+    }
+
+    [Theory]
+    [InlineData(0x00A0)]
+    [InlineData(0x3000)]
+    [InlineData(0x2002)]
+    [InlineData(0x2003)]
+    public void TextRule_OtherSpacesRefused(int codePoint)
+    {
+        var problems = DisplayName("Commerce" + Cp(codePoint) + "Pro");
+
+        Assert.Equal(["displayName"], Fields(problems));
+        Assert.Contains("not allowed", Assert.Single(problems).Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TextRule_OtherSpaceAtEnd_ReportsBothProblems()
+    {
+        var problems = DisplayName("Pro" + Nbsp);
+
+        Assert.Equal(2, problems.Count);
+        Assert.Contains(problems, p => p.Message.Contains("not allowed", StringComparison.Ordinal));
+        Assert.Contains(problems, p => p.Message.Contains("start or end with whitespace", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void TextRule_RepeatedAsciiSpacesAccepted()
+    {
+        Assert.Empty(DisplayName("Commerce  Pro"));
+        Assert.Empty(TextValue("t", "Commerce  Pro"));
+    }
+
+    [Theory]
+    [InlineData("①")]
+    [InlineData("m²")]
+    [InlineData("½")]
+    [InlineData("Ⅻ")]
+    public void TextRule_NumbersThatAreNotDigitsRefused(string value)
+    {
+        Assert.Equal(["features.t"], Fields(TextValue("t", value)));
+    }
+
+    [Theory]
+    [InlineData(0xE000)]
+    [InlineData(0x0378)]
+    [InlineData(0x10940)]
+    [InlineData(0xF0000)]
+    public void TextRule_UnassignedAndPrivateUseCharactersRefused(int codePoint)
+    {
+        Assert.Equal(["displayName"], Fields(DisplayName("Pro" + Cp(codePoint))));
+    }
+
+    [Fact]
+    public void TextRule_BothFormsOfAnAccentedLetterAccepted()
+    {
+        Assert.Empty(DisplayName("Caf\u00e9"));
+        Assert.Empty(DisplayName("Cafe\u0301"));
+        Assert.Empty(TextValue("t", "Caf\u00e9"));
+        Assert.Empty(TextValue("t", "Cafe\u0301"));
+    }
+
+    [Theory]
+    [MemberData(nameof(Cultures))]
+    public void TextRule_SameAnswerOnEveryMachine(string culture)
+    {
+        // The answer comes from fixed ranges and a generated table, so it does not move with the culture.
+        using var scope = new CultureScope(culture);
+
+        Assert.Empty(DisplayName("コマース Pro"));
+        var problem = Assert.Single(DisplayName("Pro ⭐"));
+        Assert.Equal(
+            "A display name contains a character that is not allowed: U+2B50 at position 5. Allowed: printable ASCII, and letters, combining marks, digits and punctuation from any script.",
+            problem.Message);
+    }
+
+    [Fact]
+    public void TextRule_FourByteLetterCountsAsOneCharacter()
+    {
+        Assert.Empty(DisplayName(Astral(1)));
+        Assert.Empty(DisplayName(Astral(64)));
+        Assert.Equal(["displayName"], Fields(DisplayName(Astral(65))));
+    }
+
+    [Fact]
+    public void TextRule_ControlCharacter_ReportsOnlyTheControlMessage()
+    {
+        var problem = Assert.Single(DisplayName("a" + Nel + "b"));
+
+        Assert.Contains("control characters", problem.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("not allowed", problem.Message, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(0x1F)]
+    [InlineData(0x7F)]
+    [InlineData(0x9F)]
+    [InlineData(0x2028)]
+    [InlineData(0x2029)]
+    public void TextRule_ControlRanges_AreControl(int codePoint)
+    {
+        var problem = Assert.Single(DisplayName("a" + Cp(codePoint) + "b"));
+
+        Assert.Contains("control characters", problem.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TextRule_Message_NamesCodePointAndPosition_NotTheCharacter()
+    {
+        var problem = Assert.Single(TextValue("t", "ab" + Cp(0x1F600) + "d"));
+
+        Assert.Equal("features.t", problem.Field);
+        Assert.Equal(
+            "A text value contains a character that is not allowed: U+1F600 at position 3. Allowed: printable ASCII, and letters, combining marks, digits and punctuation from any script.",
+            problem.Message);
+        Assert.DoesNotContain(Cp(0x1F600), problem.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TextRule_Message_PositionCountsScalarValues()
+    {
+        var problem = Assert.Single(DisplayName(Astral(2) + "\u2B50"));
+
+        Assert.Contains("U+2B50 at position 3.", problem.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TextRule_Message_CountsOtherRefusedCharacters()
+    {
+        var one = Assert.Single(DisplayName("a\u2B50b\u2122"));
+        var two = Assert.Single(DisplayName("a\u2B50b\u2122c\u00A9"));
+        var repeated = Assert.Single(DisplayName("\u2B50\u2B50"));
+
+        Assert.Contains("U+2B50 at position 2 (and 1 other).", one.Message, StringComparison.Ordinal);
+        Assert.Contains("U+2B50 at position 2 (and 2 others).", two.Message, StringComparison.Ordinal);
+        Assert.Contains("U+2B50 at position 1 (and 1 other).", repeated.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("\u2122", one.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TextRule_OneProblemPerField()
+    {
+        var problems = ContentRules.Check(
+            "acme.commerce",
+            "\u2B50",
+            null,
+            [FeatureInput.OfText("a", "\u2B50\u2122"), FeatureInput.OfText("b", "\u200B")]);
+
+        Assert.Equal(["displayName", "features.a", "features.b"], Fields(problems));
+    }
+
+    [Fact]
+    public void FeatureRules_TextValueBreakingTheTextRule_NamesFeature()
+    {
+        Assert.Equal(["features.licensed-domains"], Fields(TextValue("licensed-domains", "shop.example.com ✓")));
+    }
+
+    [Fact]
+    public void DisplayNameRule_InvalidDisplayName_EmojiNamesDisplayName()
+    {
+        Assert.Equal(["displayName"], Fields(DisplayName("Pro ⭐")));
+    }
+
+    [Fact]
+    public void FeatureRules_ValidFeatures_MixedCaseDomainsAccepted()
+    {
+        Assert.Empty(TextValue("licensed-domains", "a.com,A.com"));
     }
 
     // Vendor tag
@@ -254,8 +508,8 @@ public class ContentRulesTests
     public void TextAtLimit_IsAccepted()
     {
         Assert.Empty(Run(p => ContentRules.CheckFeatures([FeatureInput.OfText("t", new string('x', 256))], p)));
-        Assert.Empty(Run(p => ContentRules.CheckFeatures([FeatureInput.OfText("t", Emoji(256))], p)));
-        Assert.Equal(["features.t"], Fields(Run(p => ContentRules.CheckFeatures([FeatureInput.OfText("t", Emoji(257))], p))));
+        Assert.Empty(Run(p => ContentRules.CheckFeatures([FeatureInput.OfText("t", Astral(256))], p)));
+        Assert.Equal(["features.t"], Fields(Run(p => ContentRules.CheckFeatures([FeatureInput.OfText("t", Astral(257))], p))));
     }
 
     [Fact]

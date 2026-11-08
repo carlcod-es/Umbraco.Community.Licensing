@@ -13,7 +13,7 @@ Deferred. Update this index in the same change as any status line.
 | ADR | Title | Status |
 |---|---|---|
 | [ADR-0001](0001-signing-and-key-string.md) | Signing algorithm, key string envelope and signing key ID | Amended by ADR-0007 |
-| [ADR-0002](0002-payload-format-and-strict-read.md) | Payload format and strict read | Amended by ADR-0007 |
+| [ADR-0002](0002-payload-format-and-strict-read.md) | Payload format and strict read | Amended by ADR-0007, ADR-0018 |
 | [ADR-0003](0003-packaging-naming-and-dependencies.md) | Packaging, naming, clock and dependencies | Amended by ADR-0006, ADR-0010 |
 | [ADR-0004](0004-public-api.md) | Public API surface | Amended by ADR-0010 |
 | [ADR-0005](0005-example-keys-and-test-strategy.md) | Example key strings and test strategy | Amended by ADR-0010 |
@@ -29,3 +29,4 @@ Deferred. Update this index in the same change as any status line.
 | [ADR-0015](0015-vendor-tool-backup-and-export-formats.md) | Vendor tool backup and export formats | Decided |
 | [ADR-0016](0016-github-release-job.md) | GitHub Release job in the release run | Decided |
 | [ADR-0017](0017-vendor-tool-guided-console-and-startup.md) | Vendor tool guided console and startup | Decided |
+| [ADR-0018](0018-text-rule-character-table.md) | Text rule character table | Decided |

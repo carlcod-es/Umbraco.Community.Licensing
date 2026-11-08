@@ -351,6 +351,32 @@ public class LicenseEvaluatorTests
         Assert.Null(result.License);
     }
 
+    [Theory]
+    [InlineData(",\"n\":\"Pro \u2B50\"", null)]
+    [InlineData(null, "\"licensed-domains\":\"a\u200Bb\"")]
+    public void TextBreakingTheTextRule_IsNotSupportedWithClaims(string? extra, string? features)
+    {
+        var key = SignRaw(RawPayload(extra: extra, features: features));
+
+        var result = Evaluator().Evaluate(key);
+
+        Assert.Equal(LicenseState.NotSupported, result.State);
+        Assert.Equal(Product, result.ClaimedProduct);
+        Assert.Equal(Identifier, result.ClaimedKeyIdentifier);
+        Assert.Null(result.License);
+    }
+
+    [Fact]
+    public void TextInAnyScript_DisplayNameIsReportedUnchanged()
+    {
+        var key = SignRaw(RawPayload(extra: ",\"n\":\"\u30B3\u30DE\u30FC\u30B9 Pro\""));
+
+        var result = Evaluator().Evaluate(key);
+
+        Assert.Equal(LicenseState.Valid, result.State);
+        Assert.Equal("\u30B3\u30DE\u30FC\u30B9 Pro", result.License!.DisplayName);
+    }
+
     [Fact]
     public void UnknownField_IsNotSupported() =>
         Assert.Equal(LicenseState.NotSupported, Evaluator().Evaluate(SignRaw(RawPayload(extra: ",\"unknown\":\"x\""))).State);

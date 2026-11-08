@@ -6,7 +6,11 @@ internal static class KeyLengthSupport
     private const int IdentifierLength = 20;
     private const int SignatureTextLength = 86;
 
-    public static string Emoji(int count) => string.Concat(Enumerable.Repeat("\U0001F600", count));
+    /// <summary>Letters of 4 UTF-8 bytes each (U+20000), so size arithmetic matches emoji while following the text rule.</summary>
+    public static string AstralLetters(int count) => string.Concat(Enumerable.Repeat("\U00020000", count));
+
+    /// <summary>Japanese katakana <c>コ</c> (U+30B3, 3 UTF-8 bytes) repeated, as the "Key too long" scenario states.</summary>
+    public static string Katakana(int count) => new('\u30B3', count);
 
     public static string Name(int index) => $"f{index:D2}" + new string('a', 61);
 

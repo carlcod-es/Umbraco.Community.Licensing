@@ -122,6 +122,8 @@ agents cannot delegate.
 | `docs/`, `openspec/`, `.claude/`, `CLAUDE.md`, `README.md` | Architect |
 | `tools/**` | worker-backend |
 | `assets/**` | Architect. Files packed into the package are referenced from the library project by worker-backend |
+| `THIRD-PARTY-NOTICES.md` | Architect. Packed into the package from the library project by worker-backend |
+| `.gitattributes` | Architect |
 | `.github/**` | Shared (CI): assigned to worker-backend in the brief |
 | `Version.props` | Shared: assigned in the brief; `VersionLine` changed only by Carl, `Version` only by the release command after `add-release-pipeline` |
 | `RELEASES.md` | Architect creates it; rows added only by the release command |

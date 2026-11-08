@@ -1,0 +1,2 @@
+# Generated sources keep LF on every OS, matching the generator output (tighten-text-rule design.md "Line endings").
+*.g.cs text eol=lf

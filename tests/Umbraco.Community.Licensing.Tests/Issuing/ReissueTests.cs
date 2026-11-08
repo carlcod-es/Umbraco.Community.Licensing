@@ -253,7 +253,7 @@ public class ReissueTests : IDisposable
         var license = License(FutureExpiry, features: KeyLengthSupport.TextFeatures(10, "short"));
         var request = ReissueRequest.From(license) with
         {
-            Features = KeyLengthSupport.TextFeatures(50, KeyLengthSupport.Emoji(256)),
+            Features = KeyLengthSupport.TextFeatures(50, KeyLengthSupport.AstralLetters(256)),
         };
 
         var ex = Assert.Throws<LicenseIssueException>(() => Issuer().Issue(request, _key));

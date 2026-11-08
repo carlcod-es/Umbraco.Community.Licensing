@@ -26,7 +26,7 @@ jobs:
       - name: Print platform
         run: node tools/release/platform.mjs
       - name: Tool tests
-        run: node --test "tools/release/*.test.mjs"
+        run: node --test "tools/**/*.test.mjs"
       - name: Build
         run: dotnet build Umbraco.Community.Licensing.slnx -c Release
       - name: Test

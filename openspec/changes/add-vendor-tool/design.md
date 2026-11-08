@@ -104,6 +104,22 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q35 | Startup | Only the current folder, then `~/.ucl`; no folder option; an unused second installation is noted; setup from the offer ends with a generic retry line; `ucl` alone lists the commands; startup menu is FR-23 (Carl, 2026-11-08) | PDR-0041, ADR-0017 |
 | Q36 | Help, version and PowerShell 5.1 redirect | Help, version and the command list are not actions and work with nobody present; the PowerShell 5.1 redirect encoding is documented, not handled (Carl, 2026-11-08) | PDR-0039, ADR-0017 |
 
+## Open questions
+
+Raised in `opsx:explore` (Carl, 2026-11-08). Every value is typed by a person; names and email
+addresses must allow common characters such as umlauts and accents; no emoji. The key's own
+text rule is tightened first in `tighten-text-rule`; this change waits for it.
+
+| Q | Question | Notes |
+|---|---|---|
+| Q37 | Customer email: characters, length, matching | Draft 3 to 254 characters, one `@`. Open: accented addresses (`jürgen@müller.de`) or ASCII only; finding by email ignores case; two forms of one accented letter match |
+| Q38 | Order reference: characters and length | Draft: the vendor tag's characters `A-Z a-z 0-9 - _ . # /`, 1 to 64 (`ORD-1042`, `#1042`, `2026/1042`) |
+| Q39 | Passphrase: "typed characters only" (Carl) and maximum length | Printable ASCII only (safest when moving to a machine with another keyboard layout, PDR-0040, with a hidden prompt giving no feedback) or accented letters too; no emoji either way; two forms of one accented letter treated as the same passphrase if accents are allowed. Maximum at least 64 |
+| Q40 | Product display name rule (moved from `tighten-text-rule` Q7) | Follow `tighten-text-rule`'s display-name rule, 1 to 64. The rule now exists: PDR-0042 (Unicode 16.0.0, ADR-0018). A license's display name and text feature values are already checked by the library at issue. Open: whether `product add` and `product rename` check the product display name against the same rule (through the library, not a copy) when it is stored |
+| Q41 | `--feature name=off` | The key format has no off switch (an off switch is absent). `off` on issue: refused or ignored; on reissue: same as `--remove-feature`, or refused |
+| Q42 | Output and import files | `--out` when the file exists (refuse, ask, overwrite) or its folder is missing (refuse, create); same for `backup import` input path checks |
+| Q43 | Stale rows | Q1 ("every command runs from arguments alone") and Q7 ("batched runs supply it without a prompt") describe scripted mode; mark them amended by Q33 (PDR-0039). Q29 is already marked amended by Q35 |
+
 ## Decisions
 
 ### Components
@@ -194,9 +210,11 @@ error.
 ### Packaging and release — ADR-0011
 
 `PackAsTool`, `ToolCommandName` `ucl`, `PackageId` `Umbraco.Community.Licensing.Tool`, imports
-`Version.props`, packs `docs/vendor-tool.md` as its README and `assets/icon.png`. `release.yml`
-packs both projects into the pack folder and pushes `*.nupkg`; a step installs the tool from the
-pack folder into a temp tool path and runs `ucl --version` before the push. Amends ADR-0008.
+`Version.props`, packs `docs/vendor-tool.md` as its README and `assets/icon.png`, and
+`THIRD-PARTY-NOTICES.md` at the package root, as the library does: the tool ships the library and
+its generated Unicode table (ADR-0018). `release.yml` packs both projects into the pack folder and
+pushes `*.nupkg`; a step installs the tool from the pack folder into a temp tool path and runs
+`ucl --version` before the push. Amends ADR-0008.
 **Package IDs** then yields both IDs, so the GitHub Release links both packages with no change to
 `github-release.mjs` or job `github-release` (ADR-0016; release-process: One link per published
 package).

@@ -62,7 +62,12 @@ published, the library is ready to gain its main issuing client.
 
 ## Impact
 
-- New: tool project and its test project; tool user guide; README section.
+- Depends on `tighten-text-rule`, which tightens the key's text rule first; the tool's typed text
+  fields use that rule (design.md Open questions Q37 to Q43). The tool package carries
+  `THIRD-PARTY-NOTICES.md` (ADR-0018).
+- New: tool project and its test project; tool user guide; README section. The README is slim
+  (`tighten-text-rule`): the section is one bullet and a row in its Documentation table linking
+  the tool guide; detail stays in the guide.
 - Changed: release workflow packs and pushes two packages; CI and release checks run the tool's
   tests with the library's.
 - Library: no change.

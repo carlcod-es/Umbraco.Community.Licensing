@@ -42,7 +42,9 @@ internal enum FeatureKind
 /// <summary>
 /// The issue rules for product ID, display name, vendor tag and features (PDR-0017 limits). Used by the
 /// issuer to reject and by the strict reader to report not supported, so issue and read never disagree.
-/// Culture-invariant and ordinal; lengths count Unicode scalar values; every problem is reported.
+/// Culture-invariant and ordinal; lengths count Unicode scalar values; every problem is reported. Display name and
+/// text values share one text rule decided by fixed code point ranges and a generated table, never the runtime's
+/// Unicode data (PDR-0042, ADR-0018).
 /// </summary>
 internal static class ContentRules
 {
@@ -101,7 +103,11 @@ internal static class ContentRules
         }
     }
 
-    /// <summary>1 to 64 characters, no leading or trailing whitespace, no line breaks or control characters.</summary>
+    /// <summary>
+    /// 1 to 64 characters following the text rule: printable ASCII, and outside ASCII only letters, combining marks,
+    /// digits and punctuation from any script at a fixed Unicode version; no control characters or line breaks, no
+    /// leading or trailing whitespace (PDR-0042, ADR-0018).
+    /// </summary>
     public static void CheckDisplayName(string displayName, List<LicenseProblem> problems) =>
         CheckText("displayName", "A display name", displayName, MaxDisplayNameLength, problems);
 
@@ -229,21 +235,36 @@ internal static class ContentRules
             return;
         }
 
-        var hasSurrogateError = !TryScan(value, out var scalars, out var hasControl);
+        var hasSurrogateError = !TryScan(value, out var scan);
         if (hasSurrogateError)
         {
             problems.Add(new LicenseProblem(field, $"{subject} contains an unpaired surrogate."));
             return;
         }
 
+        var scalars = scan.Scalars;
         if (scalars is 0 || scalars > maxLength)
         {
             problems.Add(new LicenseProblem(field, $"{subject} must be 1 to {maxLength} characters."));
         }
 
-        if (hasControl)
+        if (scan.HasControl)
         {
             problems.Add(new LicenseProblem(field, $"{subject} must not contain line breaks or control characters."));
+        }
+
+        if (scan.RefusedCount > 0)
+        {
+            var others = scan.RefusedCount switch
+            {
+                1 => string.Empty,
+                2 => " (and 1 other)",
+                _ => string.Create(CultureInfo.InvariantCulture, $" (and {scan.RefusedCount - 1} others)"),
+            };
+            var code = scan.FirstRefused.Value.ToString("X4", CultureInfo.InvariantCulture);
+            problems.Add(new LicenseProblem(
+                field,
+                string.Create(CultureInfo.InvariantCulture, $"{subject} contains a character that is not allowed: U+{code} at position {scan.FirstRefusedPosition}{others}. Allowed: printable ASCII, and letters, combining marks, digits and punctuation from any script.")));
         }
 
         if (scalars > 0 && (char.IsWhiteSpace(value[0]) || char.IsWhiteSpace(value[^1])))
@@ -252,28 +273,48 @@ internal static class ContentRules
         }
     }
 
-    // Control characters: category Cc plus U+2028 and U+2029 (ADR-0002).
+    // Control characters by fixed ranges, not the runtime's Unicode data (ADR-0018): C0, DEL and C1, U+2028 and U+2029.
     private static bool IsControl(Rune rune) =>
-        Rune.GetUnicodeCategory(rune) == UnicodeCategory.Control || rune.Value is 0x2028 or 0x2029;
+        rune.Value is <= 0x1F or (>= 0x7F and <= 0x9F) or 0x2028 or 0x2029;
 
-    // Counts scalar values and flags control characters; false when the text has an unpaired surrogate.
-    private static bool TryScan(string value, out int scalars, out bool hasControl)
+    private readonly record struct TextScan(int Scalars, bool HasControl, int RefusedCount, Rune FirstRefused, int FirstRefusedPosition);
+
+    // Counts scalar values, flags control characters and collects refused characters (not controls, not in the
+    // table); false when the text has an unpaired surrogate.
+    private static bool TryScan(string value, out TextScan scan)
     {
-        scalars = 0;
-        hasControl = false;
+        var scalars = 0;
+        var hasControl = false;
+        var refused = 0;
+        var first = default(Rune);
+        var firstPosition = 0;
         var i = 0;
         while (i < value.Length)
         {
             if (Rune.DecodeFromUtf16(value.AsSpan(i), out var rune, out var consumed) != System.Buffers.OperationStatus.Done)
             {
+                scan = default;
                 return false;
             }
 
             scalars++;
-            hasControl |= IsControl(rune);
+            if (IsControl(rune))
+            {
+                hasControl = true;
+            }
+            else if (!TextRuleTable.IsAllowed(rune))
+            {
+                if (refused++ == 0)
+                {
+                    first = rune;
+                    firstPosition = scalars;
+                }
+            }
+
             i += consumed;
         }
 
+        scan = new TextScan(scalars, hasControl, refused, first, firstPosition);
         return true;
     }
 }

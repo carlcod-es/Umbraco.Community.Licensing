@@ -1,6 +1,6 @@
 # PDR-0008: Display name
 
-- Status: Decided
+- Status: Amended by PDR-0042
 - Date: 2026-10-09
 - Source: `add-license-core` design.md R2 (`CLEAN-PROJECT-PROMPT.md` section 12, decision 1)
 - Personas: site owner (reads `Commerce Pro`, not feature names), implementor.

@@ -19,11 +19,11 @@ Deferred. Update this index in the same change as any status line.
 | [PDR-0005](0005-random-key-part.md) | Random key part at every issue | Decided |
 | [PDR-0006](0006-issue-time-informational.md) | Issue time is informational | Decided |
 | [PDR-0007](0007-expiry-to-the-second.md) | Expiry is a stated UTC date and time to the second | Decided |
-| [PDR-0008](0008-display-name.md) | Display name | Decided |
+| [PDR-0008](0008-display-name.md) | Display name | Amended by PDR-0042 |
 | [PDR-0009](0009-vendor-tag.md) | Vendor tag | Decided |
 | [PDR-0010](0010-feature-types-and-names.md) | Feature types, name rule and lookup | Amended by PDR-0019 |
 | [PDR-0011](0011-numbers-not-additive.md) | Numbers are not additive-only | Decided |
-| [PDR-0012](0012-text-is-opaque.md) | Text values are opaque; no text set | Decided |
+| [PDR-0012](0012-text-is-opaque.md) | Text values are opaque; no text set | Amended by PDR-0042 |
 | [PDR-0013](0013-reissue-from-presented-key.md) | Reissue from the presented key | Amended by PDR-0021 |
 | [PDR-0014](0014-personal-data-by-guidance.md) | Personal data kept out by vendor guidance | Decided |
 | [PDR-0015](0015-signing-keys-and-rotation.md) | Signing keys, trusted set and rotation | Decided |
@@ -53,6 +53,7 @@ Deferred. Update this index in the same change as any status line.
 | [PDR-0039](0039-vendor-tool-guided-mode-only.md) | Vendor tool runs in guided mode only | Decided |
 | [PDR-0040](0040-installation-moves-between-operating-systems.md) | An installation moves between operating systems | Decided |
 | [PDR-0041](0041-finding-the-installation-at-startup.md) | Finding the installation at startup | Decided |
+| [PDR-0042](0042-text-rule-allows-characters-by-kind.md) | Text rule allows characters by kind | Decided |
 
 ## Template
 

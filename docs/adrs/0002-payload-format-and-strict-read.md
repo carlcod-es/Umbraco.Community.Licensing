@@ -1,6 +1,6 @@
 # ADR-0002: Payload format and strict read
 
-- Status: Amended by ADR-0007
+- Status: Amended by ADR-0007, ADR-0018 (control characters and allowed text characters)
 - Date: 2026-10-09
 - Source: `add-license-core` design.md R7, Q5, Q12, Q13, Q20, Q21, Q25 (`CLEAN-PROJECT-PROMPT.md` section 10,
   technology item 1)
