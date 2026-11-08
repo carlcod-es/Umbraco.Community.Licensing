@@ -95,8 +95,8 @@ runs on Opus (`.claude/settings.json`).
   by hand-editing.
 
 ### `opsx:apply` phase — Architect hat
-Run as the Apply-phase team below. Out-of-scope findings: fold into a block, add a task (via
-`opsx:update`), defer, or raise with Carl if it is a product decision.
+Run as the Apply-phase team below. Out-of-scope findings go through the triage in
+"Out-of-scope findings" below.
 
 # Apply-phase team
 
@@ -168,6 +168,40 @@ from design.md. For rework: the reviewer's or supervisor's findings verbatim.
 - Contradictory or missing requirements, new technology or dependency, scope growth, anything
   destructive.
 
+## Run mode
+Carl picks the mode when he starts `opsx:apply` (e.g. `/opsx:apply <change> continuous`).
+Announce the mode with the change name. If he names none, use **per-section**.
+
+- **Per-section** (default): stop after each supervisor-approved section.
+- **Continuous**: carry on to the next section after supervisor approval, until every section
+  is done or a stop condition is hit. Choosing this mode is Carl's go-ahead for every
+  remaining section in the run.
+
+In continuous mode, stop and report when:
+- any Escalate-to-Carl trigger is hit;
+- a task's acceptance is "deferred to PO" or "not met";
+- the supervisor reports a risk that needs a decision before the next section starts;
+- the supervisor rates an out-of-scope finding above minor.
+
+## Out-of-scope findings
+Applies in both run modes. Work found during apply that no task covers, from a worker,
+reviewer, supervisor or the Architect.
+1. Brief the `supervisor` (fresh agent) to triage it: the finding, where it came from, the
+   affected paths, and the current section's tasks, specs and records.
+2. **Minor**: fold it into a block of the owning worker, in the current section if it fits,
+   otherwise in the section it belongs to. If it needs a new task, add it via `opsx:update`.
+   Record the finding and the supervisor's rating in the section report.
+3. **Not minor**: stop and ask Carl, with the supervisor's reasons. Do not fold in, add a task
+   or defer until he decides.
+
+Section baseline: when a section is approved and staged, record `git write-tree` as that
+section's baseline and give it to the next section's supervisor. It reviews the diff from the
+baseline (`git diff <tree>` plus untracked files), not from `HEAD`. The first section after a
+commit reviews against `HEAD`.
+
 ## After supervisor approval
-Report to Carl: what was built, deviations, deferred items, risks. Stop. Carl commits; continue
-to the next section only when he says so.
+Report to Carl: what was built, deviations, deferred items, risks.
+- Per-section: stop. Carl commits; continue to the next section only when he says so.
+- Continuous: post the report and go on to the next section. When the run ends, give a final
+  report covering every section done in it, with the files each section changed so Carl can
+  commit them separately if he wants.
