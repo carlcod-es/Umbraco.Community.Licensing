@@ -1,6 +1,6 @@
 # PDR-0035: Signing key switch, standby keys and trusted keys
 
-- Status: Decided
+- Status: Amended by PDR-0047
 - Date: 2026-10-28
 - Source: `add-vendor-tool` design.md Q11, Q16 (`docs/feature-requests.md` FR-2 key
   replacement, FR-4 issues 1, 3, 4). Builds on PDR-0015.

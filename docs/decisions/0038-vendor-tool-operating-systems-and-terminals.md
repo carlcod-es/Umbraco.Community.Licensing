@@ -1,6 +1,6 @@
 # PDR-0038: Vendor tool operating systems and terminals
 
-- Status: Amended by PDR-0039, PDR-0040
+- Status: Amended by PDR-0039, PDR-0040, PDR-0048
 - Date: 2026-11-08
 - Source: `add-vendor-tool` design.md Q32. Amends PDR-0031.
 - Personas: vendor (installs and runs the tool on whichever operating system they develop on).

@@ -1,6 +1,6 @@
 # PDR-0031: Tool folder, moving and backups
 
-- Status: Amended by PDR-0038, PDR-0040, PDR-0041, PDR-0045; to revisit: FR-26 (PDR-0046)
+- Status: Amended by PDR-0038, PDR-0040, PDR-0041, PDR-0045, PDR-0048; to revisit: FR-26 (PDR-0046)
 - Date: 2026-10-28
 - Source: `add-vendor-tool` design.md Q4, Q5, Q6, Q13, Q29, Q30, Q31
 - Personas: vendor (knows where keys and records are; survives a new laptop). Site owner: records

@@ -44,7 +44,7 @@ released from one tested build.
 **Non-Goals:** store integration, a long-running service, multiple users, encrypted database or
 backup, private-key export (FR-11), passphrase change (FR-12), rich console UI (FR-13), bulk
 reissue (FR-5), import of pre-tool keys (FR-16), changing signing-key mode (FR-17), reused
-order reference warning (FR-18), several licenses in one run (FR-20), scripted mode (FR-22), startup menu (FR-23), central
+order reference warning (FR-18), several licenses in one run (FR-20), scripted mode (FR-22), central
 database and shop integration (FR-24, FR-25, FR-26), HSM or vault keys (`pre-1.0-considerations.md`
 C2), localisation.
 
@@ -52,19 +52,19 @@ C2), localisation.
 
 | R | Requirement | Spec | Personas | Records |
 |---|---|---|---|---|
-| R1 | One vendor, one person per installation; guided mode only | vendor-tool-setup: One vendor and one person per installation; Guided mode | Vendor | PDR-0030, PDR-0039 |
+| R1 | One vendor, one person per installation; menu session only | vendor-tool-setup: One vendor and one person per installation; Menu session; Answers at a prompt | Vendor; site owner (summary before signing) | PDR-0030, PDR-0039, PDR-0048 |
 | R2 | Guided setup; prefix changeable later | vendor-tool-setup: Guided setup; Changing the prefix | Vendor; site owner (prefix and keys set once, keys stay consistent) | PDR-0030, PDR-0023 |
-| R3 | Folder location, moving | vendor-tool-setup: Folder location; Moving an installation | Vendor | PDR-0031, PDR-0040, PDR-0041 |
+| R3 | Folder location, moving, second installation | vendor-tool-setup: Folder location; New installation in the current folder; Moving an installation | Vendor | PDR-0031, PDR-0040, PDR-0041, PDR-0048 |
 | R4 | Products and add-only feature definitions | vendor-tool-products | Vendor; site owner (no feature silently lost, PDR-0016) | PDR-0036 |
 | R5 | Issue, reissue, renew, resend from records | vendor-tool-licenses | Vendor; site owner (renewal keeps paid-for days; lost key resent) | PDR-0033, PDR-0034, PDR-0021 |
 | R6 | Records without key strings; customer fields editable and clearable | vendor-tool-licenses | Site owner (copied backup holds no usable key; erasure honoured); vendor | PDR-0033, PDR-0014 |
-| R7 | Private keys encrypted; never exported | vendor-tool-signing-keys: Private keys encrypted with the passphrase | Vendor; site owner (no forged keys from a copied folder) | PDR-0032 |
+| R7 | Private keys encrypted; never exported; passphrase kept for a session with an idle lock | vendor-tool-signing-keys: Private keys encrypted with the passphrase. vendor-tool-setup: Idle lock | Vendor; site owner (no forged keys from a copied folder or an unattended session) | PDR-0032, PDR-0049 |
 | R8 | Standby, switch, trusted keys, export by signing key | vendor-tool-signing-keys | Vendor; implementor (release trusts the right keys); site owner (keys keep working after rotation) | PDR-0035, PDR-0015 |
 | R9 | Backup export and import | vendor-tool-backup | Vendor; site owner (records survive a lost laptop) | PDR-0031 |
 | R10 | Tool released with the library | release-process | Vendor | ADR-0011 |
 | R11 | Windows, macOS and Linux; PowerShell, Windows Terminal, Command Prompt | vendor-tool-setup: Operating systems and terminals | Vendor | PDR-0038 |
 | R12 | Typed values: product display name, customer email and order reference by the key's text rule; finding ignores case and accent form, whole value only; passphrase printable ASCII, 15 to 256 | vendor-tool-products: Adding a product; Feature definitions are add-only. vendor-tool-licenses: Customer email and order reference values; Matching when finding. vendor-tool-setup: Passphrase rule | Vendor; site owner (passphrase types the same on the next machine, so signing keys are not lost) | PDR-0043, PDR-0042 |
-| R13 | Switch typed as off is not granted; contradictory features refused | vendor-tool-licenses: Switch values and contradictory features | Vendor; site owner and implementor unaffected (same key) | PDR-0044, PDR-0010 |
+| R13 | Switch answered off is not granted; each feature asked once | vendor-tool-licenses: Switch values and features at reissue | Vendor; site owner and implementor unaffected (same key) | PDR-0044, PDR-0010, PDR-0048 |
 | R14 | Named files never replaced, folders never created, asked again | vendor-tool-backup: Files named by the vendor; Files read by the tool. vendor-tool-signing-keys: Export by signing key | Site owner (an older backup survives); vendor | PDR-0045 |
 | R15 | Records complete and free of local paths | vendor-tool-setup: Records can move to another database | Site owner (reissues survive a later move); vendor | PDR-0046 |
 
@@ -75,13 +75,13 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 
 | Q | Question | Answer | Record |
 |---|---|---|---|
-| Q1 | How keys are issued | By hand, or batched from the vendor's own process; every command runs from arguments alone; no store integration (Carl, 2026-10-28). Amended by Q33: guided mode only; inputs may be given on the command | PDR-0030, PDR-0039 |
+| Q1 | How keys are issued | By hand, or batched from the vendor's own process; every command runs from arguments alone; no store integration (Carl, 2026-10-28). Amended by Q33: guided mode only; inputs may be given on the command. Amended by Q47: menu session only, no inputs on the command | PDR-0030, PDR-0039, PDR-0048 |
 | Q2 | Jobs in this change | FR-2 minimum; products and feature definitions; issue and reissue from records; find and list; standby key (FR-4). Import of pre-tool keys out, FR-16 (Carl, 2026-10-28) | PDR-0030 |
 | Q3 | Audience | Small vendors issuing only through the tool. Larger vendors use the library directly; private-key export for them is FR-11 (Carl, 2026-10-28) | PDR-0030, PDR-0032 |
 | Q4 | Folder location | Propose `~/.ucl`, show the full path, vendor may override; setup names the content, backup advice and sync warning (Carl, 2026-10-28); folder offer and resolution amended by Q29 | PDR-0031 |
 | Q5 | Moving and backups | Folder portable by copying; zip export and import (Carl, 2026-10-28) | PDR-0031 |
 | Q6 | SQL Server | Dropped; a database file inside the folder only (Carl, 2026-10-28). Was an FR-2 constraint | ADR-0013 |
-| Q7 | Protecting private keys | Encrypted with a passphrase set at setup; nothing else encrypted; asked once per command that signs or creates a key; batched runs supply it without a prompt (Carl, 2026-10-28). Amended by Q33: always typed at the hidden prompt | PDR-0032, PDR-0039 |
+| Q7 | Protecting private keys | Encrypted with a passphrase set at setup; nothing else encrypted; asked once per command that signs or creates a key; batched runs supply it without a prompt (Carl, 2026-10-28). Amended by Q33: always typed at the hidden prompt. Amended by Q49: asked at the first signing action, kept for the session | PDR-0032, PDR-0039, PDR-0049 |
 | Q8 | Private-key export | None in this change; FR-11 (Carl, 2026-10-28) | PDR-0032 |
 | Q9 | Suggested expiry on renewal | Vendor types the expiry; tool suggests current expiry plus the last term (Carl, 2026-10-28). Term and months versus exact time: see Q25 | PDR-0034 |
 | Q10 | Correcting or erasing customer data | Edit or clear order reference and email; no copy of a cleared value kept; records never deleted (Carl, 2026-10-28) | PDR-0033 |
@@ -90,7 +90,7 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q13 | Backup import over an installation | Refused; import only into a folder with no installation; backup date warning (Carl, 2026-10-28) | PDR-0031 |
 | Q14 | Operators; passphrase change | One person, no accounts; passphrase change out, FR-12 (Carl, 2026-10-28) | PDR-0030, PDR-0032 |
 | Q15 | Standby key stored apart (FR-4 issue 2) | Kept with the active key under the same passphrase; storing apart is FR-15 (Carl, 2026-10-28) | PDR-0032 |
-| Q16 | Standby key after setup (FR-4 issues 1, 4) | Can be added later; marked "not yet in a release" until confirmed; switch warns; list of products without a standby key (Carl, 2026-10-28) | PDR-0035 |
+| Q16 | Standby key after setup (FR-4 issues 1, 4) | Can be added later; marked "not yet in a release" until confirmed; switch warns; list of products without a standby key (Carl, 2026-10-28). Amended by Q45: switch also warns with no standby | PDR-0035, PDR-0047 |
 | Q17 | Changing feature definitions | Add-only; product ID fixed; display name editable; retiring a feature is FR-14 (Carl, 2026-10-28) | PDR-0036 |
 | Q18 | Distribution, packaging, versioning | .NET tool package `Umbraco.Community.Licensing.Tool`, command `ucl`, .NET SDK prerequisite; same version as the library, released together (Carl, 2026-10-28) | ADR-0011 |
 | Q19 | Command line and prompts | System.CommandLine; BCL console prompts; Spectre.Console is FR-13 (Carl, 2026-10-28) | ADR-0012 |
@@ -103,26 +103,40 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q26 | Where customer fields are held | Email per license; order reference per issue entry; only the latest entry's order reference correctable; clearing removes all of a license's order references at once. Warning on a reused order reference is FR-18 (Carl, 2026-10-28) | PDR-0033 |
 | Q27 | Proposed signing-key mode at setup | Per-product proposed; shared offered. Standby keys follow the mode: one per product signing key, or one for the shared key (Carl, 2026-10-29) | PDR-0030 |
 | Q28 | Scripted setup | Setup only by a person at a terminal; no answers from options, environment or redirected input; refused with nobody present. Every other action stays scriptable. Passphrase always typed twice (Carl, 2026-10-29) | PDR-0030 |
-| Q29 | Finding the installation; more than one | Amended by Q35. First of: `--folder`, the current folder when it holds an installation, `~/.ucl`. Setup offers `~/.ucl` (proposed) or the current folder. Nothing remembered; no folder environment setting. Each action states the folder used. No installation: refuse naming the folders checked; at a terminal, offer setup (Carl, 2026-10-29) | PDR-0031, ADR-0013 |
+| Q29 | Finding the installation; more than one | Amended by Q35. First of: `--folder`, the current folder when it holds an installation, `~/.ucl`. Setup offers `~/.ucl` (proposed) or the current folder. Nothing remembered; no folder environment setting. Each action states the folder used. No installation: refuse naming the folders checked; at a terminal, offer setup (Carl, 2026-10-29). Amended by Q52, Q57 | PDR-0031, ADR-0013, PDR-0048 |
 | Q30 | Folder state at setup | `~/.ucl` created when missing; a folder holding other files but no installation accepted; only an existing installation refused (Carl, 2026-10-29) | PDR-0031 |
 | Q31 | Next step after setup | Closing message ends with the next steps by mode: `product add` (per-product: creates the signing key, asks the passphrase), then `key trusted`. The guide gives the same first steps (Carl, 2026-10-29) | PDR-0031 |
 | Q32 | Operating systems and terminals | Windows, macOS and Linux; on Windows PowerShell, Windows Terminal and Command Prompt; `~/.ucl` is `.ucl` in each OS's home folder, paths shown in full; sync warning names example services; Windows checked by the automated suite and by hand in all three terminals (Carl, 2026-11-07) | PDR-0038, ADR-0017 |
-| Q33 | Guided or scripted | Guided mode only: a person at a terminal, inputs allowed on the command, passphrase always typed at a hidden prompt, every action refused with nobody present, result may be redirected. Scripted mode is FR-22 (Carl, 2026-11-08) | PDR-0039, ADR-0017 |
+| Q33 | Guided or scripted | Guided mode only: a person at a terminal, inputs allowed on the command, passphrase always typed at a hidden prompt, every action refused with nobody present, result may be redirected. Scripted mode is FR-22 (Carl, 2026-11-08). Amended by Q47, Q49, Q56: menu session only; passphrase once per session; key saved to a file, not redirected | PDR-0039, ADR-0017, PDR-0048, PDR-0049 |
 | Q34 | Moving between operating systems | A folder copy or backup moves between any of the three, either direction, same passphrase (Carl, 2026-11-08) | PDR-0040, ADR-0017 |
-| Q35 | Startup | Only the current folder, then `~/.ucl`; no folder option; an unused second installation is noted; setup from the offer ends with a generic retry line; `ucl` alone lists the commands; startup menu is FR-23 (Carl, 2026-11-08) | PDR-0041, ADR-0017 |
-| Q36 | Help, version and PowerShell 5.1 redirect | Help, version and the command list are not actions and work with nobody present; the PowerShell 5.1 redirect encoding is documented, not handled (Carl, 2026-11-08) | PDR-0039, ADR-0017 |
+| Q35 | Startup | Only the current folder, then `~/.ucl`; no folder option; an unused second installation is noted; setup from the offer ends with a generic retry line; `ucl` alone lists the commands; startup menu is FR-23 (Carl, 2026-11-08). Amended by Q46, Q52: `ucl` opens the menu session (FR-23 taken in); no installation offers setup or restore, then the menu | PDR-0041, ADR-0017, PDR-0048 |
+| Q36 | Help, version and PowerShell 5.1 redirect | Help, version and the command list are not actions and work with nobody present; the PowerShell 5.1 redirect encoding is documented, not handled (Carl, 2026-11-08). Amended by Q47, Q56: no command list or redirect remain; help and version only | PDR-0039, ADR-0017, PDR-0048 |
 | Q37 | Customer email: characters, length, matching | PDR-0042 text rule, exactly one `@` with text before and after, no spaces, 3 to 254; accented addresses allowed; stored as typed; finding matches the whole address, ignoring case and the form of an accented letter (Carl, 2026-11-08) | PDR-0043, ADR-0019 |
 | Q38 | Order reference: characters and length | PDR-0042 text rule, 1 to 64; stored as typed; finding as Q37, spaces matched exactly, never part of a value (Carl, 2026-11-08) | PDR-0043, ADR-0019 |
 | Q39 | Passphrase characters and maximum | Printable ASCII only, 15 to 256, spaces inside allowed, no leading or trailing space (Carl, 2026-11-08) | PDR-0043, ADR-0019 |
 | Q40 | Product display name rule (moved from `tighten-text-rule` Q7) | The key's display-name rule (PDR-0042), 1 to 64, checked at `product add` and `product rename` through the library, not a copy; a refused rename keeps the earlier name. The tool reaches the internal check through `InternalsVisibleTo` (Carl, 2026-11-08) | PDR-0043, ADR-0019 |
-| Q41 | `--feature name=off` | Not granted: left out at issue, removed at reissue as `--remove-feature`; a feature given twice, or given and removed, refused (Carl, 2026-11-08) | PDR-0044 |
-| Q42 | Output and import files | An output file is never replaced and its folder never created; the tool says so with the full path and asks again, also when the path was given on the command. An import path that is missing or a folder is asked again (Carl, 2026-11-08) | PDR-0045, ADR-0019 |
+| Q41 | `--feature name=off` | Not granted: left out at issue, removed at reissue as `--remove-feature`; a feature given twice, or given and removed, refused (Carl, 2026-11-08). Amended by Q54: features asked one by one, so no contradiction arises | PDR-0044, PDR-0048 |
+| Q42 | Output and import files | An output file is never replaced and its folder never created; the tool says so with the full path and asks again, also when the path was given on the command (Amended by Q47: always asked). An import path that is missing or a folder is asked again (Carl, 2026-11-08) | PDR-0045, ADR-0019 |
 | Q43 | Stale rows | Q1 and Q7 marked amended by Q33 (Carl, 2026-11-08) | PDR-0039 |
 | Q44 | Records and a later central database | Every record complete and free of local paths, so it can move to another database with nothing lost. The later move is one-way and settled in FR-24 to FR-26 (Carl, 2026-11-08) | PDR-0046 |
+| Q45 | Switch when the new active key is not in a release | Warn and ask for confirmation whenever the key becoming active is not yet in a release: a standby not yet in a release, or a new key pair when there is no standby. Any reason, leak included; declining changes nothing (Carl, 2026-11-08) | PDR-0047 |
+| Q46 | Session form | A menu session with numbered menus and line-by-line questions; FR-23 taken in. Selection lists, colour and full screen stay FR-13 (Carl, 2026-11-08) | PDR-0048 |
+| Q47 | Commands alongside the session | Session only: `ucl` opens the session; only help and version remain; no inputs on the command (Carl, 2026-11-08) | PDR-0048 |
+| Q48 | Menu | Products (add, rename, add feature, list); Licenses (issue, reissue, renew, resend, find and list, show, customer details); Signing keys (status, add standby, switch, trusted keys, release confirmed, reissues sent, export by key); Backup (export, restore into the current folder); Settings (folder, prefix, idle lock, new installation in the current folder); Quit. Returns after each action until Quit (Carl, 2026-11-08) | PDR-0048 |
+| Q49 | When the passphrase is asked | At the first action in a session that signs or creates a key; kept in the session only, forgotten at Quit (Carl, 2026-11-08) | PDR-0049 |
+| Q50 | Idle lock | Asked at setup: whole minutes 1 to 1440 or `never`, 15 proposed. Changeable in Settings without the passphrase, from the next session. When it fires, the passphrase and decrypted keys are forgotten (Carl, 2026-11-08) | PDR-0049 |
+| Q51 | Wrong passphrase | Asked again up to three tries, keeping the action's answers; then the action is cancelled, nothing stored, back to the menu (Carl, 2026-11-08) | PDR-0049 |
+| Q52 | No installation found | Names the folders checked; offers setup, restore from a backup, or quit; setup or restore continues into the menu (Carl, 2026-11-08) | PDR-0048 |
+| Q53 | A bad answer at a question | The rule is named and that question alone asked again, earlier answers kept; every question can cancel the action, storing nothing; proposed or current value shown, an empty answer accepts it (Carl, 2026-11-08) | PDR-0048 |
+| Q54 | Optional inputs | Each asked in turn, an empty answer skips; features asked one by one from the definitions with their type; at reissue the current value is shown and an empty answer keeps it (Carl, 2026-11-08) | PDR-0048 |
+| Q55 | Confirm before signing | Issue, reissue, renew and resend show a summary and ask whether to sign, yes proposed; no stores nothing (Carl, 2026-11-08) | PDR-0048 |
+| Q56 | Getting a key out | Shown once on screen, then offered to save to a file the vendor names, under the never-replace rule (Carl, 2026-11-08) | PDR-0048 |
+| Q57 | Second installation | Settings offers a new installation in the current folder, by setup or restore; refused in the home folder or a folder holding one; the session continues with it (Carl, 2026-11-08) | PDR-0048 |
+| Q58 | Stale rows | Q1, Q7, Q29, Q33, Q35, Q36, Q41 and Q42 marked amended by Q46 to Q57 (Carl, 2026-11-08) | PDR-0048, PDR-0049 |
 
 ## Open questions
 
-None. Q37 to Q44 were raised in `opsx:explore` (Carl, 2026-11-08) and are settled above. Q37,
+None. Q37 to Q58 were raised in `opsx:explore` (Carl, 2026-11-08) and are settled above. Q37,
 Q38 and Q40 use the text rule from `tighten-text-rule` (PDR-0042); this change waits for it.
 
 ## Decisions
@@ -322,8 +336,10 @@ perpetual. Other reissues: current expiry. `--expires suggested` takes it withou
 
 Per product (or the shared key set): active, standby, every replaced key with reason routine or
 loss, and a key replaced for leak while `ReissuesSentUtc` is null. `key released` sets
-`InReleaseUtc` on every listed key that lacks it. `key switch` warns when the standby becoming
-active has no `InReleaseUtc`.
+`InReleaseUtc` on every listed key that lacks it. `key switch` warns and asks `[y/N]` when the key
+becoming active has no `InReleaseUtc`: a standby not yet released, or the new key pair created
+when there is no standby (it never has one), for every reason (PDR-0047). Declining writes
+nothing and exits 1; `--yes` gives the answer on the command.
 
 ### Ownership
 

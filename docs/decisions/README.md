@@ -41,23 +41,26 @@ Deferred. Update this index in the same change as any status line.
 | [PDR-0027](0027-release-versioning-and-log.md) | Release versioning and release log | Amended by PDR-0029 |
 | [PDR-0028](0028-test-coverage-per-release.md) | Test coverage per release | Decided |
 | [PDR-0029](0029-release-tag-matches-log.md) | A release tag must match its release log row | Decided |
-| [PDR-0030](0030-vendor-tool-audience-and-operation.md) | Vendor tool audience and operation | Amended by PDR-0039; to revisit: FR-26 (PDR-0046) |
-| [PDR-0031](0031-tool-folder-moving-and-backups.md) | Tool folder, moving and backups | Amended by PDR-0038, PDR-0040, PDR-0041, PDR-0045; to revisit: FR-26 (PDR-0046) |
-| [PDR-0032](0032-private-keys-protected-by-passphrase.md) | Private keys protected by a passphrase | Amended by PDR-0039, PDR-0043; to revisit: FR-26 (PDR-0046) |
+| [PDR-0030](0030-vendor-tool-audience-and-operation.md) | Vendor tool audience and operation | Amended by PDR-0039, PDR-0048; to revisit: FR-26 (PDR-0046) |
+| [PDR-0031](0031-tool-folder-moving-and-backups.md) | Tool folder, moving and backups | Amended by PDR-0038, PDR-0040, PDR-0041, PDR-0045, PDR-0048; to revisit: FR-26 (PDR-0046) |
+| [PDR-0032](0032-private-keys-protected-by-passphrase.md) | Private keys protected by a passphrase | Amended by PDR-0039, PDR-0043, PDR-0049; to revisit: FR-26 (PDR-0046) |
 | [PDR-0033](0033-license-records-and-customer-data.md) | License records and customer data | Amended by PDR-0043; to revisit: FR-26 (PDR-0046) |
-| [PDR-0034](0034-reissue-and-renewal-from-records.md) | Reissue and renewal from records | Amended by PDR-0039, PDR-0044 |
-| [PDR-0035](0035-signing-key-switch-standby-and-trusted-keys.md) | Signing key switch, standby keys and trusted keys | Decided |
+| [PDR-0034](0034-reissue-and-renewal-from-records.md) | Reissue and renewal from records | Amended by PDR-0039, PDR-0044, PDR-0048 |
+| [PDR-0035](0035-signing-key-switch-standby-and-trusted-keys.md) | Signing key switch, standby keys and trusted keys | Amended by PDR-0047 |
 | [PDR-0036](0036-feature-definitions-add-only.md) | Products and feature definitions are add-only | Amended by PDR-0043 |
 | [PDR-0037](0037-github-release-per-published-release.md) | A GitHub Release for each published release | Decided |
-| [PDR-0038](0038-vendor-tool-operating-systems-and-terminals.md) | Vendor tool operating systems and terminals | Amended by PDR-0039, PDR-0040 |
-| [PDR-0039](0039-vendor-tool-guided-mode-only.md) | Vendor tool runs in guided mode only | Decided; to revisit: FR-26 (PDR-0046) |
+| [PDR-0038](0038-vendor-tool-operating-systems-and-terminals.md) | Vendor tool operating systems and terminals | Amended by PDR-0039, PDR-0040, PDR-0048 |
+| [PDR-0039](0039-vendor-tool-guided-mode-only.md) | Vendor tool runs in guided mode only | Amended by PDR-0048, PDR-0049; to revisit: FR-26 (PDR-0046) |
 | [PDR-0040](0040-installation-moves-between-operating-systems.md) | An installation moves between operating systems | Decided |
-| [PDR-0041](0041-finding-the-installation-at-startup.md) | Finding the installation at startup | Decided |
+| [PDR-0041](0041-finding-the-installation-at-startup.md) | Finding the installation at startup | Amended by PDR-0048 |
 | [PDR-0042](0042-text-rule-allows-characters-by-kind.md) | Text rule allows characters by kind | Decided |
 | [PDR-0043](0043-vendor-tool-typed-values.md) | Vendor tool typed values | Decided |
-| [PDR-0044](0044-switch-off-means-not-granted.md) | A switch typed as off means not granted | Decided |
-| [PDR-0045](0045-tool-never-overwrites-files-or-creates-folders.md) | The tool never overwrites a file or creates a folder it was not asked for | Decided |
+| [PDR-0044](0044-switch-off-means-not-granted.md) | A switch typed as off means not granted | Amended by PDR-0048 |
+| [PDR-0045](0045-tool-never-overwrites-files-or-creates-folders.md) | The tool never overwrites a file or creates a folder it was not asked for | Amended by PDR-0048 |
 | [PDR-0046](0046-records-portable-to-a-central-database.md) | Records can move to a central database | Decided |
+| [PDR-0047](0047-switch-confirms-when-new-key-not-in-a-release.md) | A switch confirms whenever the new active key is not in a release | Decided |
+| [PDR-0048](0048-vendor-tool-menu-session.md) | The vendor tool runs as a menu session | Decided |
+| [PDR-0049](0049-passphrase-kept-for-a-session-with-idle-lock.md) | Passphrase kept for a session, with an idle lock | Decided |
 
 ## Template
 

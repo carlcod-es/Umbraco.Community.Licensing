@@ -12,8 +12,14 @@ and optionally display name, vendor tag, features, order reference and customer 
 SHALL be checked against the product's feature definitions; the license's other fields by the
 library's issue rules. The customer email SHALL be stored on the license and the order
 reference on the issue entry. Issuing SHALL sign with the product's active signing key, use the
-installation's current prefix, and need the passphrase. The key string SHALL be shown once; a refused
-issue SHALL name every problem and store nothing.
+installation's current prefix, and need the passphrase. The tool SHALL ask for each optional
+input in turn, an empty answer leaving it out, and for each of the product's feature
+definitions in turn, showing its type. Before signing an issue, reissue, renewal or resend, the
+tool SHALL show a summary (product, reference when known, expiry, display name, vendor tag,
+features, customer email, order reference) and ask whether to sign it, yes proposed; no SHALL
+store nothing and return to the menu. The key string SHALL be shown once on screen; the tool
+SHALL then offer to save it to a file the vendor names (vendor-tool-backup: Files named by the
+vendor), the file holding the key string alone.
 
 #### Scenario: License issued
 - **WHEN** the vendor issues `acme.commerce` expiring 2027-03-01T23:59:59Z with `ecommerce` on and
@@ -22,13 +28,29 @@ issue SHALL name every problem and store nothing.
   customer email and one issue entry holding the issue time, expiry, features, order reference,
   key identifier and signing key ID
 
-#### Scenario: Undefined feature
-- **WHEN** the vendor issues with feature `max-order`, which `acme.commerce` does not define
-- **THEN** the issue is refused naming `features.max-order`, and nothing is stored
+#### Scenario: Optional inputs skipped
+- **WHEN** the vendor issues `acme.commerce` and gives an empty answer to every optional input and
+  every feature
+- **THEN** the summary shows no display name, vendor tag, features, customer email or order
+  reference, and the license is issued without them
+
+#### Scenario: Feature value outside its type
+- **WHEN** the vendor answers `lots` for number feature `max-orders`
+- **THEN** the tool names the number rule and asks for `max-orders` again
+
+#### Scenario: Not signed at the summary
+- **WHEN** the vendor answers no at the summary
+- **THEN** nothing is signed or stored and the Licenses menu is shown
+
+#### Scenario: Key saved to a file
+- **WHEN** after the key string is shown the vendor saves it to `~/keys/acme-1042.txt`
+- **THEN** the file holds the key string alone, and an existing file of that name is never
+  replaced
 
 #### Scenario: Wrong passphrase
 - **WHEN** the passphrase given does not open the signing key
-- **THEN** the issue is refused saying the passphrase is wrong, and nothing is stored
+- **THEN** the tool says the passphrase is wrong and asks again (vendor-tool-signing-keys:
+  Private keys encrypted with the passphrase), and nothing is stored until it is right
 
 ### Requirement: Key strings are not stored
 The tool SHALL NOT store any license key string, in the database or elsewhere in the folder. A
@@ -50,21 +72,27 @@ email MAY be changed at the same time. A renewal SHALL be recorded as a renewal.
 - **THEN** a new key string with the same reference, the earlier features plus `shipping` and the
   current expiry is shown, and the record gains an issue entry
 
-### Requirement: Switch values and contradictory features
-At issue and at reissue, a switch given as `on` SHALL be granted and a switch given as `off`
+### Requirement: Switch values and features at reissue
+At issue and at reissue, a switch answered `on` SHALL be granted and a switch answered `off`
 SHALL NOT be: at issue it is left out of the key, as if not given; at reissue it is removed, the
-same as removing the feature. A command that gives the same feature more than once, or gives a
-feature and also removes it, SHALL be refused naming the feature.
+same as removing the feature. Each feature SHALL be asked once per action, so a feature cannot be
+given twice or both given and removed. At reissue each defined feature SHALL be asked showing its
+current value; an empty answer SHALL keep it, a new value SHALL change it, and a remove answer
+SHALL remove a number or text feature.
 
 #### Scenario: Switch given as off
 - **WHEN** the vendor issues `acme.commerce` with `ecommerce` off and `max-orders` 500
 - **THEN** the key carries `max-orders` and no `ecommerce`, and the issue entry records the
   same features
 
-#### Scenario: Contradictory features
-- **WHEN** the vendor gives `ecommerce` on and also removes `ecommerce` in one command, or gives
-  `max-orders` twice
-- **THEN** the command is refused naming the feature, and nothing is issued or stored
+#### Scenario: Features kept at reissue
+- **WHEN** the vendor reissues `LIC-8F3AK-M7RXB`, which grants `ecommerce` and `max-orders` 500,
+  giving an empty answer for each feature
+- **THEN** the new key grants `ecommerce` and `max-orders` 500
+
+#### Scenario: Number feature removed at reissue
+- **WHEN** the vendor reissues `LIC-8F3AK-M7RXB` and answers remove for `max-orders`
+- **THEN** the new key does not carry `max-orders`
 
 #### Scenario: Switch turned off at reissue
 - **WHEN** the vendor reissues `LIC-8F3AK-M7RXB`, which grants `ecommerce` and `shipping`, with
@@ -80,8 +108,9 @@ first issue's issue time to the expiry it set. Reissues that are not renewals SH
 the term. The length SHALL be counted in calendar months when the last term was a whole number
 of months (same day of month and time of day; a day past the end of a month counts as its last
 day), and in exact time otherwise. For a reissue that is not a renewal it SHALL suggest the
-current expiry. A perpetual license SHALL be suggested as perpetual. The vendor SHALL accept or replace
-the suggestion; the suggestion SHALL be used without a prompt only when the vendor asks for it.
+current expiry. A perpetual license SHALL be suggested as perpetual. The suggestion SHALL be the
+proposed answer to the expiry question; the vendor SHALL accept it with an empty answer or
+replace it.
 
 #### Scenario: Renewal of a one-year license
 - **WHEN** a license first issued 2025-11-30T23:59:59Z expiring 2026-11-30T23:59:59Z, never
@@ -129,8 +158,8 @@ an issue entry with no order reference.
 
 #### Scenario: Site owner lost the key
 - **WHEN** the vendor resends `LIC-8F3AK-M7RXB`
-- **THEN** a new key string with the same reference and contents is shown, and the record gains
-  an issue entry
+- **THEN** after the summary is confirmed, a new key string with the same reference and contents
+  is shown, and the record gains an issue entry
 
 ### Requirement: Customer email and order reference values
 A customer email SHALL be 3 to 254 characters of the characters the key's text rule allows, with

@@ -8,14 +8,32 @@ signing key, and tells the vendor which public keys each product release must tr
 ### Requirement: Private keys encrypted with the passphrase
 Every private signing key, active, standby or replaced, SHALL be stored encrypted with the
 installation's passphrase, in a standard encrypted private key format that other tools can open
-with the passphrase. Nothing else SHALL be encrypted. An action that signs or creates a private
-key SHALL ask for the passphrase once per run; no other action SHALL ask for it. The tool SHALL
-NOT keep the passphrase or a decrypted private key after an action ends. The tool SHALL offer no
-way to export a private key.
+with the passphrase. Nothing else SHALL be encrypted. The first action in a session that signs
+or creates a private key SHALL ask for the passphrase; the session SHALL keep it for later
+actions until the session ends or the idle lock forgets it (vendor-tool-setup: Idle lock). No
+other action SHALL ask for it. A wrong passphrase SHALL be said to be wrong and asked again, up to
+three tries in all, keeping the action's other answers; after the third wrong try the action SHALL
+be cancelled, storing nothing, and the menu shown. The tool SHALL NOT keep the passphrase or a
+decrypted private key after the session ends, nor write either to any file. The tool SHALL offer
+no way to export a private key.
 
 #### Scenario: No passphrase for reading
 - **WHEN** the vendor lists licenses or prints trusted keys
 - **THEN** no passphrase is asked
+
+#### Scenario: Passphrase asked once per session
+- **WHEN** the vendor adds a product in per-product mode and then issues two licenses in one
+  session, within the idle lock time
+- **THEN** the passphrase is asked once, at the product add
+
+#### Scenario: Wrong passphrase three times
+- **WHEN** an action asks for the passphrase and the vendor types a wrong one three times
+- **THEN** each try is said to be wrong, the action is cancelled after the third, nothing is
+  stored, and the menu is shown
+
+#### Scenario: Nothing kept after quitting
+- **WHEN** the vendor issues a license, quits, and starts a new session to issue another
+- **THEN** the new session asks for the passphrase
 
 #### Scenario: Opened by another tool
 - **WHEN** a stored private key is opened with a standard cryptography tool and the passphrase
@@ -42,9 +60,11 @@ The vendor SHALL switch a signing key, giving a reason: routine, loss or leak. T
 when there is one, SHALL become the active key and a new standby key SHALL be created; otherwise
 a new key pair SHALL become the active key. The replaced key SHALL stay in the records with its
 reason and date and SHALL sign nothing more. In shared mode the switch SHALL apply to every
-product. When the key becoming active is a standby key not yet in a release, the tool SHALL warn
-that sites on releases that do not trust it will report keys signed by it as signed by a key not
-recognised, and ask for confirmation. The switch needs the passphrase.
+product. When the key becoming active is not yet in a release (a standby key not yet in a
+release, or a new key pair because there is no standby key), the tool SHALL warn that sites on
+releases that do not trust it will report keys signed by it as signed by a key not recognised,
+and ask for confirmation before switching, whatever the reason. Declining SHALL change nothing.
+The switch needs the passphrase.
 
 #### Scenario: Routine rotation with standby
 - **WHEN** the vendor switches `acme.commerce` from active key A with standby S, reason routine
@@ -54,6 +74,16 @@ recognised, and ask for confirmation. The switch needs the passphrase.
 #### Scenario: Standby not yet in a release
 - **WHEN** the vendor switches to a standby key marked "not yet in a release"
 - **THEN** the tool warns and asks for confirmation before switching
+
+#### Scenario: Switch with no standby
+- **WHEN** the vendor switches `acme.shipping`, whose signing key has no standby key, for any
+  reason
+- **THEN** the tool warns that a new key pair becomes active that no release trusts yet, and asks
+  for confirmation before switching
+
+#### Scenario: Confirmation declined
+- **WHEN** the tool asks for confirmation before a switch and the vendor declines
+- **THEN** no key changes role, no key is created, and the tool exits with a failure code
 
 ### Requirement: Trusted public keys per product
 The vendor SHALL print, for a product, the public key lines its next release must trust, one per

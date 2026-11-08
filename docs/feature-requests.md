@@ -26,10 +26,10 @@ Cite as FR-N.
 | FR-17 | Change signing-key mode after setup | `add-vendor-tool` explore, 2026-10-28 | Open |
 | FR-18 | Warn on a reused order reference | `add-vendor-tool` explore, 2026-10-28 | Open |
 | FR-19 | Change the version line from the release command | Carl, 2026-10-28 | Open; after `add-github-release` |
-| FR-20 | Issue several licenses in one vendor tool run | Carl, 2026-10-29 (`add-vendor-tool` update) | Open; after FR-22 |
+| FR-20 | Issue several licenses in one vendor tool run | Carl, 2026-10-29 (`add-vendor-tool` update) | Open; after FR-22. A person in a session already signs several with one passphrase (PDR-0049) |
 | FR-21 | Optional, vendor-defined call-home | Carl, 2026-11-07 (explore) | Open. Conflicts with the README "Offline" promise; see Issue |
-| FR-22 | Scripted mode for the vendor tool | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open. Moved out of `add-vendor-tool` (design.md Q33, PDR-0039) |
-| FR-23 | Startup menu when the vendor tool is launched with no command | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open. `add-vendor-tool` shows the command list instead (design.md Q35) |
+| FR-22 | Scripted mode for the vendor tool | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open. Moved out of `add-vendor-tool` (design.md Q33, PDR-0039); must add commands back (design.md Q47, PDR-0048) |
+| FR-23 | Startup menu when the vendor tool is launched with no command | Carl, 2026-11-08 (`add-vendor-tool` explore) | Taken into `add-vendor-tool` as the menu session (design.md Q46 to Q58; PDR-0048, PDR-0049) |
 | FR-24 | Move the vendor tool's records to a central SQL Server database | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open; after `add-vendor-tool`. One-way move, PDR-0046 |
 | FR-25 | Vendor tool works against the central database | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open; after FR-24 |
 | FR-26 | Shop integration: licenses issued and renewed on purchase | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open; after FR-24, FR-22. Reopens PDR-0030, PDR-0031, PDR-0032, PDR-0033, PDR-0039 |
@@ -660,8 +660,12 @@ keys unchanged.
 2. The passphrase sources, and the guidance on keeping it out of shell history and profiles.
 3. Whether every action is scriptable or only some (issue, reissue, renew, list, export).
 
-**Related.** PDR-0030, PDR-0032, PDR-0034, PDR-0038, PDR-0039, FR-20 (batch in one run, after
-this), FR-13.
+**Since moved out.** `add-vendor-tool` now runs as a menu session only and takes no command
+other than help and version (design.md Q47, PDR-0048). Scripted mode must therefore add the
+commands back, as well as a passphrase source, and settle how they relate to the menu.
+
+**Related.** PDR-0030, PDR-0032, PDR-0034, PDR-0038, PDR-0039, PDR-0048, PDR-0049, FR-20 (batch in
+one run, after this), FR-13.
 
 ## FR-23: Startup menu when the vendor tool is launched with no command
 
@@ -681,8 +685,13 @@ owner: keys unchanged.
    not kept after an action ends).
 4. How the menu behaves with nobody present (PDR-0039: refuse).
 
-**Related.** PDR-0031 (finding the installation), PDR-0039 (guided mode), FR-13 (richer
-prompts: selection lists), FR-22 (scripted mode).
+**Settled in `add-vendor-tool`** (Carl, 2026-11-08): 1. Products, Licenses, Signing keys, Backup,
+Settings, Quit (design.md Q48). 2. Returns after each action until Quit. 3. Once per session, at
+the first signing action, with an idle lock set at setup (Q49 to Q51, PDR-0049). 4. Refuses, as
+PDR-0039. The tool takes no other command (Q47, PDR-0048).
+
+**Related.** PDR-0031 (finding the installation), PDR-0039 (guided mode), PDR-0048, PDR-0049,
+FR-13 (richer prompts: selection lists), FR-22 (scripted mode).
 
 ## FR-24: Move the vendor tool's records to a central SQL Server database
 

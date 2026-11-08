@@ -1,6 +1,6 @@
 # PDR-0041: Finding the installation at startup
 
-- Status: Decided
+- Status: Amended by PDR-0048
 - Date: 2026-11-08
 - Source: `add-vendor-tool` design.md Q35. Amends PDR-0031. Startup menu moved to
   `docs/feature-requests.md` FR-23.
