@@ -71,7 +71,7 @@ PDR-0049, PDR-0052, ADR-0019, ADR-0020, ADR-0021, ADR-0022.
 Depends on: 6. Owner: worker-backend. Spec: vendor-tool-products. Records: PDR-0036, PDR-0016,
 PDR-0043, PDR-0048, ADR-0019.
 
-- [ ] 7.1 Implement Products > Add a product (per-product mode creates the signing key and standby key, asking the passphrase when none is held), Rename a product, Add a feature (add-only) and List products, with the product display name checked by the library's `ContentRules.CheckDisplayName` at add and rename (ADR-0019) and refused values asked again, and verify by tests for every vendor-tool-products scenario in both signing-key modes: "Product added in per-product mode", "Duplicate product ID", "Invalid product ID", "Display name in any script", "Display name outside the rule", "Feature added", "Feature already defined", "Display name edited", "Display name change refused" and "Products listed"
+- [x] 7.1 Implement Products > Add a product (per-product mode creates the signing key and standby key, asking the passphrase when none is held), Rename a product, Add a feature (add-only) and List products, with the product display name checked by the library's `ContentRules.CheckDisplayName` at add and rename (ADR-0019) and refused values asked again, and verify by tests for every vendor-tool-products scenario in both signing-key modes: "Product added in per-product mode", "Duplicate product ID", "Invalid product ID", "Display name in any script", "Display name outside the rule", "Feature added", "Feature already defined", "Display name edited", "Display name change refused" and "Products listed"
 
 ## 8. Licenses
 

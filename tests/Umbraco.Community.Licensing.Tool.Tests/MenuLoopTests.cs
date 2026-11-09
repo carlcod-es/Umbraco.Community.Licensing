@@ -117,13 +117,13 @@ public class MenuLoopTests : IDisposable
     [Fact]
     public void StubAction_SaysNotAvailable_AndReturnsToItsMenu()
     {
-        var console = Script("1", "4", "0", "0");
+        var console = Script("2", "1", "0", "0");
 
         var exit = _host.Run(console);
 
         Assert.Equal(0, exit);
-        Assert.Contains("List products is not available yet.", console.Out);
-        Assert.Equal(2, SessionTestHost.Lines(console.Out).Count(l => l == "Products"));
+        Assert.Contains("Issue is not available yet.", console.Out);
+        Assert.Equal(2, SessionTestHost.Lines(console.Out).Count(l => l == "Licenses"));
     }
 
     [Fact]

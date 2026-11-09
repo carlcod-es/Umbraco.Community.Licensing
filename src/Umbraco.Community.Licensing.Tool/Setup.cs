@@ -55,7 +55,7 @@ internal static class Setup
             var standby = session.Questions.AskYesNo("Create a standby key with each signing key (recommended)", proposed: true);
             var idleText = session.Questions.AskText(
                 "Idle lock in minutes",
-                "a whole number of minutes from 1 to 1440, or never",
+                TypedValues.IdleLockAccepts,
                 TypedValues.CheckIdleLock,
                 proposed: DefaultIdleLock).Value;
             TypedValues.TryParseIdleLock(idleText, out var idleTime);
@@ -138,7 +138,7 @@ internal static class Setup
     {
         var answer = session.Questions.AskText(
             "Key prefix",
-            "LIC, your own (1 to 16 characters of A to Z and 0 to 9) or none",
+            TypedValues.PrefixAccepts,
             TypedValues.CheckPrefix,
             proposed: DefaultPrefix);
         TypedValues.CheckPrefix(answer.Value, out var prefix);
@@ -199,18 +199,27 @@ internal static class Setup
         console.WriteLine("  - your license records");
         console.WriteLine("  - customer emails and order references, which are not encrypted");
         console.WriteLine();
-        console.WriteLine("Back this folder up. Keep it, and its backups, out of folders that sync to cloud storage,");
-        console.WriteLine("such as OneDrive, iCloud Drive or Dropbox (examples, not a complete list of such services).");
-        console.WriteLine("Keep your passphrase in a password manager, apart from your backups: without it the");
-        console.WriteLine("private signing keys cannot be recovered.");
+        console.WriteLine("Back this folder up. Keep it, and its backups, out of folders that sync to");
+        console.WriteLine("cloud storage, such as OneDrive, iCloud Drive or Dropbox (examples,");
+        console.WriteLine("not a complete list of such services).");
+        console.WriteLine("Keep your passphrase in a password manager, apart from your backups:");
+        console.WriteLine("without it the private signing keys cannot be recovered.");
         if (shared)
             console.WriteLine(standby ? "The shared signing key and its standby key are created." : "The shared signing key is created.");
         console.WriteLine();
         console.WriteLine("Next steps:");
-        console.WriteLine(shared
-            ? "  1. Products > Add a product (the shared signing key is already created)"
-            : "  1. Products > Add a product (this creates its signing key under the passphrase you just set; it is not asked again in this session unless the idle lock has passed)");
-        console.WriteLine("  2. Signing keys > Trusted keys (prints the public key lines your release must trust)");
+        if (shared)
+        {
+            console.WriteLine("  1. Products > Add a product (the shared signing key is already created)");
+        }
+        else
+        {
+            console.WriteLine("  1. Products > Add a product (this creates its signing key under the");
+            console.WriteLine("     passphrase you just set; it is not asked again in this session");
+            console.WriteLine("     unless the idle lock has passed)");
+        }
+        console.WriteLine("  2. Signing keys > Trusted keys (prints the public key lines your");
+        console.WriteLine("     release must trust)");
         console.WriteLine();
     }
 }

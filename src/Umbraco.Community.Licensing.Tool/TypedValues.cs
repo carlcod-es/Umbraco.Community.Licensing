@@ -15,6 +15,8 @@ internal static class TypedValues
     internal const string PassphraseEdgeSpace = "The passphrase cannot start or end with a space.";
 
     internal const string PrefixRule = "A prefix is 1 to 16 characters of A to Z and 0 to 9, or none.";
+    internal const string PrefixAccepts = "LIC, your own (1 to 16 characters of A to Z and 0 to 9) or none";
+    internal const string IdleLockAccepts = "a whole number of minutes from 1 to 1440, or never";
     internal const string IdleLockRule = "The idle lock is a whole number of minutes from 1 to 1440, or never.";
 
     /// <summary>The idle lock setting for no lock; stored in lower case.</summary>
@@ -30,6 +32,32 @@ internal static class TypedValues
         ContentRules.CheckDisplayName(displayName, problems);
         return problems;
     }
+
+    internal const string ProductIdAccepts = "two dot-separated parts of a to z, 0 to 9 and hyphens, each starting with a letter, at most 64 characters, like acme.commerce";
+    internal const string DisplayNameAccepts = "1 to 64 characters: printable ASCII, and letters, combining marks, digits and punctuation from any script";
+    internal const string FeatureNameAccepts = "1 to 64 characters of a to z, 0 to 9 and hyphens, starting with a letter";
+
+    /// <summary>The display name rule as a <see cref="Questions.AskText"/> rule: every problem found, on one line, or null.</summary>
+    public static string? CheckDisplayNameText(string displayName) => Join(CheckDisplayName(displayName));
+
+    /// <summary>The library's product ID rule as a <see cref="Questions.AskText"/> rule.</summary>
+    public static string? CheckProductId(string productId)
+    {
+        var problems = new List<LicenseProblem>();
+        ContentRules.CheckProduct(productId, problems);
+        return Join(problems);
+    }
+
+    /// <summary>The library's feature name rule as a <see cref="Questions.AskText"/> rule.</summary>
+    public static string? CheckFeatureName(string name)
+    {
+        var problems = new List<LicenseProblem>();
+        ContentRules.CheckFeatures([FeatureInput.Switch(name, true)], problems);
+        return Join(problems);
+    }
+
+    private static string? Join(IReadOnlyList<LicenseProblem> problems) =>
+        problems.Count == 0 ? null : string.Join(" ", problems.Select(p => p.Message));
 
     /// <summary>
     /// The passphrase rule (ADR-0019), as a <see cref="HiddenRule"/>: each character U+0020 to U+007E, 15 to 256

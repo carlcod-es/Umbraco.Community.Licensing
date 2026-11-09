@@ -93,7 +93,7 @@ internal static class SettingsActions
 
         var answer = session.Questions.AskText(
             "New prefix",
-            "LIC, your own (1 to 16 characters of A to Z and 0 to 9) or none",
+            TypedValues.PrefixAccepts,
             TypedValues.CheckPrefix,
             proposed: shown);
         TypedValues.CheckPrefix(answer.Value, out var prefix);
@@ -119,7 +119,7 @@ internal static class SettingsActions
 
         var answer = session.Questions.AskText(
             "New idle lock",
-            "minutes from 1 to 1440, or never",
+            TypedValues.IdleLockAccepts,
             TypedValues.CheckIdleLock,
             proposed: shown);
         TypedValues.TryParseIdleLock(answer.Value, out var idleTime);

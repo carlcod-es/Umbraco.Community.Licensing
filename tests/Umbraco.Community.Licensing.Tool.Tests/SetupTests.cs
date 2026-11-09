@@ -93,7 +93,9 @@ public class SetupTests : IDisposable
         Assert.Contains("not a complete list", message);
         Assert.Contains("password manager", message);
         Assert.Contains("apart from your backups", message);
-        Assert.Contains("Products > Add a product (this creates its signing key under the passphrase you just set", message);
+        Assert.Contains("Products > Add a product (this creates its signing key under the", message);
+        Assert.Contains("passphrase you just set; it is not asked again in this session", message);
+        Assert.All(SessionTestHost.Lines(message).Where(l => l != $"  {folder}"), l => Assert.True(l.Length <= 80, l));
         Assert.Contains("Signing keys > Trusted keys", message);
         Assert.DoesNotContain("~", out_);
         AssertZeroed(console);
@@ -129,6 +131,8 @@ public class SetupTests : IDisposable
         Assert.Contains("Products > Add a product (the shared signing key is already created)", out_);
         Assert.DoesNotContain("this creates its signing key", out_);
         Assert.Contains("Signing keys > Trusted keys", out_);
+        var message = out_[out_.IndexOf("Setup is complete", StringComparison.Ordinal)..out_.IndexOf($"Using {folder}", StringComparison.Ordinal)];
+        Assert.All(SessionTestHost.Lines(message).Where(l => l != $"  {folder}"), l => Assert.True(l.Length <= 80, l));
     }
 
     [Fact]

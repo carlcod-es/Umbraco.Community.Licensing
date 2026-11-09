@@ -93,6 +93,7 @@ internal sealed class ActionTable
         var table = new ActionTable();
         table.Register(Menus.FolderInUse, session => session.WriteFolderInUse());
         SettingsActions.Register(table);
+        ProductActions.Register(table);
         return table;
     }
 
