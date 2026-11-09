@@ -207,4 +207,137 @@ public class TypedValuesTests
         Assert.NotEqual(TypedValues.MatchKey("ORD 1042"), TypedValues.MatchKey("ORD  1042"));
         Assert.Equal(TypedValues.MatchKey("ORD 1042"), TypedValues.MatchKey("ord 1042"));
     }
+
+    // Rows 95 and 96 of follow-ups, and the Issue session's typed values
+
+    [Fact]
+    public void Email_TextRuleRefusal_AlsoStatesTheAtAndSpaceRules()
+    {
+        var refusal = TypedValues.CheckCustomerEmail("a\U0001F600@b.c");
+        Assert.Contains(TypedValues.EmailRule, refusal);
+    }
+
+    [Theory]
+    [InlineData(" owner@example.com")]
+    [InlineData("owner@example.com ")]
+    public void Email_WithLeadingOrTrailingSpace_IsRefused(string email) => Assert.NotNull(TypedValues.CheckCustomerEmail(email));
+
+    [Theory]
+    [InlineData(" ORD-1042")]
+    [InlineData("ORD-1042 ")]
+    public void OrderReference_WithLeadingOrTrailingSpace_IsRefused(string orderRef) => Assert.NotNull(TypedValues.CheckOrderReference(orderRef));
+
+    [Fact]
+    public void Email_DecomposedAccentedForm_IsAccepted() =>
+        Assert.Null(TypedValues.CheckCustomerEmail("ju\u0308rgen@mu\u0308ller.de"));
+
+    private static readonly DateTimeOffset Now = new(2026, 11, 8, 9, 0, 0, TimeSpan.Zero);
+
+    [Fact]
+    public void ReadExpiry_Date_IsTheEndOfThatDayUtc()
+    {
+        Assert.Null(TypedValues.ReadExpiry("2027-03-01", Now, out var answer));
+        Assert.Equal(new DateTime(2027, 3, 1, 23, 59, 59, DateTimeKind.Utc), answer!.ExpiresUtc);
+    }
+
+    [Fact]
+    public void ReadExpiry_UtcInstant_IsKept()
+    {
+        Assert.Null(TypedValues.ReadExpiry("2027-03-01T12:30:15Z", Now, out var answer));
+        Assert.Equal(new DateTime(2027, 3, 1, 12, 30, 15, DateTimeKind.Utc), answer!.ExpiresUtc);
+    }
+
+    [Theory]
+    [InlineData("perpetual")]
+    [InlineData("Perpetual")]
+    [InlineData("PERPETUAL")]
+    public void ReadExpiry_Perpetual_InAnyCase_HasNoInstant(string text)
+    {
+        Assert.Null(TypedValues.ReadExpiry(text, Now, out var answer));
+        Assert.Null(answer!.ExpiresUtc);
+    }
+
+    [Theory]
+    [InlineData("2027-02-30")]
+    [InlineData("2027-13-01")]
+    [InlineData("1/3/2027")]
+    [InlineData("2027-03-01T10:00:00")] // no Z
+    [InlineData("2027-03-01T10:00:00+01:00")]
+    [InlineData("2027-03-01T10:00:00.5Z")]
+    [InlineData("never")]
+    [InlineData("")]
+    public void ReadExpiry_OutsideTheRule_NamesTheExpiryRule(string text) =>
+        Assert.Equal(TypedValues.ExpiryRuleMessage, TypedValues.ReadExpiry(text, Now, out _));
+
+    [Fact]
+    public void ReadExpiry_EarlierThanNow_IsRefusedByTheLibraryRule_AndTheCurrentSecondIsAccepted()
+    {
+        Assert.Contains("earlier than the current time", TypedValues.ReadExpiry("2026-11-08T08:59:59Z", Now, out _));
+        Assert.Null(TypedValues.ReadExpiry("2026-11-08T09:00:00Z", Now, out _));
+    }
+
+    [Theory]
+    [InlineData("0", 0)]
+    [InlineData("500", 500)]
+    [InlineData("2.5", 2.5)]
+    [InlineData("0.0001", 0.0001)]
+    [InlineData("999999999999999", 999999999999999)]
+    public void ReadNumber_Accepts(string text, double expected)
+    {
+        Assert.Null(TypedValues.ReadNumber(text, out var value));
+        Assert.Equal((decimal)expected, value);
+    }
+
+    [Theory]
+    [InlineData("lots")]
+    [InlineData("")]
+    [InlineData("-1")]
+    [InlineData("1.23456")]
+    [InlineData("1,000")]
+    [InlineData("1e3")]
+    [InlineData("\u0665")] // an Arabic-Indic digit
+    [InlineData("1234567890123456")] // 16 digits
+    public void ReadNumber_Refuses_NamingTheNumberRule(string text) =>
+        Assert.Contains("A number is a number", TypedValues.ReadNumber(text, out _));
+
+    [Theory]
+    [InlineData("on", true)]
+    [InlineData("ON", true)]
+    [InlineData("off", false)]
+    [InlineData("Off", false)]
+    public void ReadSwitch_AcceptsOnAndOff_InAnyCase(string text, bool expected)
+    {
+        Assert.Null(TypedValues.ReadSwitch(text, out var on));
+        Assert.Equal(expected, on);
+    }
+
+    [Theory]
+    [InlineData("yes")]
+    [InlineData("true")]
+    [InlineData("")]
+    public void ReadSwitch_RefusesAnythingElse(string text) => Assert.Equal(TypedValues.SwitchRule, TypedValues.ReadSwitch(text, out _));
+
+    [Fact]
+    public void CheckVendorTag_FollowsTheLibraryRule()
+    {
+        Assert.Null(TypedValues.CheckVendorTag("reseller#7"));
+        Assert.NotNull(TypedValues.CheckVendorTag("bad tag"));
+        Assert.NotNull(TypedValues.CheckVendorTag(new string('a', 65)));
+    }
+
+    [Fact]
+    public void CheckTextFeature_FollowsTheLibraryRule()
+    {
+        Assert.Null(TypedValues.CheckTextFeature("note", "Gold plan"));
+        Assert.NotNull(TypedValues.CheckTextFeature("note", "star \u2B50"));
+        Assert.NotNull(TypedValues.CheckTextFeature("note", new string('a', 257)));
+    }
+
+    [Fact]
+    public void FeaturesJson_WritesSwitchNumberAndText_InOrder_WithCanonicalNumbers()
+    {
+        var features = FeatureList.Empty.With("a", true).With("b", 2.50m).With("c", "t\"x\u00fc");
+        Assert.Equal("""{"a":true,"b":2.5,"c":"t\u0022x\u00FC"}""", LicenseActions.FeaturesJson.Write(features).Replace("\\u0022", "\\u0022"));
+        Assert.Equal("{}", LicenseActions.FeaturesJson.Write(FeatureList.Empty));
+    }
 }

@@ -17,7 +17,7 @@ internal static class SettingsActions
 
     internal const string Unchanged = "Unchanged.";
 
-    private const string MissingPrefix =
+    internal const string MissingPrefix =
         "The prefix setting is missing, so the installation looks damaged. Restore a backup into another folder.";
 
     public static void Register(ActionTable table)
@@ -136,7 +136,7 @@ internal static class SettingsActions
         session.Console.WriteLine($"Idle lock is now {(idleTime is { } n ? $"{(int)n.TotalMinutes} minutes" : "never")}. {IdleLockChanged}");
     }
 
-    private static string? Read(Session session, string name)
+    internal static string? Read(Session session, string name)
     {
         using var db = session.OpenDb();
         return db.Settings.AsNoTracking().Where(s => s.Name == name).Select(s => s.Value).SingleOrDefault();

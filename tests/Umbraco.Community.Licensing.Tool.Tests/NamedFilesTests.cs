@@ -100,6 +100,30 @@ public sealed class NamedFilesTests : IDisposable
     }
 
     [Fact]
+    public void Output_PathBecomesAFolderBetweenCheckAndWrite_SaysSoAndAsksAgain()
+    {
+        var raced = P("race.txt");
+        var created = false;
+        var (n, c) = Make(
+            new ScriptedConsole().Line(raced).Line(P("next.txt")),
+            p =>
+            {
+                if (!created)
+                {
+                    created = true;
+                    Directory.CreateDirectory(p);
+                }
+            });
+
+        var path = n.AskAndWrite("Out", s => Text("mine", s));
+
+        Assert.True(Directory.Exists(raced));
+        Assert.Equal(P("next.txt"), path);
+        Assert.Equal("mine", File.ReadAllText(path));
+        Assert.Contains($"{raced} is a folder", c.Out);
+    }
+
+    [Fact]
     public void TryWriteNew_ExistingFile_ReturnsFalseAndLeavesIt()
     {
         File.WriteAllText(P("e"), "old");

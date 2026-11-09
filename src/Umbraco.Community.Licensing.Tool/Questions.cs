@@ -59,7 +59,14 @@ internal sealed class Questions(ToolConsole console)
     }
 
     /// <summary>Asks for one entry of a numbered list, answered by its number or its ID (any case).</summary>
-    public Choice AskChoice(string question, IReadOnlyList<Choice> choices, string? proposedId = null)
+    public Choice AskChoice(string question, IReadOnlyList<Choice> choices, string? proposedId = null) =>
+        AskChoiceCore(question, choices, proposedId, allowSkip: false)!;
+
+    /// <summary>As <see cref="AskChoice"/>, but an empty answer skips the question (null): a filter left out.</summary>
+    public Choice? AskChoiceOrSkip(string question, IReadOnlyList<Choice> choices) =>
+        AskChoiceCore(question, choices, null, allowSkip: true);
+
+    private Choice? AskChoiceCore(string question, IReadOnlyList<Choice> choices, string? proposedId, bool allowSkip)
     {
         var proposed = proposedId is null ? null : choices.FirstOrDefault(c => Same(c.Id, proposedId));
         var accepts = $"a number from 1 to {choices.Count}, or an ID";
@@ -68,7 +75,7 @@ internal sealed class Questions(ToolConsole console)
             for (var i = 0; i < choices.Count; i++)
                 console.WriteLine($"  {i + 1} {choices[i].Label}");
 
-            var hint = Hint(accepts, proposed is null ? null : $"Enter for {proposed.Id}", allowRemove: false);
+            var hint = Hint(accepts, proposed is null ? (allowSkip ? "Enter to leave it out" : null) : $"Enter for {proposed.Id}", allowRemove: false);
             console.Write($"{question} ({hint}): ");
             var answer = ReadLine().Trim();
 
@@ -82,6 +89,8 @@ internal sealed class Questions(ToolConsole console)
 
             if (answer.Length == 0 && proposed is not null)
                 return proposed;
+            if (answer.Length == 0 && allowSkip)
+                return null;
 
             if (int.TryParse(answer, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var number)
                 && number >= 1 && number <= choices.Count)

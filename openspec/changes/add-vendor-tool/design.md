@@ -148,11 +148,12 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q71 | Stale rows | Q4, Q11, Q16, Q28, Q31, Q45, Q50 and Q57 marked amended by Q33, Q47, Q48 and Q66 to Q69 (Carl, 2026-11-08) | PDR-0051, PDR-0052 |
 | Q72 | Unexpected failure in a session | An action that fails for a reason the tool does not check for stores nothing, says in one line which action failed and why, and shows its menu again; session and held passphrase kept; the same for setup and restore at the startup offer; a failure outside an action ends the session with one line, the passphrase forgotten, exit 1; no technical detail shown or written anywhere; exit codes unchanged (Carl, 2026-11-09) | PDR-0053 |
 | Q73 | Feature limit per product | A product defines at most 50 features, the most a license carries; Add a feature refuses a product that already defines 50 when it is chosen, naming the limit, storing nothing, and shows the Products menu (Carl, 2026-11-09) | PDR-0054 |
+| Q74 | Resend of an expired license | Refused when the license is chosen, before the summary, pointing to Renew or Reissue; no passphrase, nothing stored, Licenses menu shown; perpetual and unexpired licenses resent as before (Carl, 2026-11-09) | PDR-0055 |
 
 ## Open questions
 
 None. Q37 to Q58 were raised in `opsx:explore`, Q59 to Q65 in `opsx:update`, and Q66 to Q71 in
-an `opsx:explore` review of the menu session (Carl, 2026-11-08), Q72 in the section 3 review and Q73 in the section 7 review
+an `opsx:explore` review of the menu session (Carl, 2026-11-08), Q72 in the section 3 review, Q73 in the section 7 review and Q74 in the section 8 apply
 during `opsx:apply` (Carl, 2026-11-09); all are settled above. Q37, Q38 and Q40 use the text rule from
 `tighten-text-rule` (PDR-0042); this change waits for it.
 
@@ -379,6 +380,10 @@ Tables:
 `KeyIdentifier` keeps the prefix each entry was issued with, so a prefix change needs no data
 change. `CustomerEmailKey` and `OrderRefKey` hold the match key (ADR-0019) and are indexed for
 finding; each is set, corrected and cleared together with its value.
+
+`FeaturesJson` is a JSON object in issue order, feature name to value: a switch is `true` (only
+granted switches are stored), a number is the library's canonical decimal text written as a JSON
+number, and text is a JSON string.
 
 No column holds a key string. Timestamps are UTC. Every record is complete without the folder's
 other files and readable with a plain SQLite connection (PDR-0046).

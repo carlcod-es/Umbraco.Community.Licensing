@@ -195,12 +195,19 @@ replace it.
 ### Requirement: Resending a license
 The vendor SHALL resend a license, which reissues it from its record with nothing changed: same
 reference, expiry, display name, vendor tag and features, new key string. The resend SHALL add
-an issue entry with no order reference.
+an issue entry with no order reference. A license whose expiry has passed SHALL NOT be resent:
+the tool SHALL refuse when it is chosen, before the summary, pointing to renew or reissue,
+asking no passphrase and storing nothing.
 
 #### Scenario: Site owner lost the key
 - **WHEN** the vendor resends `LIC-8F3AK-M7RXB`
 - **THEN** after the summary is confirmed, a new key string with the same reference and contents
   is shown, and the record gains an issue entry
+
+#### Scenario: Resend of an expired license
+- **WHEN** the vendor resends a license that expired last month
+- **THEN** the tool says it cannot be resent and to renew or reissue it with a later expiry, asks
+  no passphrase, stores nothing and shows the Licenses menu
 
 ### Requirement: Customer email and order reference values
 A customer email SHALL be 3 to 254 characters of the characters the key's text rule allows, with

@@ -35,13 +35,13 @@ internal sealed class NamedFiles(ToolEnvironment environment, Questions question
             if (TryWriteNew(path, write))
                 return path;
 
-            environment.Console.WriteLine(ExistsMessage(path));
+            environment.Console.WriteLine(Directory.Exists(path) ? FolderMessage(path) : ExistsMessage(path));
         }
     }
 
     /// <summary>
     /// Creates <paramref name="path"/> with <see cref="FileMode.CreateNew"/> and passes the stream to
-    /// <paramref name="write"/>. Returns false, changing nothing, when the file already exists.
+    /// <paramref name="write"/>. Returns false, changing nothing, when the file already exists or the path is now a folder.
     /// </summary>
     public static bool TryWriteNew(string path, Action<Stream> write)
     {
@@ -50,9 +50,13 @@ internal sealed class NamedFiles(ToolEnvironment environment, Questions question
         {
             stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None);
         }
-        catch (IOException) when (File.Exists(path))
+        catch (IOException) when (File.Exists(path) || Directory.Exists(path))
         {
             return false;
+        }
+        catch (UnauthorizedAccessException) when (Directory.Exists(path))
+        {
+            return false; // became a folder between the check and the open
         }
 
         try
@@ -83,7 +87,7 @@ internal sealed class NamedFiles(ToolEnvironment environment, Questions question
         if (File.Exists(full))
             return ExistsMessage(full);
         if (Directory.Exists(full))
-            return $"{full} is a folder. Give a file name.";
+            return FolderMessage(full);
 
         var parent = Path.GetDirectoryName(full);
         if (parent is null || !Directory.Exists(parent))
@@ -124,6 +128,8 @@ internal sealed class NamedFiles(ToolEnvironment environment, Questions question
             return false;
         }
     }
+
+    private static string FolderMessage(string full) => $"{full} is a folder. Give a file name.";
 
     private static string ExistsMessage(string full) =>
         $"The file {full} already exists and is not replaced. Give another name.";

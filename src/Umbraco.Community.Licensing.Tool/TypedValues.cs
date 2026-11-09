@@ -149,7 +149,7 @@ internal static class TypedValues
         var problems = new List<LicenseProblem>();
         ContentRules.CheckText("customerEmail", "A customer email", email, EmailMaxLength, problems);
         if (problems.Count > 0)
-            return Join(problems);
+            return $"{Join(problems)} {EmailRule}"; // the text rule's message alone would not say the @ and space rules
 
         var at = email.IndexOf('@');
         var valid = email.Length >= EmailMinLength
@@ -165,6 +165,99 @@ internal static class TypedValues
     {
         var problems = new List<LicenseProblem>();
         ContentRules.CheckText("orderRef", "An order reference", orderRef, OrderRefMaxLength, problems);
+        return Join(problems);
+    }
+
+    internal const string ExpiryAccepts = "a date like 2027-03-01, a UTC date and time like 2027-03-01T23:59:59Z, or perpetual";
+    internal const string ExpiryRuleMessage =
+        "The expiry must be a real date like 2027-03-01 (valid to 23:59:59 UTC that day), a UTC date and time to the second like 2027-03-01T23:59:59Z, or perpetual.";
+    internal const string VendorTagAccepts = "1 to 64 characters from A-Z a-z 0-9 - _ . # /";
+    internal const string NumberAccepts = "a number, zero or more, with at most 4 decimal places and 15 digits in total";
+    internal const string SwitchAccepts = "on or off";
+    internal const string SwitchRule = "A switch is answered on or off.";
+    internal const string PerpetualWord = "perpetual";
+
+    private const string InstantFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+
+    /// <summary>An expiry answer: the library's value and the UTC instant it resolves to (null is perpetual).</summary>
+    internal sealed record ExpiryAnswer(LicenseExpiry Expiry, DateTime? ExpiresUtc);
+
+    /// <summary>
+    /// Reads an expiry answer (PDR-0007): <c>perpetual</c> in any case, a real date <c>2027-03-01</c> (the end of that day, UTC)
+    /// or a UTC date and time to the second <c>2027-03-01T23:59:59Z</c>; then the library's expiry rule against
+    /// <paramref name="now"/> (not earlier than the current second). Returns the rule broken, or null with <paramref name="answer"/> set.
+    /// </summary>
+    public static string? ReadExpiry(string text, DateTimeOffset now, out ExpiryAnswer? answer)
+    {
+        answer = null;
+        LicenseExpiry expiry;
+        ExpiryStatement statement;
+        if (string.Equals(text, PerpetualWord, StringComparison.OrdinalIgnoreCase))
+        {
+            expiry = LicenseExpiry.Perpetual;
+            statement = ExpiryStatement.Perpetual;
+        }
+        else if (DateOnly.TryParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+        {
+            expiry = LicenseExpiry.On(date);
+            statement = ExpiryStatement.OnDate(date);
+        }
+        else if (DateTimeOffset.TryParseExact(
+            text, InstantFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var instant))
+        {
+            expiry = LicenseExpiry.At(instant);
+            statement = ExpiryStatement.AtInstant(instant);
+        }
+        else
+        {
+            return ExpiryRuleMessage;
+        }
+
+        var problems = new List<LicenseProblem>();
+        if (!ExpiryRule.TryResolve(statement, now, problems, out var expires))
+            return Join(problems);
+
+        answer = new ExpiryAnswer(expiry, expires?.UtcDateTime);
+        return null;
+    }
+
+    /// <summary>The expiry rule as a <see cref="Questions.AskText"/> rule.</summary>
+    public static string? CheckExpiry(string text, DateTimeOffset now) => ReadExpiry(text, now, out _);
+
+    /// <summary>The library's vendor tag rule as a <see cref="Questions.AskText"/> rule.</summary>
+    public static string? CheckVendorTag(string vendorTag)
+    {
+        var problems = new List<LicenseProblem>();
+        ContentRules.CheckVendorTag(vendorTag, problems);
+        return Join(problems);
+    }
+
+    /// <summary>Reads <c>on</c> or <c>off</c> in any case. Returns the rule broken, or null with <paramref name="on"/> set.</summary>
+    public static string? ReadSwitch(string text, out bool on)
+    {
+        on = string.Equals(text, "on", StringComparison.OrdinalIgnoreCase);
+        return on || string.Equals(text, "off", StringComparison.OrdinalIgnoreCase) ? null : SwitchRule;
+    }
+
+    /// <summary>
+    /// Reads a number feature: ASCII digits with an optional decimal point, then the library's number rule (zero or more, at most
+    /// 4 decimal places, 15 digits in all). Returns the rule broken, or null with <paramref name="value"/> set.
+    /// </summary>
+    public static string? ReadNumber(string text, out decimal value)
+    {
+        value = 0m;
+        if (text.Length == 0 || !decimal.TryParse(text, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out value)
+            || !text.All(c => char.IsAsciiDigit(c) || c is '.' or '-' or '+'))
+            return $"'{(text.Length > 32 ? text[..32] + "..." : text)}' is not a number. A number is {NumberAccepts}.";
+
+        return NumberRule.TryNormalise(value, out _, out var reason) ? null : $"{reason} A number is {NumberAccepts}.";
+    }
+
+    /// <summary>A text feature value by the library's rule (<c>features.&lt;name&gt;</c>, 1 to 256 characters). Returns the rule broken, or null.</summary>
+    public static string? CheckTextFeature(string name, string text)
+    {
+        var problems = new List<LicenseProblem>();
+        ContentRules.CheckFeatures([FeatureInput.OfText(name, text)], problems);
         return Join(problems);
     }
 

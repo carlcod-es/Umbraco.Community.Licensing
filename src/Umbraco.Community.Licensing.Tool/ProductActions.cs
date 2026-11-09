@@ -195,7 +195,7 @@ internal static class ProductActions
     }
 
     /// <summary>Lists the products and asks for one; null (after saying so) when there are none.</summary>
-    private static Product? AskProduct(Session session)
+    internal static Product? AskProduct(Session session)
     {
         List<Product> products;
         using (var db = session.OpenDb())
@@ -217,7 +217,7 @@ internal static class ProductActions
         return db.Products.AsNoTracking().Any(p => p.ProductId == productId);
     }
 
-    private static Dictionary<string, FeatureType> ReadFeatures(Session session, string productId)
+    internal static Dictionary<string, FeatureType> ReadFeatures(Session session, string productId)
     {
         using var db = session.OpenDb();
         return db.FeatureDefinitions.AsNoTracking().Where(f => f.ProductId == productId).ToDictionary(f => f.Name, f => f.Type, StringComparer.Ordinal);
@@ -235,7 +235,7 @@ internal static class ProductActions
     }
 
     /// <summary>Per-product (true) or shared mode, and whether standby keys are on, from the settings setup wrote.</summary>
-    private static (bool PerProduct, bool Standby) ReadKeyMode(Session session)
+    internal static (bool PerProduct, bool Standby) ReadKeyMode(Session session)
     {
         using var db = session.OpenDb();
         var names = new[] { SettingNames.SigningKeyMode, SettingNames.StandbyKeys };
