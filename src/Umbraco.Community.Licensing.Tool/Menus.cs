@@ -13,6 +13,7 @@ internal sealed record MenuNode(string Label, string? Key = null, IReadOnlyList<
 internal static class Menus
 {
     public const string FolderInUse = "settings.folder";
+    public const string NewInstallationLabel = "New installation in the current folder";
     public const string SetUpHere = "settings.new.setup";
     public const string RestoreHere = "settings.new.restore";
     public const string BackupRestore = "backup.restore";
@@ -56,7 +57,7 @@ internal static class Menus
             new("Folder in use", FolderInUse),
             new("Prefix", "settings.prefix"),
             new("Idle lock", "settings.idle"),
-            new("New installation in the current folder", Children:
+            new(NewInstallationLabel, Children:
             [
                 new("Set up", SetUpHere),
                 new("Restore from a backup", RestoreHere),
@@ -91,6 +92,7 @@ internal sealed class ActionTable
     {
         var table = new ActionTable();
         table.Register(Menus.FolderInUse, session => session.WriteFolderInUse());
+        SettingsActions.Register(table);
         return table;
     }
 

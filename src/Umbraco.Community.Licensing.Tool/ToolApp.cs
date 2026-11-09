@@ -63,14 +63,22 @@ internal static class ToolApp
         {
             // Backstop (PDR-0053): by here the menu loop has disposed its session, so the passphrase is zeroed.
             // The catch is what makes that certain: an unhandled exception need not run finally blocks.
-            console.WriteLine($"The session ended: {Failure.OneLine(ex)}");
+            try
+            {
+                console.WriteLine($"The session ended: {Failure.OneLine(ex)}");
+            }
+            catch (IOException)
+            {
+                // Standard output closed: nothing left to tell, and the exit code still says the session failed.
+            }
+
             return 1;
         }
     }
 
-    /// <summary>Startup, then the menus, with every entry a stub until its section replaces it.</summary>
+    /// <summary>Startup with guided setup (restore is a stub), then the menus, with every entry a stub until its section replaces it.</summary>
     private static int Session(ToolEnvironment environment) =>
-        MenuLoop.Run(environment, ActionTable.Default(), Startup.Offer.Stubs);
+        MenuLoop.Run(environment, ActionTable.Default(), Startup.Offer.Default);
 
     /// <summary>The informational version without any <c>+</c> build metadata.</summary>
     internal static string Version

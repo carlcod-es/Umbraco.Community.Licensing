@@ -17,6 +17,31 @@ internal static class SettingNames
 {
     /// <summary>Idle lock: whole minutes as ASCII digits, or <c>never</c> (design.md, Typed values).</summary>
     public const string IdleLock = "IdleLock";
+
+    /// <summary>The license key prefix (for example <c>LIC</c>).</summary>
+    public const string Prefix = "Prefix";
+
+    /// <summary>The signing-key mode, per product or shared.</summary>
+    public const string SigningKeyMode = "SigningKeyMode";
+
+    /// <summary>Whether standby keys are on: <c>true</c> or <c>false</c>.</summary>
+    public const string StandbyKeys = "StandbyKeys";
+
+    /// <summary>Passphrase check: the salt, Base64 of 16 random bytes (ADR-0014).</summary>
+    public const string PassphraseSalt = "PassphraseSalt";
+
+    /// <summary>Passphrase check: the PBKDF2 iteration count, an invariant integer.</summary>
+    public const string PassphraseIterations = "PassphraseIterations";
+
+    /// <summary>Passphrase check: the PBKDF2-HMAC-SHA256 hash, Base64 of 32 bytes.</summary>
+    public const string PassphraseHash = "PassphraseHash";
+}
+
+/// <summary>The stored values of the <see cref="SettingNames.SigningKeyMode"/> setting. The mode never changes after setup.</summary>
+internal static class SigningKeyModes
+{
+    public const string PerProduct = "per-product";
+    public const string Shared = "shared";
 }
 
 internal sealed class Product

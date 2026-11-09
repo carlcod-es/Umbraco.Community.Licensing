@@ -30,3 +30,10 @@ internal static class Failure
 /// exits 1 before the session opens; inside an action it is an ordinary action failure (PDR-0053).
 /// </summary>
 internal sealed class InstallationRefusedException(string message) : Exception(message);
+
+/// <summary>Thrown by <see cref="Installation.Create"/> when the folder already holds an installation; setup refuses and changes nothing.</summary>
+internal sealed class InstallationExistsException(string folder)
+    : Exception($"{folder} already holds an installation.")
+{
+    public string Folder { get; } = folder;
+}

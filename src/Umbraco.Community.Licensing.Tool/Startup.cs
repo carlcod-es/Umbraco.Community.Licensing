@@ -6,22 +6,35 @@ namespace Umbraco.Community.Licensing.Tool;
 /// <param name="Checked">The folders looked in, in full, for the no-installation message.</param>
 internal sealed record FolderResolution(string? Folder, string? UnusedHomeInstallation, IReadOnlyList<string> Checked);
 
+/// <summary>
+/// A new installation made at the startup offer: its folder, and the undo that removes what the setup or restore
+/// created when the session cannot then use it (null when there is nothing to remove), and what to write before the
+/// session states the folder (setup's closing message), which is written only once the session can use the folder.
+/// </summary>
+internal sealed record Provisioned(string Folder, Action? Undo = null, Action? Announce = null)
+{
+    public static implicit operator Provisioned(string folder) => new(folder);
+}
+
 /// <summary>Session startup after the argument and person checks: find the folder, then offer setup when there is none.</summary>
 internal static class Startup
 {
     internal const string DatabaseFileName = "ucl.db";
 
-    /// <summary>Creates a new installation and returns its folder, or null when it did not happen (a stub until sections 6 and 10).</summary>
-    internal delegate string? Provision(Session session);
+    /// <summary>Creates a new installation and returns it, or null when it did not happen (a refused folder, or a stub).</summary>
+    internal delegate Provisioned? Provision(Session session);
 
-    /// <summary>The startup offer's set up and restore, replaced by sections 6.1 and 10.2.</summary>
+    /// <summary>The startup offer's set up and restore. Restore is a stub until 10.2.</summary>
     internal sealed record Offer(Provision SetUp, Provision Restore)
     {
         public static Offer Stubs { get; } = new(
             s => NotAvailable(s, "Set up a new installation"),
             s => NotAvailable(s, "Restore from a backup"));
 
-        private static string? NotAvailable(Session session, string label)
+        /// <summary>What the tool runs with: guided setup, and restore as a stub.</summary>
+        public static Offer Default { get; } = new(s => Setup.Run(s), Stubs.Restore);
+
+        private static Provisioned? NotAvailable(Session session, string label)
         {
             session.Console.WriteLine($"{label} is not available yet.");
             return null;
@@ -87,10 +100,10 @@ internal static class Startup
                 return false;
 
             var setUp = picked == 1;
-            string? folder;
+            Provisioned? provisioned;
             try
             {
-                folder = setUp ? offer.SetUp(session) : offer.Restore(session);
+                provisioned = setUp ? offer.SetUp(session) : offer.Restore(session);
             }
             catch (ActionCancelledException)
             {
@@ -99,25 +112,73 @@ internal static class Startup
             }
             catch (Exception ex) when (Failure.IsContinuable(ex))
             {
-                // The offer is shown again; nothing was stored and the lock is untouched (PDR-0053).
+                // The offer is shown again; setup has removed what it made and released what it held (PDR-0053).
                 console.WriteLine($"{choices[picked.Value - 1].Label} failed: {Failure.OneLine(ex)}");
                 continue;
             }
 
-            if (folder is not null)
-            {
-                // Setup keeps the passphrase it just set; a restore forgets any (ADR-0022).
-                session.UseFolder(Path.GetFullPath(folder), keepPassphrase: setUp);
+            if (provisioned is null)
+                continue;
+
+            // Setup keeps the passphrase it just set; a restore forgets any (ADR-0022).
+            if (UseProvisioned(session, provisioned, null, keepPassphrase: setUp, choices[picked.Value - 1].Label))
                 return true;
-            }
         }
     }
 
-    private static bool HoldsInstallation(string folder) => File.Exists(Path.Combine(folder, DatabaseFileName));
+    /// <summary>
+    /// Moves the session to a new installation (setup or restore just made). One that the session cannot use is treated as
+    /// a failed setup or restore: the failure line, the lock released, what was made removed. Returns false then.
+    /// </summary>
+    internal static bool UseProvisioned(Session session, Provisioned provisioned, string? unusedNote, bool keepPassphrase, string label)
+    {
+        try
+        {
+            session.UseFolder(Path.GetFullPath(provisioned.Folder), unusedNote, keepPassphrase, provisioned.Announce);
+            return true;
+        }
+        catch (Exception ex) when (Failure.IsContinuable(ex))
+        {
+            session.Lock.Release();
+            provisioned.Undo?.Invoke();
+            session.Console.WriteLine($"{label} failed: {Failure.OneLine(ex)}");
+            return false;
+        }
+    }
 
-    private static bool SamePath(string a, string b) =>
+    private static bool HoldsInstallation(string folder) => Installation.Holds(folder);
+
+    /// <summary>
+    /// True when both paths name the same folder: compared in full, with links followed (macOS <c>/var</c> is
+    /// <c>/private/var</c>), ignoring case except on Linux. A case-sensitive volume elsewhere is not told apart.
+    /// </summary>
+    internal static bool SamePath(string a, string b) =>
         string.Equals(
-            Path.TrimEndingDirectorySeparator(Path.GetFullPath(a)),
-            Path.TrimEndingDirectorySeparator(Path.GetFullPath(b)),
+            Canonical(a),
+            Canonical(b),
             OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+
+    private static string Canonical(string path)
+    {
+        var full = Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
+        try
+        {
+            var root = Path.GetPathRoot(full) ?? "";
+            var current = root;
+            var parts = full[root.Length..].Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries);
+            foreach (var part in parts)
+            {
+                current = Path.Combine(current, part);
+                var info = new DirectoryInfo(current);
+                if (info.Exists && info.ResolveLinkTarget(returnFinalTarget: true) is { } target)
+                    current = Canonical(target.FullName); // a link's target can itself pass through links
+            }
+
+            return current;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return full;
+        }
+    }
 }

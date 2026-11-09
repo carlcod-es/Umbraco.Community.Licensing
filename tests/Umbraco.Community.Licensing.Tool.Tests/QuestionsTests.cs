@@ -85,7 +85,7 @@ public class QuestionsTests
         var c = new ScriptedConsole().Hidden("/Cancel");
         var q = new Questions(c);
 
-        Assert.Throws<ActionCancelledException>(() => q.AskHidden("Passphrase", (_, _) => "never"));
+        Assert.Throws<ActionCancelledException>(() => q.AskHidden("Passphrase", "15 to 256 characters", (_, _) => "never"));
         Assert.All(c.HiddenGiven[0].Raw, ch => Assert.Equal('\0', ch));
     }
 
@@ -187,7 +187,7 @@ public class QuestionsTests
         var c = new ScriptedConsole().Hidden("  pasx\bs ");
         var q = new Questions(c);
 
-        var bytes = q.AskHidden("Passphrase", (_, _) => null);
+        var bytes = q.AskHidden("Passphrase", "15 to 256 characters", (_, _) => null);
 
         Assert.Equal("  pass ", System.Text.Encoding.ASCII.GetString(bytes));
         Assert.All(c.HiddenGiven[0].Raw, ch => Assert.Equal('\0', ch));
@@ -201,7 +201,7 @@ public class QuestionsTests
         var c = new ScriptedConsole().Hidden("short").Hidden("long enough passphrase");
         var q = new Questions(c);
 
-        var bytes = q.AskHidden("Passphrase", PassphraseLike);
+        var bytes = q.AskHidden("Passphrase", "15 to 256 characters", PassphraseLike);
 
         Assert.Equal(22, bytes.Length);
         Assert.Contains("At least 15 characters.", c.Out);
@@ -231,7 +231,7 @@ public class QuestionsTests
         var q = new Questions(c);
         var seen = new List<string>();
 
-        var bytes = q.AskHidden("Passphrase", (held, length) =>
+        var bytes = q.AskHidden("Passphrase", "15 to 256 characters", (held, length) =>
         {
             seen.Add(held.ToString() + "|" + length);
             return PassphraseLike(held, length);
@@ -250,7 +250,7 @@ public class QuestionsTests
         var q = new Questions(c);
         var lengths = new List<int>();
 
-        var bytes = q.AskHidden("Passphrase", (held, length) =>
+        var bytes = q.AskHidden("Passphrase", "15 to 256 characters", (held, length) =>
         {
             lengths.Add(length);
             Assert.True(held.Length <= HiddenAnswer.Capacity);
@@ -314,13 +314,48 @@ public class QuestionsTests
         Assert.Equal([(byte)'a', 0xC3, 0xBC], a.ToBytes());
     }
 
+    [Theory]
+    [InlineData('\u0004')] // Ctrl+D on Unix
+    [InlineData('\u001A')] // Ctrl+Z on Windows
+    public void HiddenAnswer_EndOfInputKeyOnAnEmptyAnswer_IsEndOfInput(char key)
+    {
+        using var a = new HiddenAnswer();
+
+        Assert.True(a.Press(ConsoleKey.D, key));
+
+        Assert.True(a.EndOfInput);
+        Assert.Equal(0, a.Length);
+    }
+
+    [Fact]
+    public void HiddenAnswer_EndOfInputKeyAfterOtherKeys_IsIgnored()
+    {
+        using var a = new HiddenAnswer();
+        a.Press(ConsoleKey.A, 'a');
+
+        Assert.False(a.Press(ConsoleKey.D, '\u0004'));
+
+        Assert.False(a.EndOfInput);
+        Assert.Equal(1, a.Length);
+    }
+
+    [Fact]
+    public void EndOfInputKeyAtTheHiddenPrompt_ThrowsEndOfInput_AndZeroesTheAnswer()
+    {
+        var c = new ScriptedConsole().Hidden("\u0004");
+        var q = new Questions(c);
+
+        Assert.Throws<EndOfInputException>(() => q.AskHidden("Passphrase", "any text", (_, _) => null));
+        Assert.All(Assert.Single(c.HiddenGiven).Raw, ch => Assert.Equal('\0', ch));
+    }
+
     [Fact]
     public void EndOfInput_ThrowsAtLineAndHiddenQuestions()
     {
         var q = new Questions(new ScriptedConsole());
 
         Assert.Throws<EndOfInputException>(() => q.AskText("T", "text", _ => null));
-        Assert.Throws<EndOfInputException>(() => q.AskHidden("P", (_, _) => null));
+        Assert.Throws<EndOfInputException>(() => q.AskHidden("P", "any text", (_, _) => null));
     }
 
     [Fact]

@@ -6,7 +6,7 @@ namespace Umbraco.Community.Licensing.Tool.Tests;
 /// The scripted console: queued answers (lines and hidden answers), each optionally preceded by a
 /// fake-clock advance, and separate transcripts of stdout and stderr. An empty queue is end of input.
 /// </summary>
-internal sealed class ScriptedConsole : ToolConsole
+internal class ScriptedConsole : ToolConsole
 {
     private readonly Queue<(object Answer, TimeSpan Advance)> _answers = new();
     private readonly StringBuilder _out = new();
@@ -40,7 +40,7 @@ internal sealed class ScriptedConsole : ToolConsole
         return this;
     }
 
-    /// <summary>Queues a hidden answer; typed Backspace characters (<c>\b</c>) erase the character before them and every other character, non-ASCII included, is typed.</summary>
+    /// <summary>Queues a hidden answer; typed Backspace characters (<c>\b</c>) erase the character before them and every other character, non-ASCII included, is typed. Ctrl+D (<c>\u0004</c>) or Ctrl+Z (<c>\u001A</c>) first is end of input.</summary>
     public ScriptedConsole Hidden(string typed, TimeSpan advanceBefore = default)
     {
         _answers.Enqueue((new HiddenTyped(typed), advanceBefore));
@@ -69,14 +69,19 @@ internal sealed class ScriptedConsole : ToolConsole
         var hidden = new HiddenAnswer();
         foreach (var c in typed.Text)
         {
-            if (c == '\b')
-                hidden.Press(ConsoleKey.Backspace, c);
-            else
-                hidden.Press(ConsoleKey.NoName, c);
+            var ended = c == '\b' ? hidden.Press(ConsoleKey.Backspace, c) : hidden.Press(ConsoleKey.NoName, c);
+            if (ended)
+                break;
+        }
+
+        HiddenGiven.Add(hidden);
+        if (hidden.EndOfInput)
+        {
+            hidden.Dispose();
+            return null;
         }
 
         hidden.Press(ConsoleKey.Enter, '\r');
-        HiddenGiven.Add(hidden);
         return hidden;
     }
 

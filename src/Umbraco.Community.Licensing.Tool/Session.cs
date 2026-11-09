@@ -54,12 +54,15 @@ internal sealed class Session : IDisposable
     /// time (ADR-0022). The held passphrase is zeroed and dropped, since it belongs to the installation
     /// left (a restore, PDR-0052), unless <paramref name="keepPassphrase"/> is true: setup into a new
     /// folder keeps the passphrase it has just handed to <see cref="Lock"/>.
+    /// <paramref name="beforeUsing"/> writes what must come before the <c>Using</c> line (setup's closing message); it runs
+    /// only once the folder is known to be usable, and when it fails the session is left as it was.
     /// </summary>
-    public void UseFolder(string folder, string? unusedNote = null, bool keepPassphrase = false)
+    public void UseFolder(string folder, string? unusedNote = null, bool keepPassphrase = false, Action? beforeUsing = null)
     {
-        // Open and migrate first: a folder that is refused leaves the session, its passphrase and its idle time as they were.
-        var installation = Installation.Open(folder);
+        // Open (an installation that is there) and migrate first: a folder that is refused leaves the session, its passphrase and its idle time as they were.
+        var installation = Installation.OpenExisting(folder);
         var idleTime = ReadIdleTime(installation);
+        beforeUsing?.Invoke();
         if (!keepPassphrase)
             Lock.Release();
         Lock.SetIdleTime(idleTime);

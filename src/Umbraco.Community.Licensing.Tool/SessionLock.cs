@@ -7,7 +7,7 @@ internal delegate void PassphraseUse(ReadOnlySpan<byte> passphrase);
 
 /// <summary>
 /// Holds the session passphrase as pinned ASCII bytes, never a string, and forgets it when the idle
-/// time passes (ADR-0021, ADR-0022). The idle time is a <see cref="TimeSpan"/>, or null for
+/// time passes, a passphrase set aside during setup from Settings included (ADR-0021, ADR-0022). The idle time is a <see cref="TimeSpan"/>, or null for
 /// <c>never</c> (no timer, no comparison). Every completed answer, a menu choice included, calls
 /// <see cref="Touch"/>, which records the time and restarts a <see cref="TimeProvider"/> timer. When
 /// the timer fires the bytes are zeroed and dropped; every use also compares the time since the last
@@ -19,6 +19,7 @@ internal sealed class SessionLock(TimeProvider time) : IDisposable
     private readonly object _gate = new();
     private ITimer? _timer;
     private byte[]? _held;
+    private byte[]? _aside;
     private TimeSpan? _idleTime;
     private DateTimeOffset _lastAnswer = time.GetUtcNow();
     private bool _disposed;
@@ -66,6 +67,50 @@ internal sealed class SessionLock(TimeProvider time) : IDisposable
 
             _held = passphrase;
             _lastAnswer = time.GetUtcNow();
+            Rearm();
+        }
+    }
+
+    /// <summary>
+    /// Sets the held passphrase aside, out of sight of <see cref="IsHeld"/> and <see cref="TryUse"/>, while setup or
+    /// restore from Settings runs. It stays under the lock: the same idle time and timer cover it, so it is zeroed when
+    /// they fire, when a later answer or use finds the idle time passed, and on <see cref="Dispose"/>. Ends with
+    /// <see cref="Restore"/> or <see cref="Discard"/>. Does nothing to a passphrase already set aside beyond zeroing it.
+    /// </summary>
+    public void SetAside()
+    {
+        lock (_gate)
+        {
+            LockIfIdle();
+            ZeroAside();
+            _aside = _held;
+            _held = null;
+            Rearm();
+        }
+    }
+
+    /// <summary>
+    /// Gives the set-aside passphrase back, unless the idle time has passed (then it is zeroed and nothing is held). A passphrase
+    /// held meanwhile (a setup that failed after holding) is zeroed. The idle clock is not restarted.
+    /// </summary>
+    public void Restore()
+    {
+        lock (_gate)
+        {
+            LockIfIdle();
+            ZeroHeld();
+            _held = _aside;
+            _aside = null;
+            Rearm();
+        }
+    }
+
+    /// <summary>Zeroes the set-aside passphrase (the session now holds the one just set, or none). What is held is untouched.</summary>
+    public void Discard()
+    {
+        lock (_gate)
+        {
+            ZeroAside();
             Rearm();
         }
     }
@@ -130,6 +175,7 @@ internal sealed class SessionLock(TimeProvider time) : IDisposable
         {
             _disposed = true;
             ZeroHeld();
+            ZeroAside();
             _timer?.Dispose();
             _timer = null;
         }
@@ -140,26 +186,31 @@ internal sealed class SessionLock(TimeProvider time) : IDisposable
     {
         if (_disposed)
             return;
-        if (_held is null || _idleTime is null)
+        if ((_held is null && _aside is null) || _idleTime is null)
         {
             _timer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             return;
         }
 
         _timer ??= time.CreateTimer(OnTimer, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-        _timer.Change(_idleTime.Value, Timeout.InfiniteTimeSpan);
+        // Always due at _lastAnswer + idle, whatever called: SetAside and Restore do not restart the clock.
+        var remaining = _idleTime.Value - (time.GetUtcNow() - _lastAnswer);
+        _timer.Change(remaining < TimeSpan.Zero ? TimeSpan.Zero : remaining, Timeout.InfiniteTimeSpan);
     }
 
     private void OnTimer(object? state)
     {
         lock (_gate)
         {
-            if (_disposed || _held is null || _idleTime is not { } idle)
+            if (_disposed || (_held is null && _aside is null) || _idleTime is not { } idle)
                 return;
 
             var remaining = idle - (time.GetUtcNow() - _lastAnswer);
             if (remaining <= TimeSpan.Zero)
+            {
                 ZeroHeld();
+                ZeroAside();
+            }
             else
                 _timer?.Change(remaining, Timeout.InfiniteTimeSpan); // a stale fire: an answer came since it was set
         }
@@ -167,8 +218,19 @@ internal sealed class SessionLock(TimeProvider time) : IDisposable
 
     private void LockIfIdle()
     {
-        if (_held is not null && _idleTime is { } idle && time.GetUtcNow() - _lastAnswer >= idle)
+        if ((_held is not null || _aside is not null) && _idleTime is { } idle && time.GetUtcNow() - _lastAnswer >= idle)
+        {
             ZeroHeld();
+            ZeroAside();
+        }
+    }
+
+    private void ZeroAside()
+    {
+        if (_aside is null)
+            return;
+        CryptographicOperations.ZeroMemory(_aside);
+        _aside = null;
     }
 
     private void ZeroHeld()

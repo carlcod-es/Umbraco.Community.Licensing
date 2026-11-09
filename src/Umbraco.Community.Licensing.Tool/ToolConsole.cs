@@ -84,7 +84,20 @@ internal sealed class TerminalConsole : ToolConsole
             }
 
             Console.Out.WriteLine();
+            if (answer.EndOfInput)
+            {
+                // Ctrl+D (Unix) or Ctrl+Z (Windows) on an empty answer is end of input, as at a line prompt.
+                answer.Dispose();
+                return null;
+            }
+
             return answer;
+        }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException)
+        {
+            // A terminal hangup during ReadKey is end of input, like Ctrl+D or Ctrl+Z or a closed input.
+            answer.Dispose();
+            return null;
         }
         catch
         {

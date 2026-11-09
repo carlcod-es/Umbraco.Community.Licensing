@@ -88,9 +88,19 @@ internal sealed class ToolDbContext(DbContextOptions<ToolDbContext> options) : D
     private static ValueConverter<T, string> LowerCase<T>() where T : struct, Enum =>
         new(v => v.ToString().ToLowerInvariant(), s => Enum.Parse<T>(s, true));
 
+    /// <summary>
+    /// Only a value already marked UTC is written. <c>ToUniversalTime</c> would shift an unspecified value by the
+    /// machine's offset, so a value from <c>DateTime.Now</c> or a forgotten field is refused instead; take times
+    /// from <c>TimeProvider.GetUtcNow().UtcDateTime</c>.
+    /// </summary>
+    private static DateTime RequireUtc(DateTime value) =>
+        value.Kind == DateTimeKind.Utc
+            ? value
+            : throw new InvalidOperationException($"A timestamp must be UTC, not {value.Kind}: {value:O}.");
+
     private sealed class UtcConverter() : ValueConverter<DateTime, DateTime>(
-        v => v.ToUniversalTime(), v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+        v => RequireUtc(v), v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
 
     private sealed class NullableUtcConverter() : ValueConverter<DateTime?, DateTime?>(
-        v => v == null ? null : v.Value.ToUniversalTime(), v => v == null ? null : DateTime.SpecifyKind(v.Value, DateTimeKind.Utc));
+        v => v == null ? null : RequireUtc(v.Value), v => v == null ? null : DateTime.SpecifyKind(v.Value, DateTimeKind.Utc));
 }

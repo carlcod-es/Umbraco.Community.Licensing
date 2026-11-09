@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -23,14 +24,26 @@ internal sealed class HiddenAnswer : IDisposable
     /// <summary>The characters held: the first <see cref="Capacity"/> typed.</summary>
     public ReadOnlySpan<char> Chars => _buffer.AsSpan(0, Math.Min(Length, Capacity));
 
+    /// <summary>
+    /// True when Ctrl+D (Unix) or Ctrl+Z (Windows) was pressed with nothing typed: the end-of-input key, so the
+    /// answer is not an answer and the console reports end of input. Pressed after other keys, it is ignored.
+    /// </summary>
+    public bool EndOfInput { get; private set; }
+
     /// <summary>The buffer itself, for tests that check it was zeroed.</summary>
     internal char[] Raw => _buffer;
 
-    /// <summary>Handles one key press; true when it was Enter, which ends the answer.</summary>
+    /// <summary>Handles one key press; true when it ends the answer: Enter, or the end-of-input key on an empty answer (<see cref="EndOfInput"/>).</summary>
     public bool Press(ConsoleKey key, char keyChar)
     {
         if (key == ConsoleKey.Enter)
             return true;
+
+        if (keyChar is '\u0004' or '\u001A' && Length == 0)
+        {
+            EndOfInput = true;
+            return true;
+        }
 
         if (key == ConsoleKey.Backspace)
         {
@@ -44,7 +57,7 @@ internal sealed class HiddenAnswer : IDisposable
             return false;
         }
 
-        // Arrows, Tab, Esc and the like carry no character or a control character.
+        // Arrows, Tab, Esc and the like carry no character or a control character (so Ctrl+D or Ctrl+Z after other keys do nothing).
         if (keyChar == '\0' || char.IsControl(keyChar))
             return false;
 
@@ -74,5 +87,5 @@ internal sealed class HiddenAnswer : IDisposable
 
     public void Dispose() => CryptographicOperations.ZeroMemory(MemoryMarshalAsBytes());
 
-    private Span<byte> MemoryMarshalAsBytes() => System.Runtime.InteropServices.MemoryMarshal.AsBytes(_buffer.AsSpan());
+    private Span<byte> MemoryMarshalAsBytes() => MemoryMarshal.AsBytes(_buffer.AsSpan());
 }

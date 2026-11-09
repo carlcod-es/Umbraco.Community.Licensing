@@ -49,6 +49,161 @@ public class SessionLockTests : IDisposable
     }
 
     [Fact]
+    public void SetAside_HidesTheArray_ButKeepsItUnzeroed_AndRestoreGivesItBack()
+    {
+        var (l, _, held) = Held(Idle);
+
+        l.SetAside();
+
+        Assert.False(AllZero(held));
+        Assert.False(l.IsHeld);
+        Assert.False(l.TryUse(_ => Assert.Fail("a set-aside passphrase must not be used")));
+        l.Restore();
+        Assert.True(l.IsHeld);
+        Assert.Equal("abcdefgh", Read(l));
+    }
+
+    [Fact]
+    public void SetAside_TheTimerZeroesIt_AndRestoreGivesNothing()
+    {
+        var (l, clock, held) = Held(Idle);
+        l.SetAside();
+
+        clock.Advance(Idle);
+
+        Assert.True(AllZero(held));
+        l.Restore();
+        Assert.False(l.IsHeld);
+    }
+
+    [Fact]
+    public void SetAside_TheTimerFiresAtTheLastAnswerPlusIdle_NotIdleFromTheSetAside()
+    {
+        var (l, clock, held) = Held(Idle);
+        clock.Advance(Idle / 2);
+        l.SetAside();
+
+        clock.Advance(Idle / 2); // exactly last answer + idle; no answer or use since
+
+        Assert.True(AllZero(held));
+        l.Restore();
+        Assert.False(l.IsHeld);
+    }
+
+    [Fact]
+    public void Restore_TheTimerFiresAtTheLastAnswerPlusIdle_NotIdleFromTheRestore()
+    {
+        var (l, clock, held) = Held(Idle);
+        l.SetAside();
+        clock.Advance(Idle / 2);
+        l.Restore();
+        Assert.False(AllZero(held));
+
+        clock.Advance(Idle / 2); // exactly last answer + idle; no answer or use since
+
+        Assert.True(AllZero(held));
+        Assert.False(l.IsHeld);
+    }
+
+    [Fact]
+    public void SetAside_AnswersKeepCountingIdleTime_AndRestoreAfterTheIdleTimeZeroesIt()
+    {
+        var (l, clock, held) = Held(Idle);
+        l.SetAside();
+        var justUnder = Idle - TimeSpan.FromSeconds(1);
+
+        clock.Advance(justUnder);
+        l.Touch(); // an answer in setup restarts the idle time
+        Assert.False(AllZero(held));
+        clock.Advance(justUnder);
+        l.Touch();
+        Assert.False(AllZero(held));
+        l.Restore();
+        Assert.Equal("abcdefgh", Read(l));
+
+        l.SetAside();
+        clock.Advance(Idle);
+        l.Restore(); // the timer is not relied on: the give-back finds the idle time passed
+        Assert.True(AllZero(held));
+        Assert.False(l.IsHeld);
+    }
+
+    [Fact]
+    public void SetAside_AnAnswerAfterTheIdleTime_ZeroesIt_EvenWhenTheTimerHasNotRun()
+    {
+        var late = new LateClock(); // its timers never fire: only the check at the answer can lock
+        var l = new SessionLock(late);
+        l.SetIdleTime(Idle);
+        var held = Passphrase();
+        l.Hold(held);
+        l.SetAside();
+
+        late.Move(Idle);
+        Assert.False(AllZero(held));
+        l.Touch();
+
+        Assert.True(AllZero(held));
+        l.Restore();
+        Assert.False(l.IsHeld);
+    }
+
+    [Fact]
+    public void SetAside_NeverIdleTime_KeepsItUntilDiscarded()
+    {
+        var (l, clock, held) = Held(null);
+        l.SetAside();
+        clock.Advance(TimeSpan.FromDays(30));
+        Assert.False(AllZero(held));
+
+        l.Discard();
+
+        Assert.True(AllZero(held));
+        l.Restore();
+        Assert.False(l.IsHeld);
+    }
+
+    [Fact]
+    public void Discard_ZeroesTheSetAsidePassphrase_AndLeavesWhatIsHeld()
+    {
+        var (l, _, aside) = Held(Idle);
+        l.SetAside();
+        var fresh = Passphrase();
+        l.Hold(fresh);
+
+        l.Discard();
+
+        Assert.True(AllZero(aside));
+        Assert.False(AllZero(fresh));
+        Assert.True(l.IsHeld);
+    }
+
+    [Fact]
+    public void Restore_ZeroesWhatWasHeldMeanwhile_AndBringsTheSetAsideBack()
+    {
+        var (l, _, aside) = Held(Idle);
+        l.SetAside();
+        var meanwhile = Passphrase();
+        l.Hold(meanwhile);
+
+        l.Restore();
+
+        Assert.True(AllZero(meanwhile));
+        Assert.False(AllZero(aside));
+        Assert.True(l.IsHeld);
+    }
+
+    [Fact]
+    public void Dispose_ZeroesTheSetAsidePassphrase()
+    {
+        var (l, _, held) = Held(Idle);
+        l.SetAside();
+
+        l.Dispose();
+
+        Assert.True(AllZero(held));
+    }
+
+    [Fact]
     public void EachAnswer_RestartsTheTimer()
     {
         var (l, clock, held) = Held(Idle);

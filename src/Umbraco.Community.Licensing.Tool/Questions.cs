@@ -123,16 +123,17 @@ internal sealed class Questions(ToolConsole console)
     }
 
     /// <summary>
-    /// Asks at the hidden prompt, nothing echoed and the answer not trimmed. <paramref name="rule"/>
-    /// sees the characters held and the true length typed (which can exceed them) and returns the
-    /// rule broken, or null. The caller owns the returned pinned bytes and zeroes them. The typed
-    /// characters are zeroed on every path: accepted, refused, <c>/cancel</c>, end of input.
+    /// Asks at the hidden prompt, nothing echoed and the answer not trimmed. <paramref name="rule"/> sees the
+    /// characters held and the true length typed (which can exceed them) and returns the rule broken, or null.
+    /// <paramref name="accepts"/> says what is accepted, shown in the hint as at <see cref="AskText"/>. The caller
+    /// owns the returned pinned bytes and zeroes them. The typed characters are zeroed on every path: accepted,
+    /// refused, <c>/cancel</c>, end of input.
     /// </summary>
-    public byte[] AskHidden(string question, HiddenRule rule)
+    public byte[] AskHidden(string question, string accepts, HiddenRule rule)
     {
         while (true)
         {
-            console.Write($"{question} (typed hidden; {Cancel} to cancel): ");
+            console.Write($"{question} ({Hint($"typed hidden; {accepts}", null, allowRemove: false)}): ");
             using var answer = console.ReadHidden() ?? throw new EndOfInputException();
 
             if (answer.Is(Cancel))
