@@ -36,7 +36,8 @@ shared signing key.
 
 ### Requirement: Feature definitions are add-only
 The vendor SHALL add feature definitions to a product: a feature name (by the feature name rule)
-and a type (switch, number, text). A feature definition SHALL never be removed, renamed or
+and a type (switch, number, text). A product SHALL define at most 50 features, the most a
+license carries. A feature definition SHALL never be removed, renamed or
 change type. A product's display name SHALL be editable, by the same display name rule; a
 refused change SHALL keep the earlier display name.
 
@@ -48,6 +49,11 @@ refused change SHALL keep the earlier display name.
 - **WHEN** the vendor adds text feature `max-orders` to `acme.commerce`, which already defines it
   as a number
 - **THEN** the tool refuses, naming the feature and its existing type
+
+#### Scenario: Feature limit reached
+- **WHEN** the vendor adds a feature to `acme.commerce`, which already defines 50 features
+- **THEN** the tool refuses when the product is chosen, naming the limit of 50, stores nothing
+  and shows the Products menu
 
 #### Scenario: Display name edited
 - **WHEN** the vendor changes the display name of `acme.commerce` to "Acme Commerce Pro"

@@ -12,12 +12,18 @@ using FeatureType = Umbraco.Community.Licensing.Tool.Data.FeatureType;
 /// </summary>
 internal static class ProductActions
 {
+    /// <summary>The most features a product defines: the most a license carries (PDR-0054).</summary>
+    internal const int MaxFeatures = ContentRules.MaxFeatures;
+
     internal const string NoProducts = "There are no products yet. Add one first (Products > Add a product).";
 
     internal static string DuplicateProduct(string productId) => $"The product ID {productId} is already in use. A product ID is unique and never changes.";
 
     internal static string FeatureDefined(string name, FeatureType type) =>
         $"The feature {name} is already defined as {TypeWord(type)}. A feature definition is never removed, renamed or retyped.";
+
+    internal static string FeatureLimitReached(string productId) =>
+        $"The product {productId} already defines {MaxFeatures} features, the most a license carries, so no more can be added.";
 
     internal static string TypeWord(FeatureType type) => type.ToString().ToLowerInvariant();
 
@@ -123,6 +129,12 @@ internal static class ProductActions
             return;
 
         var existing = ReadFeatures(session, product.ProductId);
+        if (existing.Count >= MaxFeatures)
+        {
+            session.Console.WriteLine(FeatureLimitReached(product.ProductId));
+            return;
+        }
+
         PrintFeatures(session.Console, existing);
 
         var name = session.Questions.AskText(
@@ -142,6 +154,8 @@ internal static class ProductActions
         using (var db = session.OpenDb())
         using (var transaction = db.Database.BeginTransaction())
         {
+            if (db.FeatureDefinitions.Count(f => f.ProductId == product.ProductId) >= MaxFeatures)
+                throw new InvalidOperationException(FeatureLimitReached(product.ProductId));
             var current = db.FeatureDefinitions.SingleOrDefault(f => f.ProductId == product.ProductId && f.Name == name);
             if (current is not null)
                 throw new InvalidOperationException(FeatureDefined(name, current.Type));

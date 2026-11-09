@@ -122,4 +122,89 @@ public class TypedValuesTests
     [Fact]
     public void IdleLockSetting_Never_IsLowerCaseNever() =>
         Assert.Equal("never", TypedValues.IdleLockSetting(null));
+
+    // Customer email and order reference (vendor-tool-licenses: Customer email and order reference values, Matching when finding)
+
+    [Fact]
+    public void Email_Accented_IsAccepted() => Assert.Null(TypedValues.CheckCustomerEmail("j\u00fcrgen@m\u00fcller.de"));
+
+    [Theory]
+    [InlineData("owner")]
+    [InlineData("a@b@example.com")]
+    [InlineData("owner @example.com")]
+    [InlineData("@example.com")]
+    [InlineData("owner@")]
+    [InlineData("@")]
+    [InlineData("")]
+    public void Email_OutsideTheRule_IsRefused_NamingTheCustomerEmail(string email)
+    {
+        var refusal = TypedValues.CheckCustomerEmail(email);
+        Assert.NotNull(refusal);
+        Assert.Contains("customer email", refusal, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Email_BoundaryLengths()
+    {
+        Assert.Null(TypedValues.CheckCustomerEmail("a@b"));
+        Assert.Null(TypedValues.CheckCustomerEmail(new string('a', 250) + "@b.c")); // 254
+        Assert.NotNull(TypedValues.CheckCustomerEmail(new string('a', 251) + "@b.c")); // 255
+    }
+
+    [Fact]
+    public void Email_WithEmoji_IsRefused_ByTheTextRule() =>
+        Assert.Contains("customer email", TypedValues.CheckCustomerEmail("a\U0001F600@b.c"), StringComparison.OrdinalIgnoreCase);
+
+    [Theory]
+    [InlineData("#1042")]
+    [InlineData("INV-2026-0042")]
+    [InlineData("ORD 1042")]
+    [InlineData("UMB:1042")]
+    [InlineData("pi_3NqXk2LkdIwHu7ix0yJ8")]
+    public void OrderReference_FromShops_IsAccepted(string orderRef) => Assert.Null(TypedValues.CheckOrderReference(orderRef));
+
+    [Fact]
+    public void OrderReference_Of64IsAccepted_AndOf65IsRefused()
+    {
+        Assert.Null(TypedValues.CheckOrderReference(new string('a', 64)));
+        Assert.NotNull(TypedValues.CheckOrderReference(new string('a', 65)));
+    }
+
+    [Theory]
+    [InlineData("ORD-1042 \u2B50")]
+    [InlineData("")]
+    public void OrderReference_OutsideTheRule_IsRefused_NamingTheOrderReference(string orderRef)
+    {
+        var refusal = TypedValues.CheckOrderReference(orderRef);
+        Assert.NotNull(refusal);
+        Assert.Contains("order reference", refusal, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void MatchKey_Email_IgnoresCase() =>
+        Assert.Equal(TypedValues.MatchKey("owner@example.com"), TypedValues.MatchKey("Owner@Example.com"));
+
+    [Fact]
+    public void MatchKey_AccentedLetter_IsTheSameInEitherForm()
+    {
+        var composed = "j\u00fcrgen@m\u00fcller.de";
+        var decomposed = "ju\u0308rgen@mu\u0308ller.de";
+        Assert.NotEqual(composed, decomposed);
+        Assert.Equal(TypedValues.MatchKey(composed), TypedValues.MatchKey(decomposed));
+    }
+
+    [Fact]
+    public void MatchKey_OrderReference_IgnoresCase() =>
+        Assert.Equal(TypedValues.MatchKey("ORD-1042"), TypedValues.MatchKey("ord-1042"));
+
+    [Fact]
+    public void MatchKey_PartOfAnOrderReference_DoesNotMatch() =>
+        Assert.NotEqual(TypedValues.MatchKey("ORD-1042"), TypedValues.MatchKey("1042"));
+
+    [Fact]
+    public void MatchKey_SpacesInAnOrderReference_AreSignificant()
+    {
+        Assert.NotEqual(TypedValues.MatchKey("ORD 1042"), TypedValues.MatchKey("ORD  1042"));
+        Assert.Equal(TypedValues.MatchKey("ORD 1042"), TypedValues.MatchKey("ord 1042"));
+    }
 }

@@ -47,7 +47,7 @@ Deferred. Update this index in the same change as any status line.
 | [PDR-0033](0033-license-records-and-customer-data.md) | License records and customer data | Amended by PDR-0043; to revisit: FR-26 (PDR-0046) |
 | [PDR-0034](0034-reissue-and-renewal-from-records.md) | Reissue and renewal from records | Amended by PDR-0039, PDR-0044, PDR-0048, PDR-0052 |
 | [PDR-0035](0035-signing-key-switch-standby-and-trusted-keys.md) | Signing key switch, standby keys and trusted keys | Amended by PDR-0047, PDR-0051 |
-| [PDR-0036](0036-feature-definitions-add-only.md) | Products and feature definitions are add-only | Amended by PDR-0043 |
+| [PDR-0036](0036-feature-definitions-add-only.md) | Products and feature definitions are add-only | Amended by PDR-0043, PDR-0054 |
 | [PDR-0037](0037-github-release-per-published-release.md) | A GitHub Release for each published release | Decided |
 | [PDR-0038](0038-vendor-tool-operating-systems-and-terminals.md) | Vendor tool operating systems and terminals | Amended by PDR-0039, PDR-0040, PDR-0048 |
 | [PDR-0039](0039-vendor-tool-guided-mode-only.md) | Vendor tool runs in guided mode only | Amended by PDR-0048, PDR-0049, PDR-0050; to revisit: FR-26 (PDR-0046) |
@@ -65,6 +65,7 @@ Deferred. Update this index in the same change as any status line.
 | [PDR-0051](0051-release-confirmed-per-product.md) | Release confirmed per product | Decided |
 | [PDR-0052](0052-menu-session-review-refinements.md) | Menu session review refinements | Decided |
 | [PDR-0053](0053-unexpected-failure-in-a-session.md) | Unexpected failure in a session | Decided |
+| [PDR-0054](0054-product-defines-at-most-50-features.md) | A product defines at most 50 features | Decided |
 
 ## Template
 

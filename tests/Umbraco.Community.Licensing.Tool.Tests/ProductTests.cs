@@ -353,6 +353,51 @@ public class ProductTests : IDisposable
         Assert.Equal(3, SessionTestHost.Count(console.Out, "Feature name ("));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void FeatureLimitReached_IsRefusedAtTheProduct_NamingTheLimit_StoresNothing_AndShowsTheProductsMenu(bool shared)
+    {
+        var console = OpenProducts(shared);
+        SeedProductWithFeatures(ProductActions.MaxFeatures);
+        console.Line("3").Line("1");
+        Quit(console);
+
+        Assert.Equal(0, Run(console));
+
+        Assert.Contains("already defines 50 features", console.Out);
+        Assert.Equal(0, SessionTestHost.Count(console.Out, "Feature name ("));
+        Assert.Equal(ProductActions.MaxFeatures, Features().Count);
+        Assert.Equal(2, SessionTestHost.Lines(console.Out).Count(l => l == "Products"));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void FeatureLimitNotReached_AProductWith49Definitions_AcceptsA50th(bool shared)
+    {
+        var console = OpenProducts(shared);
+        SeedProductWithFeatures(ProductActions.MaxFeatures - 1);
+        AddFeature(console, "1", "the-last", "switch");
+        Quit(console);
+
+        Assert.Equal(0, Run(console));
+
+        Assert.Equal(ProductActions.MaxFeatures, Features().Count);
+        Assert.Contains("Added switch feature the-last to acme.commerce.", console.Out);
+        Assert.DoesNotContain("already defines", console.Out);
+    }
+
+    private void SeedProductWithFeatures(int count)
+    {
+        var now = DateTime.UtcNow;
+        using var db = Db();
+        db.Products.Add(new Product { ProductId = Id, DisplayName = Name, CreatedUtc = now });
+        for (var i = 0; i < count; i++)
+            db.FeatureDefinitions.Add(new FeatureDefinition { ProductId = Id, Name = $"feature-{i:00}", Type = FeatureType.Switch, AddedUtc = now });
+        db.SaveChanges();
+    }
+
     [Fact]
     public void FeatureAlreadyDefined_AsTheSameType_IsRefusedToo_AndCancelStoresNothingMore()
     {

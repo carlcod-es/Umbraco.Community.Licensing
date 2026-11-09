@@ -147,11 +147,12 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q70 | Choosing a license | Every license question takes the reference under the prefix rule or a whole key string signed by one of the installation's keys, expired or not; only its reference is used, nothing kept; a key not signed by the installation or with no record refused and asked again; no passphrase (Carl, 2026-11-08) | PDR-0052, ADR-0022 |
 | Q71 | Stale rows | Q4, Q11, Q16, Q28, Q31, Q45, Q50 and Q57 marked amended by Q33, Q47, Q48 and Q66 to Q69 (Carl, 2026-11-08) | PDR-0051, PDR-0052 |
 | Q72 | Unexpected failure in a session | An action that fails for a reason the tool does not check for stores nothing, says in one line which action failed and why, and shows its menu again; session and held passphrase kept; the same for setup and restore at the startup offer; a failure outside an action ends the session with one line, the passphrase forgotten, exit 1; no technical detail shown or written anywhere; exit codes unchanged (Carl, 2026-11-09) | PDR-0053 |
+| Q73 | Feature limit per product | A product defines at most 50 features, the most a license carries; Add a feature refuses a product that already defines 50 when it is chosen, naming the limit, storing nothing, and shows the Products menu (Carl, 2026-11-09) | PDR-0054 |
 
 ## Open questions
 
 None. Q37 to Q58 were raised in `opsx:explore`, Q59 to Q65 in `opsx:update`, and Q66 to Q71 in
-an `opsx:explore` review of the menu session (Carl, 2026-11-08), and Q72 in the section 3 review
+an `opsx:explore` review of the menu session (Carl, 2026-11-08), Q72 in the section 3 review and Q73 in the section 7 review
 during `opsx:apply` (Carl, 2026-11-09); all are settled above. Q37, Q38 and Q40 use the text rule from
 `tighten-text-rule` (PDR-0042); this change waits for it.
 

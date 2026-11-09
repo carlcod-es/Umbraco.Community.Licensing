@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 
 namespace Umbraco.Community.Licensing.Tool;
 
@@ -129,4 +130,47 @@ internal static class TypedValues
     /// <summary>The stored form of an idle time: whole minutes as ASCII digits, or <c>never</c>.</summary>
     public static string IdleLockSetting(TimeSpan? idleTime) =>
         idleTime is { } t ? ((int)t.TotalMinutes).ToString(CultureInfo.InvariantCulture) : Never;
+
+    internal const int EmailMinLength = 3;
+    internal const int EmailMaxLength = 254;
+    internal const int OrderRefMaxLength = 64;
+
+    internal const string EmailAccepts = "3 to 254 characters, with exactly one @ that has text before and after it, and no spaces";
+    internal const string OrderRefAccepts = "1 to 64 characters: printable ASCII, and letters, combining marks, digits and punctuation from any script";
+    internal const string EmailRule = "A customer email must be 3 to 254 characters, with exactly one @ that has text before and after it, and no spaces.";
+
+    /// <summary>
+    /// The customer email rule (ADR-0019): the library's text check for field <c>customerEmail</c> at 254, then at
+    /// least 3 characters, exactly one <c>@</c> with text before and after it, and no space. Returns the rule broken
+    /// naming the customer email, or null.
+    /// </summary>
+    public static string? CheckCustomerEmail(string email)
+    {
+        var problems = new List<LicenseProblem>();
+        ContentRules.CheckText("customerEmail", "A customer email", email, EmailMaxLength, problems);
+        if (problems.Count > 0)
+            return Join(problems);
+
+        var at = email.IndexOf('@');
+        var valid = email.Length >= EmailMinLength
+            && at > 0
+            && at < email.Length - 1
+            && email.IndexOf('@', at + 1) < 0
+            && !email.Contains(' ');
+        return valid ? null : EmailRule;
+    }
+
+    /// <summary>The order reference rule (ADR-0019): the library's text check for field <c>orderRef</c> at 64. Returns the rule broken, or null.</summary>
+    public static string? CheckOrderReference(string orderRef)
+    {
+        var problems = new List<LicenseProblem>();
+        ContentRules.CheckText("orderRef", "An order reference", orderRef, OrderRefMaxLength, problems);
+        return Join(problems);
+    }
+
+    /// <summary>
+    /// The match key for finding by customer email or order reference (ADR-0019): normalised to form C, then lower
+    /// case in the invariant culture. Compared whole, for equality; spaces are kept. The stored value stays as typed.
+    /// </summary>
+    public static string MatchKey(string value) => value.Normalize(NormalizationForm.FormC).ToLowerInvariant();
 }
