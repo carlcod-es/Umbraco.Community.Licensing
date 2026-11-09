@@ -12,8 +12,11 @@ public class KeyStringScanTests : IDisposable
 
     public static TheoryData<bool> Modes => new() { false, true };
 
-    private static bool InAnyFile(List<(string Path, byte[] Bytes)> files, string text) =>
-        files.Any(f => f.Bytes.AsSpan().IndexOf(System.Text.Encoding.UTF8.GetBytes(text)) >= 0);
+    private static bool InAnyFile(List<(string Path, byte[] Bytes)> files, string text)
+    {
+        var needle = System.Text.Encoding.UTF8.GetBytes(text);
+        return files.Any(f => f.Bytes.AsSpan().IndexOf(needle) >= 0);
+    }
 
     [Theory]
     [MemberData(nameof(Modes))]

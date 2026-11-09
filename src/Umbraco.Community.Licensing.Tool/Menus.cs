@@ -94,6 +94,9 @@ internal sealed class ActionTable
         table.Register(Menus.FolderInUse, session => session.WriteFolderInUse());
         SettingsActions.Register(table);
         ProductActions.Register(table);
+        SigningKeyActions.Register(table);
+        TrustedKeyActions.Register(table);
+        KeyExportActions.Register(table);
         LicenseActions.Register(table);
         return table;
     }

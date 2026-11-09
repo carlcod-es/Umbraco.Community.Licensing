@@ -779,6 +779,8 @@ public class ReissueTests : IDisposable
 
         Assert.Contains("This license cannot be resent.", console.Out);
         Assert.DoesNotContain("Summary", console.Out);
+        var afterRefusal = console.Out[console.Out.IndexOf("This license cannot be resent.", StringComparison.Ordinal)..];
+        Assert.Contains("1 Issue", afterRefusal);
         Assert.Single(kit.Entries());
         AssertNoPassphraseAsked(console);
     }

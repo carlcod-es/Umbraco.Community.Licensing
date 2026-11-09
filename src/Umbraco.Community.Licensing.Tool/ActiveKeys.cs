@@ -27,4 +27,25 @@ internal static class ActiveKeys
         throw new InstallationRefusedException(Damaged(
             matches.Count == 0 ? $"There is no active signing key for {scope}" : $"There is more than one active signing key for {scope}"));
     }
+
+    /// <summary>
+    /// The active key and the standby key (if any) of one scope among <paramref name="keys"/>, which hold no replaced keys: the
+    /// product's keys in per-product mode, the keys with no product in shared mode. No active key, or more than one active or
+    /// standby key, fails as a damaged installation; one is never picked.
+    /// </summary>
+    internal static (SigningKeyRecord Active, SigningKeyRecord? Standby) Roles(IEnumerable<SigningKeyRecord> keys, string? productId)
+    {
+        var scope = productId is null ? "the shared signing key" : $"the product {productId}";
+        var inScope = keys.Where(k => k.ProductId == productId).ToList();
+        var active = inScope.Where(k => k.Role == KeyRole.Active).ToList();
+        var standby = inScope.Where(k => k.Role == KeyRole.Standby).ToList();
+
+        if (active.Count != 1)
+            throw new InstallationRefusedException(Damaged(
+                active.Count == 0 ? $"There is no active signing key for {scope}" : $"There is more than one active signing key for {scope}"));
+        if (standby.Count > 1)
+            throw new InstallationRefusedException(Damaged($"There is more than one standby signing key for {scope}"));
+
+        return (active[0], standby.SingleOrDefault());
+    }
 }

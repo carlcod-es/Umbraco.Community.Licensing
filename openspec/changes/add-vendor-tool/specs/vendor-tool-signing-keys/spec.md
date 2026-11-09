@@ -125,7 +125,8 @@ needs the passphrase.
 
 ### Requirement: Trusted public keys per product
 The vendor SHALL print, for a product, the public key lines its next release must trust, one per
-line, each preceded by a comment line naming its role (active, standby, replaced with reason). The
+line, each preceded by a comment line starting with `//` and naming its role (active, standby,
+replaced with reason). The
 list SHALL hold the active key, the standby key, and every replaced key except one replaced
 after a leak whose reissues the vendor has confirmed sent. A key replaced after a leak SHALL stay
 listed, marked as leaked, until the vendor confirms the reissues are sent. The vendor SHALL

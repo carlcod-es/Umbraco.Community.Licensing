@@ -501,13 +501,18 @@ public class SetupTests : IDisposable
         Assert.Equal(0, Run(console));
 
         var folder = _host.HomeInstallation;
-        var values = Settings(folder).Values.Concat(Keys(folder).SelectMany(k => new[] { k.PublicKey, k.EncryptedPrivateKeyPem, k.SigningKeyId })).ToList();
-        Assert.All(values, v =>
+        var settings = Settings(folder);
+        var keys = Keys(folder);
+        // Paths: every stored value. The machine name (as a token): every value but the encoded ones (PlainStore.EncodedColumns, EncodedSettings), which it could hit by chance.
+        var encoded = keys.SelectMany(k => new[] { k.PublicKey, k.EncryptedPrivateKeyPem, k.SigningKeyId }).ToList();
+        var plain = settings.Where(s => !PlainStore.EncodedSettings.Contains(s.Key)).Select(s => s.Value).ToList();
+        Assert.NotEmpty(plain);
+        Assert.All(plain.Concat(encoded).Concat(settings.Values), v =>
         {
             Assert.DoesNotContain(folder, v, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain(_host.Home, v, StringComparison.OrdinalIgnoreCase);
-            Assert.DoesNotContain(Environment.MachineName, v, StringComparison.OrdinalIgnoreCase);
         });
+        Assert.All(plain, v => Assert.False(PlainStore.HoldsMachineName(v), "the machine name is held"));
     }
 
     [Fact]

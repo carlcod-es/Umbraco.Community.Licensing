@@ -149,6 +149,7 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q72 | Unexpected failure in a session | An action that fails for a reason the tool does not check for stores nothing, says in one line which action failed and why, and shows its menu again; session and held passphrase kept; the same for setup and restore at the startup offer; a failure outside an action ends the session with one line, the passphrase forgotten, exit 1; no technical detail shown or written anywhere; exit codes unchanged (Carl, 2026-11-09) | PDR-0053 |
 | Q73 | Feature limit per product | A product defines at most 50 features, the most a license carries; Add a feature refuses a product that already defines 50 when it is chosen, naming the limit, storing nothing, and shows the Products menu (Carl, 2026-11-09) | PDR-0054 |
 | Q74 | Resend of an expired license | Refused when the license is chosen, before the summary, pointing to Renew or Reissue; no passphrase, nothing stored, Licenses menu shown; perpetual and unexpired licenses resent as before (Carl, 2026-11-09) | PDR-0055 |
+| Q75 | Trusted key comment lines | Comment lines printed by Trusted keys and Release confirmed (heading, and the role before each key) start with `// `, a comment in C# and .NET JSON configuration; key lines unchanged (Carl, 2026-11-09) | PDR-0056 |
 
 ## Open questions
 
@@ -442,7 +443,8 @@ question.
 
 ### Trusted keys
 
-Per product (or the shared key set): active, standby, every replaced key with reason routine or
+Printed as a `// ` heading naming the product, then for each key a `// ` role line and the key
+line unchanged (PDR-0056). Per product (or the shared key set): active, standby, every replaced key with reason routine or
 loss, and a key replaced for leak while `ReissuesSentUtc` is null. The products a key signs for
 are its `ProductId` in per-product mode and every product in shared mode (ADR-0022). Release
 confirmed, for the chosen product, inserts a `KeyReleases` row for every listed key that lacks

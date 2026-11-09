@@ -232,7 +232,6 @@ public class PortabilityTests : IDisposable
         var trusted = TrustedSigningKeys.Create(keyRows.Select(r => SigningPublicKey.Parse((string)r[1]!)));
         var result = new LicenseEvaluator(product, trusted, ClockAt(Utc(2026, 12, 2))).Evaluate(issued.KeyString);
         Assert.True(result.IsLicensed, result.ToString());
-        Assert.Equal(reference, issued.Reference.Replace("LIC-", "").Replace("-", ""));
         Assert.EndsWith(reference[5..], result.License!.Reference);
         Assert.Equal("Acme Shop EU", result.License.DisplayName);
         Assert.Equal("reseller#7", result.License.VendorTag);

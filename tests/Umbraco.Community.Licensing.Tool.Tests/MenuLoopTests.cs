@@ -117,9 +117,10 @@ public class MenuLoopTests : IDisposable
     [Fact]
     public void StubAction_SaysNotAvailable_AndReturnsToItsMenu()
     {
+        // An empty action table leaves every entry a stub, so this never needs retargeting as sections implement entries.
         var console = Script("3", "1", "0", "0");
 
-        var exit = _host.Run(console);
+        var exit = _host.Run(console, new ActionTable());
 
         Assert.Equal(0, exit);
         Assert.Contains("Status is not available yet.", console.Out);
