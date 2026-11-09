@@ -146,11 +146,13 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q69 | Installation in the home folder | Never, from any entry point; started in the home folder, setup and restore at the startup offer offer only `~/.ucl`; replaces the home-folder warning (Carl, 2026-11-08) | PDR-0052 |
 | Q70 | Choosing a license | Every license question takes the reference under the prefix rule or a whole key string signed by one of the installation's keys, expired or not; only its reference is used, nothing kept; a key not signed by the installation or with no record refused and asked again; no passphrase (Carl, 2026-11-08) | PDR-0052, ADR-0022 |
 | Q71 | Stale rows | Q4, Q11, Q16, Q28, Q31, Q45, Q50 and Q57 marked amended by Q33, Q47, Q48 and Q66 to Q69 (Carl, 2026-11-08) | PDR-0051, PDR-0052 |
+| Q72 | Unexpected failure in a session | An action that fails for a reason the tool does not check for stores nothing, says in one line which action failed and why, and shows its menu again; session and held passphrase kept; the same for setup and restore at the startup offer; a failure outside an action ends the session with one line, the passphrase forgotten, exit 1; no technical detail shown or written anywhere; exit codes unchanged (Carl, 2026-11-09) | PDR-0053 |
 
 ## Open questions
 
 None. Q37 to Q58 were raised in `opsx:explore`, Q59 to Q65 in `opsx:update`, and Q66 to Q71 in
-an `opsx:explore` review of the menu session (Carl, 2026-11-08); all are settled above. Q37, Q38 and Q40 use the text rule from
+an `opsx:explore` review of the menu session (Carl, 2026-11-08), and Q72 in the section 3 review
+during `opsx:apply` (Carl, 2026-11-09); all are settled above. Q37, Q38 and Q40 use the text rule from
 `tighten-text-rule` (PDR-0042); this change waits for it.
 
 ## Decisions
@@ -302,7 +304,7 @@ idle time from the restored installation; a new installation made by setup keeps
 just set (ADR-0022).
 
 Exit codes: 0 Quit, help, version, Quit at the startup offer; 1 nobody present, end of input, a
-database the tool cannot open; 2 any other argument.
+database the tool cannot open, a failure outside an action (PDR-0053); 2 any other argument.
 
 ### Packaging and release — ADR-0011
 
@@ -339,6 +341,13 @@ package).
   answer, plus a check on each use; zeroed at Quit, end of input, the end of the run and when
   the session moves to a restored installation, whose idle time is then read; no decrypted key
   outlives its action (ADR-0021, ADR-0022).
+- An exception from an action other than cancel and end of input is caught by the menu loop, and
+  by the startup offer for setup and restore: one line on stdout, `<action> failed: <message>`
+  (no exception type, no stack trace), then that menu again; the action has already rolled back
+  its transaction and disposed its decrypted keys, and the session lock is untouched. A backstop
+  catch in `ToolApp.Run` writes one line on stdout, zeroes the session lock and returns exit 1,
+  so cleanup runs for an exception nothing expected; an unhandled exception would skip it
+  (PDR-0053).
 - The tool does not set `Console.OutputEncoding`; key strings are ASCII. A key saved to a file is
   ASCII, no byte order mark, no line ending.
 

@@ -1,6 +1,6 @@
 # PDR-0048: The vendor tool runs as a menu session
 
-- Status: Amended by PDR-0050, PDR-0052
+- Status: Amended by PDR-0050, PDR-0052, PDR-0053
 - Date: 2026-11-08
 - Source: `add-vendor-tool` design.md Q46 to Q48 and Q52 to Q58 (`docs/feature-requests.md`
   FR-23, taken into this change). Amends PDR-0030, PDR-0031, PDR-0034, PDR-0038, PDR-0039,

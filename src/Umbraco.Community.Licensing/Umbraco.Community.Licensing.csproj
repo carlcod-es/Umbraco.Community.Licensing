@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Umbraco.Community.Licensing.Tests" />
+    <InternalsVisibleTo Include="Umbraco.Community.Licensing.Tool" />
   </ItemGroup>
 
 </Project>

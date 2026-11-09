@@ -59,11 +59,12 @@ Deferred. Update this index in the same change as any status line.
 | [PDR-0045](0045-tool-never-overwrites-files-or-creates-folders.md) | The tool never overwrites a file or creates a folder it was not asked for | Amended by PDR-0048 |
 | [PDR-0046](0046-records-portable-to-a-central-database.md) | Records can move to a central database | Decided |
 | [PDR-0047](0047-switch-confirms-when-new-key-not-in-a-release.md) | A switch confirms whenever the new active key is not in a release | Amended by PDR-0050, PDR-0051 |
-| [PDR-0048](0048-vendor-tool-menu-session.md) | The vendor tool runs as a menu session | Amended by PDR-0050, PDR-0052 |
+| [PDR-0048](0048-vendor-tool-menu-session.md) | The vendor tool runs as a menu session | Amended by PDR-0050, PDR-0052, PDR-0053 |
 | [PDR-0049](0049-passphrase-kept-for-a-session-with-idle-lock.md) | Passphrase kept for a session, with an idle lock | Amended by PDR-0050, PDR-0052 |
 | [PDR-0050](0050-menu-session-refinements.md) | Menu session refinements | Decided |
 | [PDR-0051](0051-release-confirmed-per-product.md) | Release confirmed per product | Decided |
 | [PDR-0052](0052-menu-session-review-refinements.md) | Menu session review refinements | Decided |
+| [PDR-0053](0053-unexpected-failure-in-a-session.md) | Unexpected failure in a session | Decided |
 
 ## Template
 

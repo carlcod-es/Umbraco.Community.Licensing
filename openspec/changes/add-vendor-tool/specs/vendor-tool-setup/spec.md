@@ -275,7 +275,11 @@ help and version, and no input on the command. A person is present only when bot
 input and its output are a terminal. With nobody present, the tool SHALL
 refuse before doing anything, saying it is run by a person at a terminal, and change nothing;
 help and the version SHALL work with nobody present. Quitting SHALL end the session, forgetting
-the passphrase and every decrypted private key, and exit with success.
+the passphrase and every decrypted private key, and exit with success. An action that fails for a
+reason the tool does not check for SHALL store nothing, say in one line which action failed and
+why, and return to the menu it was chosen from, keeping the session and the held passphrase. A
+failure outside any action SHALL end the session with one line saying why, forgetting the
+passphrase, and exit with a failure code. No technical detail of a failure SHALL be shown.
 
 #### Scenario: Several jobs in one session
 - **WHEN** the vendor adds product `acme.commerce`, adds feature `max-orders` to it, issues three
@@ -301,6 +305,16 @@ the passphrase and every decrypted private key, and exit with success.
 - **WHEN** the vendor starts the tool with `license issue acme.commerce`
 - **THEN** it refuses, saying the tool takes no command other than help and version and is used
   from its menu, and changes nothing
+
+#### Scenario: Action fails unexpectedly
+- **WHEN** a backup export fails because the disk is full
+- **THEN** the tool says in one line that the backup export failed and why, writes no backup
+  file, and shows the Backup menu; the session keeps the passphrase it holds
+
+#### Scenario: Failure outside an action
+- **WHEN** something fails while no action is running
+- **THEN** the tool says in one line why the session ended, forgets the passphrase, and exits
+  with a failure code
 
 ### Requirement: Answers at a prompt
 Each question SHALL say what it accepts and, when there is a proposed or current value, show it;
