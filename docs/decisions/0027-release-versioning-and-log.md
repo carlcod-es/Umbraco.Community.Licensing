@@ -1,6 +1,6 @@
 # PDR-0027: Release versioning and release log
 
-- Status: Amended by PDR-0029
+- Status: Amended by PDR-0029, PDR-0058
 - Date: 2026-10-14
 - Source: FR-6 explore (Carl, 2026-10-14); `add-release-pipeline` design.md Q1
 - Personas: vendor (a published version always matches what was tested, and each release says

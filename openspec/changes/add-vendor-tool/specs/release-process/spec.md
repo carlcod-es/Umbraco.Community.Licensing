@@ -24,6 +24,11 @@ nothing.
 - **WHEN** a vendor tool test fails during the release run and every library test passes
 - **THEN** neither package is published and the run reports the failing test
 
+#### Scenario: Tool not published
+- **WHEN** during a release run the library is published and publishing the vendor tool fails
+- **THEN** the run reports the failure, no Release page is made, the library version stays
+  published, and the next release number publishes both packages
+
 #### Scenario: Rehearsal
 - **WHEN** Carl starts a rehearsal on `main`
 - **THEN** the build, tests and packaging run on one of his test machines and nothing is

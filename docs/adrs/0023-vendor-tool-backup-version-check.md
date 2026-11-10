@@ -37,6 +37,10 @@ tool, so a backup from a newer tool that made no schema change would be imported
 - A tool built from a version lower than the one that took the backup refuses it, even when the
   schema is the same; the vendor updates the tool.
 - Tests write a manifest with a higher `toolVersion` and a known `lastMigration`.
+- If the running tool's own version is not a valid SemVer version (a local or unversioned
+  build), the `toolVersion` comparison is skipped and only the `lastMigration` check applies;
+  refusing every backup would make such a build unusable. Release builds carry the
+  `Version.props` version, which the release run checks (`ucl --version`).
 
 ## Reversal Cost
 

@@ -302,15 +302,29 @@ deleted.
   holds `ORD-1874`
 
 #### Scenario: Clearing order references
-- **WHEN** the vendor clears the order references of `LIC-8F3AK-M7RXB`
+- **WHEN** the vendor clears the order references of `LIC-8F3AK-M7RXB` and confirms
 - **THEN** no issue entry of that license holds an order reference, no record holds the earlier
   values, and the license and its issue entries remain
 
 #### Scenario: Erasure request
-- **WHEN** the vendor clears the customer email of `LIC-8F3AK-M7RXB`
+- **WHEN** the vendor clears the customer email of `LIC-8F3AK-M7RXB` and confirms
 - **THEN** no record in the installation holds the earlier email, and the license and its issue
   entries remain
 
 #### Scenario: No delete
 - **WHEN** the vendor looks for a way to delete a license record
 - **THEN** none exists; only the customer fields can be cleared
+
+### Requirement: Clearing customer details asks first
+Clearing the customer email or the order references SHALL first show the license and the values
+to be cleared and ask for confirmation, no proposed; declining SHALL change nothing. Changing the
+email and correcting the latest order reference SHALL ask no confirmation.
+
+#### Scenario: Clearing declined
+- **WHEN** the vendor chooses to clear the customer email `jürgen@müller.de` of
+  `LIC-8F3AK-M7RXB`, is shown the license and the email, and answers no
+- **THEN** the license still holds `jürgen@müller.de`, nothing is stored, and the menu is shown
+
+#### Scenario: Changing the email asks no confirmation
+- **WHEN** the vendor changes the customer email of `LIC-8F3AK-M7RXB` to `owner@example.com`
+- **THEN** the email is stored with no confirmation asked

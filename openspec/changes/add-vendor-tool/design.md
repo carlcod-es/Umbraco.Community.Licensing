@@ -55,13 +55,13 @@ C2), localisation.
 | R1 | One vendor, one person per installation; menu session only | vendor-tool-setup: One vendor and one person per installation; Menu session; Answers at a prompt | Vendor; site owner (summary before signing) | PDR-0030, PDR-0039, PDR-0048, PDR-0050 |
 | R2 | Guided setup; prefix changeable later | vendor-tool-setup: Guided setup; Changing the prefix | Vendor; site owner (prefix and keys set once, keys stay consistent) | PDR-0030, PDR-0023 |
 | R3 | Folder location, moving, second installation | vendor-tool-setup: Folder location; New installation in the current folder; Moving an installation | Vendor | PDR-0031, PDR-0040, PDR-0041, PDR-0048, PDR-0052 |
-| R4 | Products and add-only feature definitions | vendor-tool-products | Vendor; site owner (no feature silently lost, PDR-0016) | PDR-0036 |
-| R5 | Issue, reissue, renew, resend from records | vendor-tool-licenses | Vendor; site owner (renewal keeps paid-for days; lost key resent; the key they send back finds their license) | PDR-0033, PDR-0034, PDR-0021, PDR-0052 |
-| R6 | Records without key strings; customer fields editable and clearable | vendor-tool-licenses | Site owner (copied backup holds no usable key; erasure honoured); vendor | PDR-0033, PDR-0014 |
+| R4 | Products and add-only feature definitions | vendor-tool-products | Vendor; site owner (no feature silently lost, PDR-0016) | PDR-0036, PDR-0054 |
+| R5 | Issue, reissue, renew, resend from records | vendor-tool-licenses | Vendor; site owner (renewal keeps paid-for days; lost key resent; the key they send back finds their license) | PDR-0033, PDR-0034, PDR-0021, PDR-0052, PDR-0055 |
+| R6 | Records without key strings; customer fields editable and clearable | vendor-tool-licenses | Site owner (copied backup holds no usable key; erasure honoured); vendor | PDR-0033, PDR-0014, PDR-0059 |
 | R7 | Private keys encrypted; never exported; passphrase kept for a session with an idle lock | vendor-tool-signing-keys: Private keys encrypted with the passphrase. vendor-tool-setup: Idle lock | Vendor; site owner (no forged keys from a copied folder or an unattended session) | PDR-0032, PDR-0049, PDR-0052 |
-| R8 | Standby, switch, trusted keys, export by signing key | vendor-tool-signing-keys | Vendor; implementor (release trusts the right keys); site owner (keys keep working after rotation, in shared mode for every product) | PDR-0035, PDR-0015, PDR-0051 |
-| R9 | Backup export and import | vendor-tool-backup | Vendor; site owner (records survive a lost laptop) | PDR-0031 |
-| R10 | Tool released with the library | release-process | Vendor | ADR-0011 |
+| R8 | Standby, switch, trusted keys, export by signing key | vendor-tool-signing-keys | Vendor; implementor (release trusts the right keys); site owner (keys keep working after rotation, in shared mode for every product) | PDR-0035, PDR-0015, PDR-0051, PDR-0056 |
+| R9 | Backup export and import | vendor-tool-backup | Vendor; site owner (records survive a lost laptop) | PDR-0031, PDR-0057 |
+| R10 | Tool released with the library | release-process | Vendor | ADR-0011, PDR-0058 |
 | R11 | Windows, macOS and Linux; PowerShell, Windows Terminal, Command Prompt | vendor-tool-setup: Operating systems and terminals | Vendor | PDR-0038 |
 | R12 | Typed values: product display name, customer email and order reference by the key's text rule; finding ignores case and accent form, whole value only; passphrase printable ASCII, 15 to 256 | vendor-tool-products: Adding a product; Feature definitions are add-only. vendor-tool-licenses: Customer email and order reference values; Matching when finding. vendor-tool-setup: Passphrase rule | Vendor; site owner (passphrase types the same on the next machine, so signing keys are not lost) | PDR-0043, PDR-0042 |
 | R13 | Switch answered off is not granted; each feature asked once | vendor-tool-licenses: Switch values and features at reissue | Vendor; site owner and implementor unaffected (same key) | PDR-0044, PDR-0010, PDR-0048 |
@@ -85,7 +85,7 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q8 | Private-key export | None in this change; FR-11 (Carl, 2026-10-28) | PDR-0032 |
 | Q9 | Suggested expiry on renewal | Vendor types the expiry; tool suggests current expiry plus the last term (Carl, 2026-10-28). Term and months versus exact time: see Q25 | PDR-0034 |
 | Q10 | Correcting or erasing customer data | Edit or clear order reference and email; no copy of a cleared value kept; records never deleted (Carl, 2026-10-28) | PDR-0033 |
-| Q11 | Trusted keys for a release | Switch asks the reason; trusted list per product; leaked key stays listed until reissues confirmed sent (Carl, 2026-10-28). Amended by Q66: release confirmed per product | PDR-0035, PDR-0051 |
+| Q11 | Trusted keys for a release | Switch asks the reason; trusted list per product; leaked key stays listed until reissues confirmed sent (Carl, 2026-10-28). Amended by Q66: release confirmed per product; amended by Q75: comment lines start with `// ` | PDR-0035, PDR-0051 |
 | Q12 | Storing key strings | Not stored; resend is reissue unchanged (Carl, 2026-10-28) | PDR-0033 |
 | Q13 | Backup import over an installation | Refused; import only into a folder with no installation; backup date warning (Carl, 2026-10-28) | PDR-0031 |
 | Q14 | Operators; passphrase change | One person, no accounts; passphrase change out, FR-12 (Carl, 2026-10-28) | PDR-0030, PDR-0032 |
@@ -96,7 +96,7 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q19 | Command line and prompts | System.CommandLine; BCL console prompts; Spectre.Console is FR-13 (Carl, 2026-10-28). Amended by Q59: no System.CommandLine | ADR-0012, ADR-0020 |
 | Q20 | Database and folder resolution | EF Core + SQLite in the folder; option, environment, pointer file, default (Carl, 2026-10-28); resolution replaced by Q29 | ADR-0013 |
 | Q21 | Private-key encryption format | Encrypted PKCS#8 PEM, PBES2 AES-256-CBC + PBKDF2-SHA256 (Carl, 2026-10-28) | ADR-0014 |
-| Q22 | Backup and export formats | Zip of a consistent database snapshot and a manifest; CSV export (Carl approved T6, 2026-10-28) | ADR-0015 |
+| Q22 | Backup and export formats | Zip of a consistent database snapshot and a manifest; CSV export (Carl approved T6, 2026-10-28). Amended by Q77: version check by `toolVersion` as well as `lastMigration` | ADR-0015 |
 | Q23 | Prefix and signing-key mode after setup | Prefix changeable: new issues and reissues use the current prefix, existing licenses keep theirs until reissued, typed references per PDR-0023. Signing-key mode fixed; changing it is FR-17 (Carl, 2026-10-28) | PDR-0030 |
 | Q24 | Passphrase rule | At least 15 characters, length only (NIST SP 800-63B rev 4) (Carl, 2026-10-28) | PDR-0032 |
 | Q25 | Length of the last term | Length the last renewal granted, from the later of the previous expiry and the renewal time to the expiry it set; first issue's term when never renewed; other reissues do not change it. Calendar months when whole months, exact time otherwise (Carl, 2026-10-28) | PDR-0034 |
@@ -152,12 +152,16 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q75 | Trusted key comment lines | Comment lines printed by Trusted keys and Release confirmed (heading, and the role before each key) start with `// `, a comment in C# and .NET JSON configuration; key lines unchanged (Carl, 2026-11-09) | PDR-0056 |
 | Q76 | Restore confirmation | After the backup date and the warning, restore asks `Restore this backup? [y/N]`; no or cancel creates and changes nothing and returns to the startup offer or menu it was started from (Carl, 2026-11-09) | PDR-0057 |
 | Q77 | Backup from a newer tool | Refused when the manifest `toolVersion` is higher than the running version by SemVer precedence, or its `lastMigration` is unknown; the message names both versions and says to update the tool (Carl, 2026-11-09) | ADR-0023 |
+| Q78 | Release where the library is published and the tool push fails | A failed release (PDR-0027): the library version stays published and is not unlisted, no Release page, the next number publishes both; no re-run with skipped duplicates (Carl, 2026-11-10) | PDR-0058 |
+| Q79 | Confirmation before clearing customer details | Clear email and clear every order reference show the license and the values, then ask `[y/N]`; no or cancel changes nothing; change email and correct latest order reference ask nothing (Carl, 2026-11-10) | PDR-0059 |
+| Q80 | Switch with no standby key | No change: the switch makes a new active key and no standby. With standby keys on, every signing key has a standby (setup, Add a product and a switch with a standby create one), so this happens only with standby keys off; Add a standby key adds one after (Carl, 2026-11-10) | PDR-0035, PDR-0047 |
 
 ## Open questions
 
 None. Q37 to Q58 were raised in `opsx:explore`, Q59 to Q65 in `opsx:update`, and Q66 to Q71 in
 an `opsx:explore` review of the menu session (Carl, 2026-11-08), Q72 in the section 3 review, Q73 in the section 7 review, Q74 in the section 8 apply and Q76, Q77 in the section 10 apply
-during `opsx:apply` (Carl, 2026-11-09); all are settled above. Q37, Q38 and Q40 use the text rule from
+during `opsx:apply` (Carl, 2026-11-09), Q78 to Q80 after the section 11 apply (Carl,
+2026-11-10); all are settled above. Q37, Q38 and Q40 use the text rule from
 `tighten-text-rule` (PDR-0042); this change waits for it.
 
 ## Decisions
@@ -241,13 +245,15 @@ The menu tree (numbers as shown; `0` is Back in a submenu, Quit in the main menu
                                                customer email (current) -> summary -> sign
                     3 Renew                    license, expiry (suggested), order reference,
                                                customer email (current) -> summary -> sign
-                    4 Resend                   license -> summary -> sign
+                    4 Resend                   license (expired: refused, points to Renew
+                                               or Reissue) -> summary -> sign
                     5 Find and list            product, license, order reference, customer email
                                                (each optional; all empty lists every license)
                     6 Show a license           license
                     7 Customer details         license, then 1 change email, 2 clear email,
                                                3 correct latest order reference, 4 clear all
-                                               order references
+                                               order references (2 and 4 show the values and
+                                               ask [y/N])
   3 Signing keys    1 Status                   only those without a standby key? [y/N]
                     2 Add a standby key        signing key without one (list)
                     3 Switch                   signing key (list: products, or shared), reason
