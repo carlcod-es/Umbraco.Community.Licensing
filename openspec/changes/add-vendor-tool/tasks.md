@@ -5,8 +5,8 @@ Owners per CLAUDE.md and design.md (Ownership): sections 2 to 11 worker-backend;
 `node --test "tools/release/*.test.mjs"`. Bar: production (design.md). Test names follow spec
 scenario names; every scenario runs as a whole session through the scripted console (design.md
 Test strategy). Specs: `specs/vendor-tool-*/spec.md`, `specs/release-process/spec.md`. Records:
-PDR-0030 to PDR-0036, PDR-0038 to PDR-0055 (PDR-0042 from `tighten-text-rule`), ADR-0011,
-ADR-0013 to ADR-0015, ADR-0017, ADR-0018 (from `tighten-text-rule`), ADR-0019 to ADR-0022.
+PDR-0030 to PDR-0036, PDR-0038 to PDR-0057 (PDR-0042 from `tighten-text-rule`), ADR-0011,
+ADR-0013 to ADR-0015, ADR-0017, ADR-0018 (from `tighten-text-rule`), ADR-0019 to ADR-0023.
 
 ## 1. Ownership
 
@@ -104,10 +104,10 @@ PDR-0051, ADR-0015, ADR-0019, ADR-0022.
 
 Depends on: 8, 9. Owner: worker-backend. Spec: vendor-tool-backup; vendor-tool-setup (Folder
 location; New installation in the current folder). Records: ADR-0015, ADR-0017, ADR-0019,
-PDR-0031, PDR-0040, PDR-0041, PDR-0045, PDR-0048, PDR-0052, ADR-0022.
+PDR-0031, PDR-0040, PDR-0041, PDR-0045, PDR-0048, PDR-0052, PDR-0057, ADR-0022, ADR-0023.
 
-- [ ] 10.1 Implement Backup > Export (snapshot, manifest, zip, written through the path question from 3.3, no passphrase), and verify by tests for "Backup taken", "Backup file already exists" and "Backup folder missing", and that the zip's private keys are the encrypted PEMs
-- [ ] 10.2 Implement restore (import path through 3.3; manifest checks; target `<home>/.ucl` or the current directory at the startup offer (only `<home>/.ucl` when the current directory is home), the current directory only from Backup > Restore into the current folder and Settings > New installation; refused in the home folder or a folder holding an installation; date warning; integrity check; migrations; the session continuing with the restored installation), wire it to the startup offer and Settings, and verify by tests for "Import file not found" (and a folder path), "Restore to a new machine" (from the startup offer, then the main menu), "Restore on another operating system" (restored into a different temp home), "Folder already holds an installation", "Not a backup", "Backup from a newer tool version", a restore from Backup and from Settings into the current folder, "Restored installation asks for its passphrase" (from Settings after an issue in `<home>/.ucl`; the restored installation's idle time used), and that a restored installation issues with the backup's passphrase
+- [x] 10.1 Implement Backup > Export (snapshot, manifest, zip, written through the path question from 3.3, no passphrase), and verify by tests for "Backup taken", "Backup file already exists" and "Backup folder missing", and that the zip's private keys are the encrypted PEMs
+- [x] 10.2 Implement restore (import path through 3.3; manifest checks; target `<home>/.ucl` or the current directory at the startup offer (only `<home>/.ucl` when the current directory is home), the current directory only from Backup > Restore into the current folder and Settings > New installation; refused in the home folder or a folder holding an installation; date warning; `Restore this backup? [y/N]` (PDR-0057); integrity check; migrations; the session continuing with the restored installation), wire it to the startup offer and Settings, and verify by tests for "Import file not found" (and a folder path), "Restore to a new machine" (from the startup offer, then the main menu), "Restore on another operating system" (restored into a different temp home), "Folder already holds an installation", "Not a backup", "Backup from a newer tool version" (a higher `toolVersion` with a known `lastMigration`, and an unknown `lastMigration`; ADR-0023), "Restore declined" (from the startup offer and from Backup), a restore from Backup and from Settings into the current folder, "Restored installation asks for its passphrase" (from Settings after an issue in `<home>/.ucl`; the restored installation's idle time used), and that a restored installation issues with the backup's passphrase
 
 ## 11. Release workflow
 

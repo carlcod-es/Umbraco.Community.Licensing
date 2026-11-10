@@ -246,7 +246,8 @@ public class NewInstallationTests : IDisposable
             Assert.Equal(0, Run(console));
 
             Assert.Equal("", console.Err);
-            Assert.Contains(SettingsActions.HoldsInstallationRefused(cwd), console.Out);
+            // Restore says to move or rename the folder first (vendor-tool-backup: Folder already holds an installation).
+            Assert.Contains(choice == "1" ? SettingsActions.HoldsInstallationRefused(cwd) : RestoreBackup.HoldsInstallationMessage(cwd), console.Out);
             Assert.DoesNotContain("not available yet", console.Out);
             Assert.Empty(console.HiddenGiven);
             Assert.Equal(before, Content(cwd));
@@ -256,7 +257,7 @@ public class NewInstallationTests : IDisposable
     }
 
     [Fact]
-    public void RestoreFromSettings_IsAStub_ChangesNothing_AndKeepsTheEarlierPassphrase()
+    public void RestoreFromSettings_CancelledAtThePath_ChangesNothing_AndKeepsTheEarlierPassphrase()
     {
         var home = _host.SetUpInstallation();
         var earlier = Encoding.ASCII.GetBytes(Earlier);
@@ -264,10 +265,10 @@ public class NewInstallationTests : IDisposable
         var actions = Stubs(s => s.Lock.Hold(earlier), s => held = HeldBytes(s));
 
         var console = new ScriptedConsole().Line("1").Line("1").Line("0");
-        OpenNew(console, "2").Line("0").Line("0").Line("1").Line("2").Line("0").Line("0");
+        OpenNew(console, "2").Line("/cancel").Line("0").Line("0").Line("1").Line("2").Line("0").Line("0");
         Assert.Equal(0, Run(console, actions));
 
-        Assert.Contains("Restore from a backup is not available yet.", console.Out);
+        Assert.Contains("Cancelled.", console.Out);
         Assert.Empty(Directory.GetFileSystemEntries(_host.Cwd));
         Assert.Equal(Encoding.ASCII.GetBytes(Earlier), held);
         Assert.Equal(1, SessionTestHost.Count(console.Out, $"Using {home}"));

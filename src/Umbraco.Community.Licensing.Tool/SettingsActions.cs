@@ -24,8 +24,9 @@ internal static class SettingsActions
     {
         table.Register("settings.prefix", ChangePrefix);
         table.Register("settings.idle", ChangeIdleLock);
-        table.Register(Menus.SetUpHere, session => NewInstallation(session, s => Setup.Run(s, s.Environment.CurrentDirectory), setUp: true, "Set up"));
-        table.Register(Menus.RestoreHere, session => NewInstallation(session, NotAvailable, setUp: false, "Restore from a backup"));
+        table.Register(Menus.SetUpHere, session => NewInstallation(session, s => Setup.Run(s, s.Environment.CurrentDirectory), setUp: true, $"{Menus.NewInstallationLabel} - Set up"));
+        table.Register(Menus.RestoreHere, session => NewInstallation(session, RestoreHere, setUp: false, $"{Menus.NewInstallationLabel} - Restore from a backup"));
+        table.Register(Menus.BackupRestore, session => NewInstallation(session, RestoreHere, setUp: false, "Backup - Restore into the current folder"));
     }
 
     internal const string HomeFolderRefused =
@@ -34,24 +35,29 @@ internal static class SettingsActions
     internal static string HoldsInstallationRefused(string folder) =>
         $"{folder} already holds an installation. A new installation there is refused and nothing changes.";
 
-    /// <summary>The refusal for a current folder that cannot take a new installation, or null when it can.</summary>
-    internal static string? RefuseCurrentFolder(ToolEnvironment environment)
+    /// <summary>The refusal for a current folder that cannot take a new installation, or null when it can. A restore says to move or rename the folder first.</summary>
+    internal static string? RefuseCurrentFolder(ToolEnvironment environment, bool restore = false)
     {
         var current = Path.GetFullPath(environment.CurrentDirectory);
         if (Startup.SamePath(current, environment.Home))
             return HomeFolderRefused;
-        return Installation.Holds(current) ? HoldsInstallationRefused(current) : null;
+        if (!Installation.Holds(current))
+            return null;
+        return restore ? RestoreBackup.HoldsInstallationMessage(current) : HoldsInstallationRefused(current);
     }
 
+    /// <summary>Restore into the current folder, the only folder: it is not asked (Backup menu, Settings).</summary>
+    private static Provisioned? RestoreHere(Session session) => RestoreBackup.Run(session, session.Environment.CurrentDirectory);
+
     /// <summary>
-    /// Settings &gt; New installation in the current folder. The refusals come first, before any question, and change
+    /// Settings &gt; New installation in the current folder, and Backup &gt; Restore into the current folder (<paramref name="setUp"/> false). The refusals come first, before any question, and change
     /// nothing. The passphrase the session already holds is set aside inside the session lock while setup or restore runs, so the idle lock still covers it: a cancelled or failed
     /// one gives it back (the session still uses the earlier installation), a completed one zeroes it, since the session
     /// now holds the one just set (setup) or none (restore, ADR-0022). A refused new database is a failed setup (PDR-0053).
     /// </summary>
-    internal static void NewInstallation(Session session, Func<Session, Provisioned?> make, bool setUp, string entry)
+    internal static void NewInstallation(Session session, Func<Session, Provisioned?> make, bool setUp, string label)
     {
-        if (RefuseCurrentFolder(session.Environment) is { } refusal)
+        if (RefuseCurrentFolder(session.Environment, restore: !setUp) is { } refusal)
         {
             session.Console.WriteLine(refusal);
             return;
@@ -68,7 +74,7 @@ internal static class SettingsActions
             var provisioned = make(session);
             if (provisioned is null)
                 return;
-            moved = Startup.UseProvisioned(session, provisioned, note, keepPassphrase: setUp, $"{Menus.NewInstallationLabel} - {entry}");
+            moved = Startup.UseProvisioned(session, provisioned, note, keepPassphrase: setUp, label);
         }
         finally
         {
@@ -77,12 +83,6 @@ internal static class SettingsActions
             else
                 session.Lock.Restore();
         }
-    }
-
-    private static Provisioned? NotAvailable(Session session)
-    {
-        session.Console.WriteLine("Restore from a backup is not available yet.");
-        return null;
     }
 
     internal static void ChangePrefix(Session session)

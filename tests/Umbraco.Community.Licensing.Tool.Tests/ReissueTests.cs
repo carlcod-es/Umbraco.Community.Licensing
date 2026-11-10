@@ -156,6 +156,34 @@ public class ReissueTests : IDisposable
 
     [Theory]
     [MemberData(nameof(Modes))]
+    public void KeyPastedToReissue_SignedByAKeyReplacedForALeak_ChoosesTheLicense_AfterReissuesSent(bool shared)
+    {
+        var kit = Kit(shared);
+        var key = kit.Issue();
+        var leaked = Latest(kit).SigningKeyId;
+        var reference = StoredReference(kit);
+        var product = shared ? null : kit.ProductId;
+        // Switch (reason leak, no standby: yes to the warning, then the passphrase), then Reissues sent (the key, yes), then Quit.
+        var session = new ScriptedConsole().Line("3").Line("3").Line(product ?? "1").Line("leak").Line("y").Hidden(LicenseKit.Words)
+            .Line("6").Line(leaked).Line("y");
+        kit.Run(Quit(session));
+        using (var db = kit.Db())
+        {
+            var replaced = db.SigningKeys.Single(k => k.SigningKeyId == leaked);
+            Assert.Equal(ReplacedReason.Leak, replaced.ReplacedReason);
+            Assert.NotNull(replaced.ReissuesSentUtc);
+        }
+
+        var console = Sign(ReissueQuestions(new ScriptedConsole(), key));
+        kit.Run(console);
+
+        Assert.DoesNotContain(LicenseQuestion.NotIssuedHere, console.Out);
+        Assert.Contains($"Reference: LIC-{reference[..5]}-{reference[5..]}", console.Out);
+        Assert.Equal(IssueKind.Reissue, Latest(kit).Kind);
+    }
+
+    [Theory]
+    [MemberData(nameof(Modes))]
     public void KeyFromAnotherVendor_IsNotIssuedHere_AndAskedAgain_NoPassphraseAsked(bool shared)
     {
         var kit = Kit(shared);

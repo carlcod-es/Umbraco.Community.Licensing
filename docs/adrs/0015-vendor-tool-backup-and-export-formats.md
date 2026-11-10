@@ -1,6 +1,6 @@
 # ADR-0015: Vendor tool backup and export formats
 
-- Status: Decided
+- Status: Amended by ADR-0023
 - Date: 2026-10-28
 - Source: `add-vendor-tool` design.md Q22
 

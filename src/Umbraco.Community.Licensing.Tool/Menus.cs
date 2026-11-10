@@ -97,6 +97,7 @@ internal sealed class ActionTable
         SigningKeyActions.Register(table);
         TrustedKeyActions.Register(table);
         KeyExportActions.Register(table);
+        BackupExportActions.Register(table);
         LicenseActions.Register(table);
         return table;
     }

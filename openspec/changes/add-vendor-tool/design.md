@@ -150,11 +150,13 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q73 | Feature limit per product | A product defines at most 50 features, the most a license carries; Add a feature refuses a product that already defines 50 when it is chosen, naming the limit, storing nothing, and shows the Products menu (Carl, 2026-11-09) | PDR-0054 |
 | Q74 | Resend of an expired license | Refused when the license is chosen, before the summary, pointing to Renew or Reissue; no passphrase, nothing stored, Licenses menu shown; perpetual and unexpired licenses resent as before (Carl, 2026-11-09) | PDR-0055 |
 | Q75 | Trusted key comment lines | Comment lines printed by Trusted keys and Release confirmed (heading, and the role before each key) start with `// `, a comment in C# and .NET JSON configuration; key lines unchanged (Carl, 2026-11-09) | PDR-0056 |
+| Q76 | Restore confirmation | After the backup date and the warning, restore asks `Restore this backup? [y/N]`; no or cancel creates and changes nothing and returns to the startup offer or menu it was started from (Carl, 2026-11-09) | PDR-0057 |
+| Q77 | Backup from a newer tool | Refused when the manifest `toolVersion` is higher than the running version by SemVer precedence, or its `lastMigration` is unknown; the message names both versions and says to update the tool (Carl, 2026-11-09) | ADR-0023 |
 
 ## Open questions
 
 None. Q37 to Q58 were raised in `opsx:explore`, Q59 to Q65 in `opsx:update`, and Q66 to Q71 in
-an `opsx:explore` review of the menu session (Carl, 2026-11-08), Q72 in the section 3 review, Q73 in the section 7 review and Q74 in the section 8 apply
+an `opsx:explore` review of the menu session (Carl, 2026-11-08), Q72 in the section 3 review, Q73 in the section 7 review, Q74 in the section 8 apply and Q76, Q77 in the section 10 apply
 during `opsx:apply` (Carl, 2026-11-09); all are settled above. Q37, Q38 and Q40 use the text rule from
 `tighten-text-rule` (PDR-0042); this change waits for it.
 
@@ -259,13 +261,15 @@ The menu tree (numbers as shown; `0` is Back in a submenu, Quit in the main menu
   4 Backup          1 Export                   file path
                     2 Restore into the current folder
                                                file path (current directory only; refused in the
-                                               home folder or a folder holding an installation)
+                                               home folder or a folder holding an installation),
+                                               date and warning, Restore this backup? [y/N]
   5 Settings        1 Folder in use            full path, and the unused-installation note
                     2 Prefix                   current shown; new prefix LIC|<prefix>|none
                     3 Idle lock                current shown; minutes 1 to 1440 or never
                     4 New installation in the current folder
                                                1 Set up, 2 Restore from a backup (refused in the
-                                               home folder or a folder holding an installation)
+                                               home folder or a folder holding an installation;
+                                               restore asks as Backup > Restore)
   0 Quit
 ```
 
@@ -300,8 +304,11 @@ mode, issue, reissue, renew, resend, Add a standby key and Switch. Up to three t
 (ADR-0021). Prefix and idle lock changes need no passphrase; an idle lock change is stored and
 applies from the next session.
 
-Restore (startup offer, Backup menu, or Settings) asks for the backup's path, shows the date it
-was taken and the warning, imports, writes `Using <full path>` and continues the session with the
+Restore (startup offer, Backup menu, or Settings) asks for the backup's path and checks the
+manifest, then, at the startup offer only, the folder; a folder holding an installation is refused,
+saying to move or rename it first. It then shows the date the backup was taken and the warning and
+asks `Restore this backup? [y/N]`; no creates nothing and shows the startup offer or menu the
+restore was started from (PDR-0057). Yes imports, writes `Using <full path>` and continues the session with the
 restored installation (Backup and export). The session then holds no passphrase and reads the
 idle time from the restored installation; a new installation made by setup keeps the passphrase
 just set (ADR-0022).
@@ -420,12 +427,13 @@ encrypt a new key under a different passphrase. Every step takes the passphrase 
 `SessionLock`, never as a string (ADR-0021). Tests pass a low iteration count through
 `ToolEnvironment`; the count is stored with each PEM and check, so decrypting reads it back.
 
-### Backup and export — ADR-0015
+### Backup and export — ADR-0015, ADR-0023
 
 Export: `VACUUM INTO` a temp file (consistent snapshot, no free pages), then a zip holding
 `manifest.json` (`format` 1, `toolVersion`, `lastMigration`, `takenUtc`) and `ucl.db`. Import: read
-the manifest; refuse an unknown format, a missing entry, or a `lastMigration` the tool does not
-know; check the target folder has no `ucl.db`; show `takenUtc` and the warning; extract;
+the manifest; refuse an unknown format, a missing entry, a `toolVersion` higher than the running version by
+SemVer precedence, or a `lastMigration` the tool does not know (ADR-0023); check the target folder has no `ucl.db`; show `takenUtc` and the warning and ask to restore
+(PDR-0057); extract;
 `PRAGMA integrity_check`; apply pending migrations. Backup export and key export write the
 named file under the named-file checks (ADR-0019). Signed-key export: CSV (RFC 4180, UTF-8, header
 `reference,key_identifier,product,issued_utc,expires_utc`, `perpetual` for no expiry).

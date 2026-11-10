@@ -50,7 +50,8 @@ offered as at setup (vendor-tool-setup: Folder location); from the menu, only th
 continue with the imported installation. The tool SHALL
 refuse a folder that holds one, saying to move or rename the current folder first, and change
 nothing. Before importing it SHALL show the date the backup was taken and warn that licenses
-issued after that date are not in it. A backup SHALL import on any supported operating system,
+issued after that date are not in it, then ask whether to restore, with no proposed; a no SHALL
+change nothing and return to where the restore was started. A backup SHALL import on any supported operating system,
 whichever one it was taken on. A zip that is not a complete backup, or that was taken by a
 newer tool version than the one running, SHALL be refused, changing nothing. After import,
 actions using a private key SHALL accept the passphrase that was in effect when the backup was taken.
@@ -60,6 +61,11 @@ actions using a private key SHALL accept the passphrase that was in effect when 
   installation
 - **THEN** the tool shows the backup date and the warning, then creates the installation, and
   every product, license and key from the backup is there
+
+#### Scenario: Restore declined
+- **WHEN** the vendor answers no after the backup date and the warning
+- **THEN** nothing is created, nothing changes, and the startup offer or menu the restore was
+  started from is shown
 
 #### Scenario: Restore on another operating system
 - **WHEN** the vendor imports a backup taken on Windows into `~/.ucl` on macOS

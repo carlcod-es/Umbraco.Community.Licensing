@@ -44,11 +44,15 @@ internal static class TrustedKeyActions
         return list;
     }
 
-    /// <summary>The role named in the comment line before a key.</summary>
+    /// <summary>
+    /// The role named in the comment line before a key, and in the Export by signing key list. A key replaced for a leak is called
+    /// leaked and still trusted only until its reissues are sent.
+    /// </summary>
     internal static string RoleOf(SigningKeyRecord key) => key.Role switch
     {
         KeyRole.Active => "active",
         KeyRole.Standby => "standby",
+        _ when key.ReplacedReason == ReplacedReason.Leak && key.ReissuesSentUtc is not null => "replaced (leak), reissues sent",
         _ when key.ReplacedReason == ReplacedReason.Leak => "replaced (leak) - LEAKED, stays listed until the reissues are sent",
         _ => $"replaced ({key.ReplacedReason?.ToString().ToLowerInvariant()})",
     };

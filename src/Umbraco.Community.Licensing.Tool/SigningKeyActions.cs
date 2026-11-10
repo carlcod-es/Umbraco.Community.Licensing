@@ -4,8 +4,8 @@ using Umbraco.Community.Licensing.Tool.Data;
 namespace Umbraco.Community.Licensing.Tool;
 
 /// <summary>
-/// The Signing keys menu, so far: status, adding a standby key and switching (vendor-tool-signing-keys). Status needs no
-/// passphrase. Adding a standby key and switching ask their questions first, then the passphrase (ADR-0021), then write in one transaction.
+/// The Signing keys menu actions for status, adding a standby key and switching (vendor-tool-signing-keys); the trusted-key lists
+/// and the key export are in <c>TrustedKeyActions</c> and <c>KeyExportActions</c>. Status needs no passphrase. Adding a standby key and switching ask their questions first, then the passphrase (ADR-0021), then write in one transaction.
 /// </summary>
 internal static class SigningKeyActions
 {

@@ -42,7 +42,7 @@ Deferred. Update this index in the same change as any status line.
 | [PDR-0028](0028-test-coverage-per-release.md) | Test coverage per release | Decided |
 | [PDR-0029](0029-release-tag-matches-log.md) | A release tag must match its release log row | Decided |
 | [PDR-0030](0030-vendor-tool-audience-and-operation.md) | Vendor tool audience and operation | Amended by PDR-0039, PDR-0048; to revisit: FR-26 (PDR-0046) |
-| [PDR-0031](0031-tool-folder-moving-and-backups.md) | Tool folder, moving and backups | Amended by PDR-0038, PDR-0040, PDR-0041, PDR-0045, PDR-0048, PDR-0052; to revisit: FR-26 (PDR-0046) |
+| [PDR-0031](0031-tool-folder-moving-and-backups.md) | Tool folder, moving and backups | Amended by PDR-0038, PDR-0040, PDR-0041, PDR-0045, PDR-0048, PDR-0052, PDR-0057; to revisit: FR-26 (PDR-0046) |
 | [PDR-0032](0032-private-keys-protected-by-passphrase.md) | Private keys protected by a passphrase | Amended by PDR-0039, PDR-0043, PDR-0049; to revisit: FR-26 (PDR-0046) |
 | [PDR-0033](0033-license-records-and-customer-data.md) | License records and customer data | Amended by PDR-0043; to revisit: FR-26 (PDR-0046) |
 | [PDR-0034](0034-reissue-and-renewal-from-records.md) | Reissue and renewal from records | Amended by PDR-0039, PDR-0044, PDR-0048, PDR-0052, PDR-0055 |
@@ -68,6 +68,7 @@ Deferred. Update this index in the same change as any status line.
 | [PDR-0054](0054-product-defines-at-most-50-features.md) | A product defines at most 50 features | Decided |
 | [PDR-0055](0055-expired-license-not-resent.md) | An expired license is not resent | Decided |
 | [PDR-0056](0056-trusted-key-comment-lines.md) | Trusted key comment lines start with `//` | Decided |
+| [PDR-0057](0057-restore-asks-before-importing.md) | Restore asks before importing | Decided |
 
 ## Template
 

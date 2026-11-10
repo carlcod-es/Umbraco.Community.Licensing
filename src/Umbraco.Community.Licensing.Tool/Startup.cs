@@ -21,18 +21,18 @@ internal static class Startup
 {
     internal const string DatabaseFileName = "ucl.db";
 
-    /// <summary>Creates a new installation and returns it, or null when it did not happen (a refused folder, or a stub).</summary>
+    /// <summary>Creates a new installation and returns it, or null when it did not happen (a refusal, a no, or a stub).</summary>
     internal delegate Provisioned? Provision(Session session);
 
-    /// <summary>The startup offer's set up and restore. Restore is a stub until 10.2.</summary>
+    /// <summary>The startup offer's set up and restore.</summary>
     internal sealed record Offer(Provision SetUp, Provision Restore)
     {
         public static Offer Stubs { get; } = new(
             s => NotAvailable(s, "Set up a new installation"),
             s => NotAvailable(s, "Restore from a backup"));
 
-        /// <summary>What the tool runs with: guided setup, and restore as a stub.</summary>
-        public static Offer Default { get; } = new(s => Setup.Run(s), Stubs.Restore);
+        /// <summary>What the tool runs with: guided setup and restore.</summary>
+        public static Offer Default { get; } = new(s => Setup.Run(s), s => RestoreBackup.Run(s));
 
         private static Provisioned? NotAvailable(Session session, string label)
         {

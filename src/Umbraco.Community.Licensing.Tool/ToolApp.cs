@@ -76,7 +76,7 @@ internal static class ToolApp
         }
     }
 
-    /// <summary>Startup with guided setup (restore is a stub), then the menus, with every entry a stub until its section replaces it.</summary>
+    /// <summary>Startup with guided setup and restore, then the menus, with every entry a stub until its section replaces it.</summary>
     private static int Session(ToolEnvironment environment) =>
         MenuLoop.Run(environment, ActionTable.Default(), Startup.Offer.Default);
 

@@ -173,8 +173,8 @@ internal sealed class Installation
         return migrations;
     }
 
-    /// <summary>The outermost folder on the way to <paramref name="folder"/> that does not exist yet, or null when it does.</summary>
-    private static string? FirstMissingFolder(string folder)
+    /// <summary>The outermost folder on the way to <paramref name="folder"/> that does not exist yet, or null when it does. Restore uses it too.</summary>
+    internal static string? FirstMissingFolder(string folder)
     {
         string? missing = null;
         for (var current = folder; current is not null && !Directory.Exists(current); current = Path.GetDirectoryName(current))
@@ -182,7 +182,8 @@ internal sealed class Installation
         return missing;
     }
 
-    private static void RemoveCreated(string folder, string? firstCreated, bool removeDatabase)
+    /// <summary>Removes what a setup or restore made: the database files when <paramref name="removeDatabase"/>, then the folders from <paramref name="firstCreated"/> in, when empty.</summary>
+    internal static void RemoveCreated(string folder, string? firstCreated, bool removeDatabase)
     {
         try
         {

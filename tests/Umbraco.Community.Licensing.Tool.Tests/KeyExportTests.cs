@@ -100,6 +100,24 @@ public class KeyExportTests : IDisposable
     }
 
     [Fact]
+    public void KeyList_AfterTheReissuesAreSent_NoLongerSaysTheLeakedKeyIsListedAsTrusted()
+    {
+        _kit.Issue();
+        var leaked = ActiveKeyId();
+        var fresh = _kit.ReplaceActiveKey(ReplacedReason.Leak);
+        using (var db = _kit.Db())
+        {
+            db.SigningKeys.Single(k => k.SigningKeyId == leaked).ReissuesSentUtc = Utc(2026, 12, 2);
+            db.SaveChanges();
+        }
+
+        var console = Export(fresh, "fresh.csv");
+
+        Assert.Contains($"{leaked} - replaced (leak), reissues sent - acme.commerce", console.Out);
+        Assert.DoesNotContain("LEAKED", console.Out);
+    }
+
+    [Fact]
     public void KeyWithNoEntries_WritesTheHeaderOnly_AndSaysZeroRows()
     {
         var console = Export(ActiveKeyId(), "none.csv");
