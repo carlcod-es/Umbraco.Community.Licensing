@@ -140,6 +140,29 @@ public class RestoreTests : IDisposable
         return path;
     }
 
+    /// <summary>Sets the uncompressed size of the first entry to 100 in its local and central headers, so a manifest that inflates to 200 KB declares a small one. The BCL reader stops at the declared size, so the entry reads as cut short and is refused (the bounded read in RestoreBackup is a second guard the BCL does not let a test reach).</summary>
+    private static string LyingHeader(string zipPath)
+    {
+        var bytes = File.ReadAllBytes(zipPath);
+        PatchSize(bytes, 0x04034b50, 22);
+        PatchSize(bytes, 0x02014b50, 24);
+        File.WriteAllBytes(zipPath, bytes);
+        return zipPath;
+
+        static void PatchSize(byte[] zip, uint signature, int offset)
+        {
+            for (var i = 0; i + offset + 4 <= zip.Length; i++)
+            {
+                if (BitConverter.ToUInt32(zip, i) != signature)
+                    continue;
+                BitConverter.GetBytes(100u).CopyTo(zip, i + offset);
+                return;
+            }
+
+            throw new InvalidOperationException("Header not found.");
+        }
+    }
+
     private static byte[] Bytes(string text) => Encoding.UTF8.GetBytes(text);
 
     private static string Manifest(string toolVersion = "0.1.0-beta.7", string migration = "x", int format = 1, string taken = "2026-11-08T09:30:15Z") =>
@@ -319,6 +342,9 @@ public class RestoreTests : IDisposable
     [InlineData("no-last-migration")]
     [InlineData("no-taken")]
     [InlineData("oversized-manifest")]
+    [InlineData("lying-manifest-header")]
+    [InlineData("taken-without-z")]
+    [InlineData("taken-with-offset")]
     public void NotABackup_IsRefusedSayingSo_NothingIsCreated_AndTheOfferIsShownAgain(string kind)
     {
         var migration = RestoreBackup.KnownMigrations()[^1];
@@ -335,7 +361,10 @@ public class RestoreTests : IDisposable
             "no-version" => Craft("x.zip", ("manifest.json", Bytes($$"""{"format":1,"lastMigration":"{{migration}}","takenUtc":"2026-11-08T09:30:15Z"}""")), ("ucl.db", db)),
             "no-last-migration" => Craft("x.zip", ("manifest.json", Bytes("""{"format":1,"toolVersion":"0.1.0","takenUtc":"2026-11-08T09:30:15Z"}""")), ("ucl.db", db)),
             "no-taken" => Craft("x.zip", ("manifest.json", Bytes($$"""{"format":1,"toolVersion":"0.1.0","lastMigration":"{{migration}}"}""")), ("ucl.db", db)),
-            _ => Craft("x.zip", ("manifest.json", new byte[200 * 1024]), ("ucl.db", db)),
+            "oversized-manifest" => Craft("x.zip", ("manifest.json", new byte[200 * 1024]), ("ucl.db", db)),
+            "lying-manifest-header" => LyingHeader(Craft("x.zip", ("manifest.json", Bytes(Manifest(migration: migration) + new string(' ', 200 * 1024))), ("ucl.db", db))),
+            "taken-without-z" => Craft("x.zip", ("manifest.json", Bytes(Manifest(migration: migration, taken: "2026-11-08T09:30:15"))), ("ucl.db", db)),
+            _ => Craft("x.zip", ("manifest.json", Bytes(Manifest(migration: migration, taken: "2026-11-08T09:30:15+02:00"))), ("ucl.db", db)),
         };
         var entriesBefore = Directory.GetFileSystemEntries(_target.Cwd).Order().ToList();
 
@@ -379,6 +408,32 @@ public class RestoreTests : IDisposable
         var console = Run(_target, OfferRestore(damaged).Line("0"));
 
         Assert.Contains($"{FullOf(damaged)} is not a complete backup", console.Out);
+        Assert.False(Directory.Exists(_target.HomeInstallation));
+        Assert.Equal(entriesBefore, Directory.GetFileSystemEntries(_target.Cwd).Order().ToList());
+    }
+
+    [Fact]
+    public void ASqliteFileThatIsNotAUclDatabase_PassesTheIntegrityCheckButIsRefusedOnOpening_AndNothingIsLeftBehind()
+    {
+        // A valid SQLite file with a forged manifest: restore makes it, the session cannot use it, and the undo removes it.
+        var foreign = Path.Combine(_target.Cwd, "foreign.db");
+        using (var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={foreign};Pooling=False"))
+        {
+            connection.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = "CREATE TABLE Other (Id INTEGER PRIMARY KEY); INSERT INTO Other VALUES (1);";
+            command.ExecuteNonQuery();
+        }
+
+        var zip = Craft("forged.zip", ("manifest.json", Bytes(Manifest(migration: RestoreBackup.KnownMigrations()[^1]))), ("ucl.db", File.ReadAllBytes(foreign)));
+        File.Delete(foreign);
+        var entriesBefore = Directory.GetFileSystemEntries(_target.Cwd).Order().ToList();
+
+        var console = Run(_target, OfferRestore(zip).Line("0"));
+
+        Assert.Contains("failed:", console.Out);
+        Assert.Contains("ucl cannot open the database", console.Out);
+        Assert.DoesNotContain("Using ", console.Out);
         Assert.False(Directory.Exists(_target.HomeInstallation));
         Assert.Equal(entriesBefore, Directory.GetFileSystemEntries(_target.Cwd).Order().ToList());
     }
@@ -448,6 +503,7 @@ public class RestoreTests : IDisposable
     {
         var newer = Path.Combine(_target.Cwd, "newer.zip");
         File.Copy(Backup, newer);
+        // The same version twice is faithful to ADR-0023: an unknown last migration says the backup is from a newer tool, and the backup's own version is all there is to name.
         Rewrite(newer, m => m["lastMigration"] = "99991231235959_FromTheFuture");
 
         var console = Run(_target, Script("2", newer, "0"));

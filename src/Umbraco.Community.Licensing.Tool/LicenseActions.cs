@@ -221,8 +221,9 @@ internal static class LicenseActions
             switch (type)
             {
                 case FeatureType.Switch:
+                    var heldState = held is not null && HeldAs<SwitchFeature>(name, held).IsOn ? "on" : null;
                     var state = AskCurrent(
-                        questions, label, TypedValues.SwitchAccepts, text => TypedValues.ReadSwitch(text, out _), held is null ? null : HeldAs<SwitchFeature>(name, held) is { IsOn: true } ? "on" : null);
+                        questions, label, TypedValues.SwitchAccepts, text => TypedValues.ReadSwitch(text, out _), heldState);
                     if (state is not null && TypedValues.ReadSwitch(state, out var on) is null && on)
                         features = features.With(name, true);
                     break;

@@ -12,7 +12,8 @@ internal delegate void PassphraseUse(ReadOnlySpan<byte> passphrase);
 /// <see cref="Touch"/>, which records the time and restarts a <see cref="TimeProvider"/> timer. When
 /// the timer fires the bytes are zeroed and dropped; every use also compares the time since the last
 /// answer with the idle time and locks first when it has passed, so a late timer never hands out the
-/// passphrase. The timer runs on another thread, so everything touching the bytes is behind one lock.
+/// passphrase. Elapsed time is measured on the wall clock (<c>GetUtcNow</c>) so that time spent asleep counts;
+/// a backward clock step lengthens the lock, which is accepted. The timer runs on another thread, so everything touching the bytes is behind one lock.
 /// </summary>
 internal sealed class SessionLock(TimeProvider time) : IDisposable
 {

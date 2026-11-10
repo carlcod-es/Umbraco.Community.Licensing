@@ -49,6 +49,23 @@ public class SessionLockTests : IDisposable
     }
 
     [Fact]
+    public void WallClockPassesIdleTime_WhileTheTimerDoesNotRun_LocksOnUse()
+    {
+        // A laptop asleep: wall time moves, no timer fires.
+        var (l, clock, held) = Held(Idle);
+
+        clock.Jump(Idle - TimeSpan.FromSeconds(1)); // positive control: short of the idle time
+        Assert.True(l.IsHeld);
+        Assert.False(AllZero(held));
+
+        clock.Jump(TimeSpan.FromSeconds(1));
+
+        Assert.False(l.IsHeld);
+        Assert.False(l.TryUse(_ => Assert.Fail("must not hand out")));
+        Assert.True(AllZero(held));
+    }
+
+    [Fact]
     public void SetAside_HidesTheArray_ButKeepsItUnzeroed_AndRestoreGivesItBack()
     {
         var (l, _, held) = Held(Idle);

@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using Umbraco.Community.Licensing.Tool.Data;
 
 namespace Umbraco.Community.Licensing.Tool.Tests;
@@ -76,9 +77,30 @@ public class PlainStoreTests
     }
 
     [Fact]
-    public void EncodedColumns_NameRealColumns()
+    public void EncodedColumns_AreRealColumnsOfARealDatabase_AndEncodedSettingsAreRealSettingsRows()
     {
-        Assert.Contains("SigningKeys.PublicKey", PlainStore.EncodedColumns);
-        Assert.Contains(SettingNames.PassphraseHash, PlainStore.EncodedSettings);
+        var folder = Path.Combine(Path.GetTempPath(), "ucl-plainstore-" + Guid.NewGuid());
+        try
+        {
+            SessionTestHost.MakeInstallation(folder, passphrase: SessionTestHost.SetupPassphrase);
+            using var connection = PlainStore.Open(PlainStore.DatabaseFile(folder));
+
+            var missing = PlainStore.EncodedColumns
+                .Where(named =>
+                {
+                    var (table, column) = (named[..named.IndexOf('.')], named[(named.IndexOf('.') + 1)..]);
+                    return !PlainStore.Query(connection, $"PRAGMA table_info(\"{table}\")").Any(r => (string)r[1]! == column);
+                })
+                .ToList();
+            Assert.Empty(missing);
+
+            var settings = PlainStore.Query(connection, "SELECT Name FROM Settings").Select(r => (string)r[0]!).ToList();
+            Assert.All(PlainStore.EncodedSettings, name => Assert.Contains(name, settings));
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            Directory.Delete(folder, recursive: true);
+        }
     }
 }

@@ -32,6 +32,9 @@ internal sealed class FakeTimeProvider(DateTimeOffset? start = null) : TimeProvi
         _now = target;
     }
 
+    /// <summary>Moves the wall clock on without firing any timer: models a sleep (a closed laptop) in which no timer ran.</summary>
+    public void Jump(TimeSpan by) => _now += by;
+
     private sealed class FakeTimer(FakeTimeProvider owner, TimerCallback callback, object? state) : ITimer
     {
         private TimeSpan _period = Timeout.InfiniteTimeSpan;

@@ -287,6 +287,31 @@ public class LicenseLookupTests : IDisposable
     }
 
     [Fact]
+    public void Show_ByAKeyStringFromBeforeAPrefixChange_ShowsThatLicense()
+    {
+        var kit = Kit();
+        var key = kit.Issue(orderRef: "ORD-1001");
+        kit.Issue(orderRef: "ORD-2002");
+        var wanted = kit.Entries().Single(e => e.OrderRef == "ORD-1001");
+        var otherEntry = kit.Entries().Single(e => e.OrderRef == "ORD-2002");
+        Assert.StartsWith("LIC-", key);
+        Assert.StartsWith("LIC-", wanted.KeyIdentifier);
+        // Settings (5) > Prefix (2): ACME; Back; Licenses (2) > Show (6), pasting the key made under LIC.
+        var console = Quit(new ScriptedConsole().Line("5").Line("2").Line("ACME").Line("0").Line("2").Line("6").Line(key));
+
+        kit.Run(console);
+
+        Assert.Contains($"ACME-{wanted.Reference[..5]}-{wanted.Reference[5..]}", console.Out);
+        Assert.Contains("Order reference: ORD-1001", console.Out);
+        Assert.Contains($"Key identifier: {wanted.KeyIdentifier}", console.Out);
+        Assert.DoesNotContain(otherEntry.KeyIdentifier, console.Out);
+        Assert.DoesNotContain("ORD-2002", console.Out);
+        Assert.DoesNotContain("There is no record", console.Out);
+        Assert.DoesNotContain(key, console.Out);
+        Assert.NotEqual(wanted.Reference, otherEntry.Reference);
+    }
+
+    [Fact]
     public void Show_ByAKeyString_ChoosesTheLicense_AndAReferenceWithNoRecordIsAskedAgain()
     {
         var kit = Kit();
@@ -387,7 +412,7 @@ public class LicenseLookupTests : IDisposable
         Assert.DoesNotContain("[y/N]", again.Out); // nothing to clear, nothing asked
         Assert.Contains("Clear this customer email? It cannot be undone. [y/N]", console.Out);
         Assert.Contains($"License: {Display(reference)}", console.Out);
-        Assert.Contains("Owner@Example.com", console.Out);
+        Assert.Contains("Customer email to clear: Owner@Example.com", console.Out);
     }
 
     [Fact]
@@ -406,8 +431,7 @@ public class LicenseLookupTests : IDisposable
         Assert.NotNull(stored.CustomerEmailKey);
         Assert.True(Holds(kit, "jürgen@müller.de"));
         Assert.DoesNotContain("is cleared", console.Out);
-        Assert.True(SessionTestHost.Count(console.Out, "Customer details") >= 1);
-        Assert.Contains("Licenses", console.Out[console.Out.LastIndexOf(LicenseLookupActions.Declined, StringComparison.Ordinal)..]);
+        AssertOrder(console.Out, "Customer email to clear: jürgen@müller.de", "[y/N]", LicenseLookupActions.Declined, "  7 Customer details", "  0 Back");
     }
 
     [Fact]
@@ -425,6 +449,7 @@ public class LicenseLookupTests : IDisposable
         Assert.Equal(["Ord-1001", "Ord-1874"], kit.Entries().Select(e => e.OrderRef));
         Assert.Equal(["ord-1001", "ord-1874"], kit.Entries().Select(e => e.OrderRefKey));
         Assert.DoesNotContain("Cleared the order", console.Out);
+        AssertOrder(console.Out, "Order references to clear:", "[y/N]", LicenseLookupActions.Declined, "  7 Customer details", "  0 Back");
     }
 
     [Fact]
@@ -514,8 +539,10 @@ public class LicenseLookupTests : IDisposable
             Assert.False(Holds(kit, value), value);
         Assert.Contains("Cleared the order references of 2 issue entries", console.Out);
         Assert.Contains("Clear these order references? They cannot be undone. [y/N]", console.Out);
-        Assert.Contains("Ord-1001", console.Out);
-        Assert.Contains("Ord-1874", console.Out);
+        var entries = kit.Entries();
+        AssertOrder(console.Out, "Order references to clear:",
+            $"  {entries[1].IssuedUtc:yyyy-MM-dd'T'HH:mm:ss'Z'}  renewal  Ord-1874",
+            $"  {entries[0].IssuedUtc:yyyy-MM-dd'T'HH:mm:ss'Z'}  issue  Ord-1001");
         var again = Customer(Display(reference), "clear-order-references");
         kit.Run(again);
         Assert.Contains(LicenseLookupActions.NoOrderReferences, again.Out);

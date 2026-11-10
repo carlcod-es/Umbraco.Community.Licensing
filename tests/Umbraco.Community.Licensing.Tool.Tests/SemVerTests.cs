@@ -55,6 +55,7 @@ public class SemVerTests
     [InlineData("v1.2.3")]
     [InlineData("1.2.3-a..b")]
     [InlineData("1.2.x")]
+    [InlineData("1.2.3\n")]
     public void NotSemVer_IsRefused(string text) => Assert.False(SemVer.TryParse(text, out _));
 
     [Fact]

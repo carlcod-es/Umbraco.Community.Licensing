@@ -116,8 +116,14 @@ internal static class RestoreBackup
         BackupManifest? manifest;
         try
         {
+            // The header's size can lie: read at most one byte over the limit, whatever the entry inflates to.
             using var stream = manifestEntry.Open();
-            manifest = JsonSerializer.Deserialize<BackupManifest>(stream);
+            var bytes = new byte[ManifestLimit + 1];
+            var read = stream.ReadAtLeast(bytes, bytes.Length, throwOnEndOfStream: false);
+            if (read > ManifestLimit)
+                throw new RefusedException(NotABackupMessage(file));
+
+            manifest = JsonSerializer.Deserialize<BackupManifest>(bytes.AsSpan(0, read));
         }
         catch (Exception ex) when (ex is JsonException or InvalidDataException or NotSupportedException)
         {
@@ -128,6 +134,7 @@ internal static class RestoreBackup
             || manifest.Format != BackupFormat.Version
             || string.IsNullOrEmpty(manifest.LastMigration)
             || manifest.TakenUtc == default
+            || manifest.TakenUtc.Kind != DateTimeKind.Utc // no Z: read as local time, not what export writes
             || !SemVer.TryParse(manifest.ToolVersion, out var backupVersion))
             throw new RefusedException(NotABackupMessage(file));
 
