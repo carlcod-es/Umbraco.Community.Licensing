@@ -13,6 +13,7 @@ internal static class LicenseLookupActions
 {
     internal const string NoMatch = "No licenses match.";
     internal const string NoEmail = "This license has no customer email. Nothing changed.";
+    internal const string Declined = "Nothing cleared.";
     internal const string NoOrderReferences = "No issue entry of this license holds an order reference. Nothing changed.";
 
     private const string None = "(none)";
@@ -160,6 +161,14 @@ internal static class LicenseLookupActions
                     return;
                 }
 
+                console.WriteLine($"License: {display}");
+                console.WriteLine($"Customer email to clear: {license.CustomerEmail}");
+                if (!questions.AskYesNo("Clear this customer email? It cannot be undone.", proposed: false))
+                {
+                    console.WriteLine(Declined);
+                    return;
+                }
+
                 SetEmail(session, license.Reference, null);
                 console.WriteLine($"The customer email of {display} is cleared.");
                 break;
@@ -217,6 +226,29 @@ internal static class LicenseLookupActions
 
     private static void ClearOrderReferences(Session session, LicenseRecord license, string display)
     {
+        var console = session.Console;
+        List<IssueEntry> shown;
+        using (var db = session.OpenDb())
+            shown = NewestFirst(db.IssueEntries.AsNoTracking()
+                .Where(e => e.Reference == license.Reference && (e.OrderRef != null || e.OrderRefKey != null)).ToList()).ToList();
+
+        if (shown.Count == 0)
+        {
+            console.WriteLine(NoOrderReferences);
+            return;
+        }
+
+        // Entries without an order reference are left out: only the values to be cleared are listed.
+        console.WriteLine($"License: {display}");
+        console.WriteLine("Order references to clear:");
+        foreach (var e in shown.Where(e => e.OrderRef is not null))
+            console.WriteLine($"  {Time(e.IssuedUtc)}  {e.Kind.ToString().ToLowerInvariant()}  {e.OrderRef}");
+        if (!session.Questions.AskYesNo("Clear these order references? They cannot be undone.", proposed: false))
+        {
+            console.WriteLine(Declined);
+            return;
+        }
+
         int cleared;
         using (var db = session.OpenDb())
         using (var transaction = db.Database.BeginTransaction())
