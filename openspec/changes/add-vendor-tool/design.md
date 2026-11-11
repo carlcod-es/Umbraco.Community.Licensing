@@ -61,7 +61,7 @@ C2), localisation.
 | R7 | Private keys encrypted; never exported; passphrase kept for a session with an idle lock | vendor-tool-signing-keys: Private keys encrypted with the passphrase. vendor-tool-setup: Idle lock | Vendor; site owner (no forged keys from a copied folder or an unattended session) | PDR-0032, PDR-0049, PDR-0052 |
 | R8 | Standby, switch, trusted keys, export by signing key | vendor-tool-signing-keys | Vendor; implementor (release trusts the right keys); site owner (keys keep working after rotation, in shared mode for every product) | PDR-0035, PDR-0015, PDR-0051, PDR-0056 |
 | R9 | Backup export and import | vendor-tool-backup | Vendor; site owner (records survive a lost laptop) | PDR-0031, PDR-0057 |
-| R10 | Tool released with the library | release-process | Vendor | ADR-0011, PDR-0058 |
+| R10 | Tool released with the library | release-process | Vendor | ADR-0011, PDR-0058, PDR-0060, ADR-0024 |
 | R11 | Windows, macOS and Linux; PowerShell, Windows Terminal, Command Prompt | vendor-tool-setup: Operating systems and terminals | Vendor | PDR-0038 |
 | R12 | Typed values: product display name, customer email and order reference by the key's text rule; finding ignores case and accent form, whole value only; passphrase printable ASCII, 15 to 256 | vendor-tool-products: Adding a product; Feature definitions are add-only. vendor-tool-licenses: Customer email and order reference values; Matching when finding. vendor-tool-setup: Passphrase rule | Vendor; site owner (passphrase types the same on the next machine, so signing keys are not lost) | PDR-0043, PDR-0042 |
 | R13 | Switch answered off is not granted; each feature asked once | vendor-tool-licenses: Switch values and features at reissue | Vendor; site owner and implementor unaffected (same key) | PDR-0044, PDR-0010, PDR-0048 |
@@ -155,6 +155,7 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q78 | Release where the library is published and the tool push fails | A failed release (PDR-0027): the library version stays published and is not unlisted, no Release page, the next number publishes both; no re-run with skipped duplicates (Carl, 2026-11-10) | PDR-0058 |
 | Q79 | Confirmation before clearing customer details | Clear email and clear every order reference show the license and the values, then ask `[y/N]`; no or cancel changes nothing; change email and correct latest order reference ask nothing (Carl, 2026-11-10) | PDR-0059 |
 | Q80 | Switch with no standby key | No change: the switch makes a new active key and no standby. With standby keys on, every signing key has a standby (setup, Add a product and a switch with a standby create one), so this happens only with standby keys off; Add a standby key adds one after (Carl, 2026-11-10) | PDR-0035, PDR-0047 |
+| Q81 | Timing tests in the release run | The release run leaves out the timing and memory checks of *Evaluation on every request* (PDR-0022); the pull-request check and local runs keep them; Carl checks the pull-request check on `main` passed before releasing. Raised by the 13.3 rehearsal: 1.05 and 1.16 ms on the slower release machine (Carl, 2026-11-11; pre-1.0 C13) | PDR-0060, ADR-0024 |
 
 ## Open questions
 
@@ -322,7 +323,7 @@ just set (ADR-0022).
 Exit codes: 0 Quit, help, version, Quit at the startup offer; 1 nobody present, end of input, a
 database the tool cannot open, a failure outside an action (PDR-0053); 2 any other argument.
 
-### Packaging and release — ADR-0011
+### Packaging and release — ADR-0011, ADR-0024
 
 `PackAsTool`, `ToolCommandName` `ucl`, `PackageId` `Umbraco.Community.Licensing.Tool`, imports
 `Version.props`, packs `docs/vendor-tool.md` as its README and `assets/icon.png`, and
@@ -330,6 +331,9 @@ database the tool cannot open, a failure outside an action (PDR-0053); 2 any oth
 its generated Unicode table (ADR-0018). `release.yml` packs both projects into the pack folder and
 pushes `*.nupkg`; a step installs the tool from the pack folder into a temp tool path and runs
 `ucl --version` before the push. Amends ADR-0008.
+The release Test step adds `--filter-not-trait "Category=Performance"`, leaving out the three
+`PerformanceTests` tests; `ci.yml`, `all-platforms.yml` and local runs keep them (PDR-0060,
+ADR-0024).
 **Package IDs** then yields both IDs, so the GitHub Release links both packages with no change to
 `github-release.mjs` or job `github-release` (ADR-0016; release-process: One link per published
 package).
@@ -500,6 +504,9 @@ session: the scripted console holds the answers in order (menu numbers included)
 `TimeProvider` (written in the test project, ADR-0021) can be advanced before any answer, and the
 transcript of everything written is asserted. A test ends with Quit, so the exit code and the
 return to each menu are checked as well.
+
+The release run leaves out the library's `Category=Performance` tests; the pull-request check
+(`ci.yml`) and the validation commands below still run them (PDR-0060, ADR-0024).
 
 | Level | What | How |
 |---|---|---|

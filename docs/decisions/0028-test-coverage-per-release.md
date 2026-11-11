@@ -1,6 +1,6 @@
 # PDR-0028: Test coverage per release
 
-- Status: Decided
+- Status: Amended by PDR-0060 (the release run leaves out the timing and memory checks; the pull-request check runs them)
 - Date: 2026-10-14
 - Source: FR-6 explore (Carl, 2026-10-14); `add-release-pipeline` design.md Q2
 - Personas: vendor (told plainly what each release was tested on). Implementor: may develop on

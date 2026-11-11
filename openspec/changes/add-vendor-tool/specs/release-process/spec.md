@@ -2,7 +2,9 @@
 
 ### Requirement: Release run publishes only tested packages
 Pushing a release tag SHALL start a release run. The run SHALL take the version only from the
-version file at the tagged commit, build and test that commit once, and publish two packages,
+version file at the tagged commit, build and test that commit once (every test except the timing
+and memory checks of license-validation *Evaluation on every request*, which the pull-request
+check runs), and publish two packages,
 the library and the vendor tool, both carrying that version, for every operating system, to the
 public package feed only when every check passes. The published packages SHALL carry that
 version and name the tagged commit. A release whose checks fail SHALL publish nothing, and the
@@ -23,6 +25,11 @@ nothing.
 #### Scenario: Tool tests fail
 - **WHEN** a vendor tool test fails during the release run and every library test passes
 - **THEN** neither package is published and the run reports the failing test
+
+#### Scenario: Timing checks outside the release run
+- **WHEN** a release run tests the tagged commit
+- **THEN** the timing and memory checks of *Evaluation on every request* are not run, every other
+  test is, and a timing result on the release machine cannot fail the release
 
 #### Scenario: Tool not published
 - **WHEN** during a release run the library is published and publishing the vendor tool fails

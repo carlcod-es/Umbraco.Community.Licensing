@@ -104,7 +104,8 @@ Run before the first release, after changing the runner, and whenever a release 
 1. **Actions → Release → Run workflow**, branch `main`.
 2. Check the run:
    - **Print platform** names the runner machine's operating system.
-   - Tool tests and the .NET tests pass.
+   - Tool tests and the .NET tests pass. The performance tests are not run in a release (PDR-0060);
+     `ci.yml` runs them, so check its latest run on `main` passed before releasing.
    - **Pack** produces `Umbraco.Community.Licensing.<version>.nupkg`.
    - **Pack the tool** produces `Umbraco.Community.Licensing.Tool.<version>.nupkg`.
    - **Package IDs** runs and prints both `Umbraco.Community.Licensing` and

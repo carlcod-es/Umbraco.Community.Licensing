@@ -16,10 +16,10 @@ Deferred. Update this index in the same change as any status line.
 | [ADR-0002](0002-payload-format-and-strict-read.md) | Payload format and strict read | Amended by ADR-0007, ADR-0018 |
 | [ADR-0003](0003-packaging-naming-and-dependencies.md) | Packaging, naming, clock and dependencies | Amended by ADR-0006, ADR-0010, ADR-0019 |
 | [ADR-0004](0004-public-api.md) | Public API surface | Amended by ADR-0010 |
-| [ADR-0005](0005-example-keys-and-test-strategy.md) | Example key strings and test strategy | Amended by ADR-0010 |
+| [ADR-0005](0005-example-keys-and-test-strategy.md) | Example key strings and test strategy | Amended by ADR-0010, ADR-0024 |
 | [ADR-0006](0006-test-runner-and-package-metadata.md) | Test runner and package metadata | Amended by ADR-0009 |
 | [ADR-0007](0007-compact-payload-encoding.md) | Compact payload encoding and issue length check | Decided |
-| [ADR-0008](0008-ci-runners-and-publishing.md) | CI host, runners and package publishing | Amended by ADR-0011, ADR-0016 |
+| [ADR-0008](0008-ci-runners-and-publishing.md) | CI host, runners and package publishing | Amended by ADR-0011, ADR-0016, ADR-0024 |
 | [ADR-0009](0009-release-command-version-file-and-log.md) | Release command, version file and release log | Decided |
 | [ADR-0010](0010-bare-package-name.md) | Bare package name for the library | Decided |
 | [ADR-0011](0011-vendor-tool-packaging-and-versioning.md) | Vendor tool packaging and versioning | Decided |
@@ -35,3 +35,4 @@ Deferred. Update this index in the same change as any status line.
 | [ADR-0021](0021-vendor-tool-session-passphrase-and-idle-lock.md) | Vendor tool session passphrase and idle lock | Amended by ADR-0022 |
 | [ADR-0022](0022-vendor-tool-release-marks-installation-switch-and-pasted-keys.md) | Vendor tool release marks, installation switch and pasted keys | Decided |
 | [ADR-0023](0023-vendor-tool-backup-version-check.md) | Vendor tool backup version check | Decided |
+| [ADR-0024](0024-release-run-skips-performance-tests.md) | Release run skips the performance tests | Decided |

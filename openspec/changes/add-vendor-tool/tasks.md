@@ -114,9 +114,11 @@ PDR-0031, PDR-0040, PDR-0041, PDR-0045, PDR-0048, PDR-0052, PDR-0057, ADR-0022, 
 
 Depends on: 2. Owner: worker-backend. Shared file assigned in the brief:
 `.github/workflows/release.yml`. Spec: release-process (Release run publishes only tested
-packages; Release page for each published release). Records: ADR-0011, ADR-0008, ADR-0016.
+packages; Release page for each published release). Records: ADR-0011, ADR-0008, ADR-0016,
+PDR-0060, ADR-0024.
 
 - [x] 11.1 Pack the tool project alongside the library into the pack folder, add a step that installs the tool from the pack folder into a temp tool path and runs `ucl --version` before the push, and keep the push of `*.nupkg` from the pack folder, and verify locally that `dotnet pack` of both projects yields two packages with the same version, that the install-and-run step succeeds, and that `node tools/release/github-release.mjs package-ids <pack folder>` prints both `Umbraco.Community.Licensing` and `Umbraco.Community.Licensing.Tool`; the workflow itself is verified by Carl's rehearsal (13.3)
+- [x] 11.2 In the `.github/workflows/release.yml` Test step add `--filter-not-trait "Category=Performance"` (PDR-0060, design.md Q81), leaving `ci.yml` and `all-platforms.yml` unchanged, and verify locally that the release step's command (`dotnet test --solution Umbraco.Community.Licensing.slnx -c Release --no-build --filter-not-trait "Category=Performance"`, after a Release build) runs every test except the three `PerformanceTests` tests (total 3 below the unfiltered run) with none failed, and that the `ci.yml` command still runs them; the workflow itself is verified by Carl's rehearsal (13.3)
 
 ## 12. Documentation
 

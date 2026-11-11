@@ -32,7 +32,7 @@ importing the key per call is about 6.5 µs of that.
 | C10 | Oversized key string copied before refusal | Code | No | Open |
 | C11 | All-platform check before 1.0 | Test | Required by PDR-0028 | Open |
 | C12 | Release tag passed to the check through `env:` | Security | No | Open |
-| C13 | Performance tests on the release runner | Build | No | Open |
+| C13 | Performance tests on the release runner | Build | No | Closed by `add-vendor-tool` (PDR-0060, ADR-0024) |
 | C14 | Rehearsal before every release | Process | No | Open |
 | C15 | Ctrl-C at a release command prompt | Tooling | No | Open |
 
@@ -155,6 +155,9 @@ and the optional tag ruleset (`docs/releasing.md`) limits who. Hardening: pass t
 runner. A busy runner can fail a release and burn a version number (PDR-0027). Options:
 tolerances, or a test category the release run skips. From `add-release-pipeline`
 `follow-ups.md` item 42.
+
+Closed by `add-vendor-tool` (Carl, 2026-11-11): the release run leaves out `Category=Performance`;
+the pull-request check runs it (PDR-0060, ADR-0024).
 
 ## C14: Rehearsal before every release
 
