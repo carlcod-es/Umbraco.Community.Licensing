@@ -131,7 +131,10 @@ Depends on: 6 to 11 (8.8 before 12.1). Owner: Architect.
 Depends on: 2 to 12. Owner: Carl.
 
 - [ ] 13.1 Run the validation commands on macOS, on Linux and on Windows (FR-2, PDR-0038), and verify all three pass; record the result per OS here
-- [ ] 13.2 Open a stored private key with `openssl pkey` and the passphrase, and verify it opens with the passphrase and fails without it
+  - Result (Carl, 2026-11-11): all pass on macOS, Linux and Windows, commit `4a3128b`. Platform lines and test counts not recorded.
+  - Not met (Architect, 2026-11-11): the 13.3 rehearsal on the Windows runner failed `ProductTests.TheProductsMenu_HasNoEntryToRemoveRenameOrRetypeAFeature`, which fails on every Windows run at `4a3128b` (follow-ups row 188), so the Windows result above cannot stand. Re-run on Windows after the fix and record the platform line and test counts.
+- [x] 13.2 Open a stored private key with `openssl pkey` and the passphrase, and verify it opens with the passphrase and fails without it
+  - Result (Carl, 2026-11-11): an active key from `~/.ucl/ucl.db` opened with `openssl pkey` and the passphrase (public key printed); an empty and a wrong passphrase both failed. OpenSSL build and error text not recorded.
 - [ ] 13.3 Run a release rehearsal on a test machine, and verify it packs both packages, the install-and-run step passes, and **Package IDs** prints both package IDs
 - [ ] 13.4 On Windows, in Windows PowerShell 5.1, PowerShell 7, Windows Terminal and Command Prompt, run setup into a fresh home and issue a license, and verify in each ("Setup in each Windows terminal", "Key saved to a file on Windows"): the folder is offered as a full Windows path, the passphrase is hidden, arrow keys and Backspace edit an answer, `/cancel` returns to the menu, the key copied from the screen verifies, a key saved to a file holds the key string alone, a non-ASCII home path is shown as recorded in design.md Risks, and a run with stdin redirected and one with stdout redirected are both refused; record the result per terminal here
 - [ ] 13.5 Copy an installation folder from macOS to Windows and from Windows to Linux, and restore a backup taken on one OS on another, and verify each issues a license with the same passphrase and holds every product, license and key; record the result here

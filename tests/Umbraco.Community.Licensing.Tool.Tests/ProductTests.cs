@@ -448,7 +448,8 @@ public class ProductTests : IDisposable
 
         Assert.Equal(0, Run(console));
 
-        var menu = console.Out[console.Out.LastIndexOf("\nProducts\n", StringComparison.Ordinal)..];
+        var transcript = console.Out.Replace("\r\n", "\n");
+        var menu = transcript[transcript.LastIndexOf("\nProducts\n", StringComparison.Ordinal)..];
         Assert.DoesNotContain("emove", menu);
         Assert.DoesNotContain("etype", menu);
         Assert.Contains("  3 Add a feature", menu);
