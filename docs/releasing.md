@@ -243,7 +243,8 @@ Carl, 2026-10-18): dispatching it gives a run with a skipped job, not a check. T
 delete the `if: false` line.
 
 On each operating system, from a clean checkout of the commit to be released as 1.0, with Node.js 22
-or later (it expands the quoted pattern itself; Node.js 20 does not):
+or later (it expands the quoted pattern itself; Node.js 20 does not). Prerequisites are in [Development](development.md).
+Run:
 
 ```
 node tools/release/platform.mjs

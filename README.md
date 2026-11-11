@@ -47,6 +47,7 @@ and uses only the .NET base class library.
 | [Personas](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/personas.md) | Who the library serves, in priority order |
 | [Decisions (PDR)](https://github.com/carlcod-es/Umbraco.Community.Licensing/tree/main/docs/decisions) | Product decision records |
 | [Architecture (ADR)](https://github.com/carlcod-es/Umbraco.Community.Licensing/tree/main/docs/adrs) | Architecture decision records |
+| [Development](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/development.md) | Building, testing and running the library and the tool from source |
 | [Releasing](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/releasing.md) | How a release is set up, rehearsed, started and recovered |
 | [`openspec/`](https://github.com/carlcod-es/Umbraco.Community.Licensing/tree/main/openspec) | Specifications and changes (source of truth for behaviour) |
 

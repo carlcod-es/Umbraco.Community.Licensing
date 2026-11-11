@@ -31,6 +31,9 @@ If the terminal does not find `ucl` after installing, open a new terminal, and c
 .NET tools folder is on your path: `.dotnet/tools` in your home folder (on Windows,
 `%USERPROFILE%\.dotnet\tools`).
 
+To build and run the tool from source instead, see
+[Development](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/development.md).
+
 Install the latest version of the tool, not one matching a library version. The tool and the
 library are released together under one version number, but a release can publish the library
 and fail to publish the tool. That number then exists for the library only, and the next release
