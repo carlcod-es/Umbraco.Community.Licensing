@@ -28,6 +28,8 @@ Every release and what changed:
   a readable identifier such as `LIC-8F3AK-M7RXB-7Q2D` for support.
 - **Signing key rotation.** Trust a new public key alongside the old one; existing keys keep
   working.
+- **Vendor tool.** `ucl` issues and keeps records of keys from a terminal menu
+  ([guide](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/vendor-tool.md)).
 
 No Umbraco or host dependency: the package is named for its audience, Umbraco package vendors,
 and uses only the .NET base class library.
@@ -38,12 +40,14 @@ and uses only the .NET base class library.
 |---|---|
 | [How it works](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/how-it-works.md) | The flow, the key string, features, states, limits of offline licensing |
 | [Vendor guide](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/vendor-guide.md) | Code to create signing keys, issue, check, reissue and rotate; field rules; vendor notes |
+| [Vendor tool](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/vendor-tool.md) | Installing and using `ucl`, the vendor tool |
 | [Implementor guide](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/implementor-guide.md) | Installing keys and acting on each state |
 | [Key format](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/key-format.md) | The key string byte for byte, with a decoded example |
 | [License examples](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/license-examples.md) | Key schema and worked examples with real key strings |
 | [Personas](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/personas.md) | Who the library serves, in priority order |
 | [Decisions (PDR)](https://github.com/carlcod-es/Umbraco.Community.Licensing/tree/main/docs/decisions) | Product decision records |
 | [Architecture (ADR)](https://github.com/carlcod-es/Umbraco.Community.Licensing/tree/main/docs/adrs) | Architecture decision records |
+| [Development](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/development.md) | Building, testing and running the library and the tool from source |
 | [Releasing](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/releasing.md) | How a release is set up, rehearsed, started and recovered |
 | [`openspec/`](https://github.com/carlcod-es/Umbraco.Community.Licensing/tree/main/openspec) | Specifications and changes (source of truth for behaviour) |
 

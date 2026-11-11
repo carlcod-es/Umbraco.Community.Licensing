@@ -227,7 +227,7 @@ internal static class ContentRules
         return true;
     }
 
-    private static void CheckText(string field, string subject, string? value, int maxLength, List<LicenseProblem> problems)
+    internal static void CheckText(string field, string subject, string? value, int maxLength, List<LicenseProblem> problems)
     {
         if (value is null)
         {

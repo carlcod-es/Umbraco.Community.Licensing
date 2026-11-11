@@ -1,6 +1,6 @@
 # ADR-0005: Example key strings and test strategy
 
-- Status: Amended by ADR-0010
+- Status: Amended by ADR-0010, ADR-0024 (release run filters out `Category=Performance`)
 - Date: 2026-10-09
 - Source: `add-license-core` design.md R8, Q7, Q13, Q17 (`CLEAN-PROJECT-PROMPT.md` section 10, technology
   item 4)

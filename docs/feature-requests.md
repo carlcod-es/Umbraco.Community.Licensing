@@ -26,13 +26,15 @@ Cite as FR-N.
 | FR-17 | Change signing-key mode after setup | `add-vendor-tool` explore, 2026-10-28 | Open |
 | FR-18 | Warn on a reused order reference | `add-vendor-tool` explore, 2026-10-28 | Open |
 | FR-19 | Change the version line from the release command | Carl, 2026-10-28 | Open; after `add-github-release` |
-| FR-20 | Issue several licenses in one vendor tool run | Carl, 2026-10-29 (`add-vendor-tool` update) | Open; after FR-22 |
+| FR-20 | Issue several licenses in one vendor tool run | Carl, 2026-10-29 (`add-vendor-tool` update) | Open; after FR-22. A person in a session already signs several with one passphrase (PDR-0049) |
 | FR-21 | Optional, vendor-defined call-home | Carl, 2026-11-07 (explore) | Open. Conflicts with the README "Offline" promise; see Issue |
-| FR-22 | Scripted mode for the vendor tool | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open. Moved out of `add-vendor-tool` (design.md Q33, PDR-0039) |
-| FR-23 | Startup menu when the vendor tool is launched with no command | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open. `add-vendor-tool` shows the command list instead (design.md Q35) |
+| FR-22 | Scripted mode for the vendor tool | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open. Moved out of `add-vendor-tool` (design.md Q33, PDR-0039); must add commands back (design.md Q47, PDR-0048) |
+| FR-23 | Startup menu when the vendor tool is launched with no command | Carl, 2026-11-08 (`add-vendor-tool` explore) | Taken into `add-vendor-tool` as the menu session (design.md Q46 to Q58; PDR-0048, PDR-0049) |
 | FR-24 | Move the vendor tool's records to a central SQL Server database | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open; after `add-vendor-tool`. One-way move, PDR-0046 |
 | FR-25 | Vendor tool works against the central database | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open; after FR-24 |
 | FR-26 | Shop integration: licenses issued and renewed on purchase | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open; after FR-24, FR-22. Reopens PDR-0030, PDR-0031, PDR-0032, PDR-0033, PDR-0039 |
+| FR-27 | Ctrl+C cancels the current action in the vendor tool | Carl, 2026-11-08 (`add-vendor-tool` update) | Open. `/cancel` stays (design.md Q61, ADR-0020) |
+| FR-28 | Show a previously issued key string again | Carl, 2026-11-11 (`add-vendor-tool` apply) | Open; after `add-vendor-tool`. Reverses PDR-0033 (key strings not stored) |
 
 ## FR-1: Vendor-chosen key identifier prefix
 
@@ -660,8 +662,12 @@ keys unchanged.
 2. The passphrase sources, and the guidance on keeping it out of shell history and profiles.
 3. Whether every action is scriptable or only some (issue, reissue, renew, list, export).
 
-**Related.** PDR-0030, PDR-0032, PDR-0034, PDR-0038, PDR-0039, FR-20 (batch in one run, after
-this), FR-13.
+**Since moved out.** `add-vendor-tool` now runs as a menu session only and takes no command
+other than help and version (design.md Q47, PDR-0048). Scripted mode must therefore add the
+commands back, as well as a passphrase source, and settle how they relate to the menu.
+
+**Related.** PDR-0030, PDR-0032, PDR-0034, PDR-0038, PDR-0039, PDR-0048, PDR-0049, FR-20 (batch in
+one run, after this), FR-13.
 
 ## FR-23: Startup menu when the vendor tool is launched with no command
 
@@ -681,8 +687,13 @@ owner: keys unchanged.
    not kept after an action ends).
 4. How the menu behaves with nobody present (PDR-0039: refuse).
 
-**Related.** PDR-0031 (finding the installation), PDR-0039 (guided mode), FR-13 (richer
-prompts: selection lists), FR-22 (scripted mode).
+**Settled in `add-vendor-tool`** (Carl, 2026-11-08): 1. Products, Licenses, Signing keys, Backup,
+Settings, Quit (design.md Q48). 2. Returns after each action until Quit. 3. Once per session, at
+the first signing action, with an idle lock set at setup (Q49 to Q51, PDR-0049). 4. Refuses, as
+PDR-0039. The tool takes no other command (Q47, PDR-0048).
+
+**Related.** PDR-0031 (finding the installation), PDR-0039 (guided mode), PDR-0048, PDR-0049,
+FR-13 (richer prompts: selection lists), FR-22 (scripted mode).
 
 ## FR-24: Move the vendor tool's records to a central SQL Server database
 
@@ -754,3 +765,44 @@ PDR-0032 (passphrase typed for every signing), PDR-0033 (who can read customer d
 (guided mode only). Each carries a "to revisit: FR-26" note.
 
 **Related.** PDR-0046, FR-18, FR-22, FR-24, FR-25.
+
+## FR-27: Ctrl+C cancels the current action in the vendor tool
+
+**Request.** In the menu session, Ctrl+C cancels the action in progress and returns to its menu,
+as `/cancel` does, instead of ending the session (Carl, 2026-11-08, `add-vendor-tool` update).
+
+**Personas.** Vendor: the key most terminal users reach for first. Site owner, implementor:
+unaffected.
+
+**Issues to settle.**
+1. What an interrupted line read returns after Ctrl+C on Windows, macOS and Linux, and in each
+   Windows terminal (PDR-0038); the reason it was left out of `add-vendor-tool` (ADR-0020).
+2. Whether Ctrl+C at the main menu quits, and whether a second Ctrl+C ends the session.
+3. The guide and vendors used to Ctrl+C ending the session.
+
+**Related.** PDR-0048, PDR-0050, ADR-0020, FR-13.
+
+## FR-28: Show a previously issued key string again
+
+**Request.** The vendor can get the exact key string of a license issued earlier, shown on screen
+or saved to a file again, without issuing a new one (Carl, 2026-11-11, raised during
+`add-vendor-tool` apply). Today **Licenses > Resend** gives a new key string with the same
+contents; the original cannot be recovered because no key string is kept (PDR-0033, design.md
+Q12, vendor-tool-licenses "Key strings are not stored").
+
+**Personas.** Vendor: answers "send me my key again" without a new key, so the customer's
+installed key and the vendor's copy stay the same. Site owner: a copy of the vendor's folder or a
+backup would then hold working keys for their sites. Implementor: unaffected.
+
+**Issues to settle.**
+1. Reverses PDR-0033. Today a copied folder or backup holds no usable license key; with this it
+   would. Whether stored key strings need the passphrase to read, as private keys do.
+2. Which key strings: only the latest per license, or every one issued (issue, reissue, renew,
+   resend), and which one is offered when a license has several.
+3. Licenses issued before the change have no key string kept: say so and offer Resend.
+4. Erasure: whether clearing customer details (PDR-0059) also removes kept key strings, which
+   carry the license contents. Older backups keep them (as with cleared emails).
+5. A leak-replaced signing key (Switch leak): whether key strings signed by it are still offered.
+6. Personas order when the vendor's convenience and the site owner's exposure conflict.
+
+**Related.** PDR-0033, PDR-0059, design.md Q12, FR-11.

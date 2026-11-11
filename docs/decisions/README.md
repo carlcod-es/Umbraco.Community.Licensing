@@ -38,26 +38,40 @@ Deferred. Update this index in the same change as any status line.
 | [PDR-0024](0024-beta-without-stability-promise.md) | Beta release with no stability promise | Decided |
 | [PDR-0025](0025-issue-refuses-oversized-key.md) | Issue refuses a key too long to deploy | Decided |
 | [PDR-0026](0026-claimed-product-meets-product-id-rule.md) | A claimed product is reported only when it is a valid product ID | Decided |
-| [PDR-0027](0027-release-versioning-and-log.md) | Release versioning and release log | Amended by PDR-0029 |
-| [PDR-0028](0028-test-coverage-per-release.md) | Test coverage per release | Decided |
+| [PDR-0027](0027-release-versioning-and-log.md) | Release versioning and release log | Amended by PDR-0029, PDR-0058 |
+| [PDR-0028](0028-test-coverage-per-release.md) | Test coverage per release | Amended by PDR-0060 |
 | [PDR-0029](0029-release-tag-matches-log.md) | A release tag must match its release log row | Decided |
-| [PDR-0030](0030-vendor-tool-audience-and-operation.md) | Vendor tool audience and operation | Amended by PDR-0039; to revisit: FR-26 (PDR-0046) |
-| [PDR-0031](0031-tool-folder-moving-and-backups.md) | Tool folder, moving and backups | Amended by PDR-0038, PDR-0040, PDR-0041, PDR-0045; to revisit: FR-26 (PDR-0046) |
-| [PDR-0032](0032-private-keys-protected-by-passphrase.md) | Private keys protected by a passphrase | Amended by PDR-0039, PDR-0043; to revisit: FR-26 (PDR-0046) |
-| [PDR-0033](0033-license-records-and-customer-data.md) | License records and customer data | Amended by PDR-0043; to revisit: FR-26 (PDR-0046) |
-| [PDR-0034](0034-reissue-and-renewal-from-records.md) | Reissue and renewal from records | Amended by PDR-0039, PDR-0044 |
-| [PDR-0035](0035-signing-key-switch-standby-and-trusted-keys.md) | Signing key switch, standby keys and trusted keys | Decided |
-| [PDR-0036](0036-feature-definitions-add-only.md) | Products and feature definitions are add-only | Amended by PDR-0043 |
+| [PDR-0030](0030-vendor-tool-audience-and-operation.md) | Vendor tool audience and operation | Amended by PDR-0039, PDR-0048; to revisit: FR-26 (PDR-0046) |
+| [PDR-0031](0031-tool-folder-moving-and-backups.md) | Tool folder, moving and backups | Amended by PDR-0038, PDR-0040, PDR-0041, PDR-0045, PDR-0048, PDR-0052, PDR-0057; to revisit: FR-26 (PDR-0046) |
+| [PDR-0032](0032-private-keys-protected-by-passphrase.md) | Private keys protected by a passphrase | Amended by PDR-0039, PDR-0043, PDR-0049; to revisit: FR-26 (PDR-0046) |
+| [PDR-0033](0033-license-records-and-customer-data.md) | License records and customer data | Amended by PDR-0043, PDR-0059; to revisit: FR-26 (PDR-0046) |
+| [PDR-0034](0034-reissue-and-renewal-from-records.md) | Reissue and renewal from records | Amended by PDR-0039, PDR-0044, PDR-0048, PDR-0052, PDR-0055 |
+| [PDR-0035](0035-signing-key-switch-standby-and-trusted-keys.md) | Signing key switch, standby keys and trusted keys | Amended by PDR-0047, PDR-0051, PDR-0056 |
+| [PDR-0036](0036-feature-definitions-add-only.md) | Products and feature definitions are add-only | Amended by PDR-0043, PDR-0054 |
 | [PDR-0037](0037-github-release-per-published-release.md) | A GitHub Release for each published release | Decided |
-| [PDR-0038](0038-vendor-tool-operating-systems-and-terminals.md) | Vendor tool operating systems and terminals | Amended by PDR-0039, PDR-0040 |
-| [PDR-0039](0039-vendor-tool-guided-mode-only.md) | Vendor tool runs in guided mode only | Decided; to revisit: FR-26 (PDR-0046) |
+| [PDR-0038](0038-vendor-tool-operating-systems-and-terminals.md) | Vendor tool operating systems and terminals | Amended by PDR-0039, PDR-0040, PDR-0048 |
+| [PDR-0039](0039-vendor-tool-guided-mode-only.md) | Vendor tool runs in guided mode only | Amended by PDR-0048, PDR-0049, PDR-0050; to revisit: FR-26 (PDR-0046) |
 | [PDR-0040](0040-installation-moves-between-operating-systems.md) | An installation moves between operating systems | Decided |
-| [PDR-0041](0041-finding-the-installation-at-startup.md) | Finding the installation at startup | Decided |
+| [PDR-0041](0041-finding-the-installation-at-startup.md) | Finding the installation at startup | Amended by PDR-0048 |
 | [PDR-0042](0042-text-rule-allows-characters-by-kind.md) | Text rule allows characters by kind | Decided |
 | [PDR-0043](0043-vendor-tool-typed-values.md) | Vendor tool typed values | Decided |
-| [PDR-0044](0044-switch-off-means-not-granted.md) | A switch typed as off means not granted | Decided |
-| [PDR-0045](0045-tool-never-overwrites-files-or-creates-folders.md) | The tool never overwrites a file or creates a folder it was not asked for | Decided |
+| [PDR-0044](0044-switch-off-means-not-granted.md) | A switch typed as off means not granted | Amended by PDR-0048 |
+| [PDR-0045](0045-tool-never-overwrites-files-or-creates-folders.md) | The tool never overwrites a file or creates a folder it was not asked for | Amended by PDR-0048 |
 | [PDR-0046](0046-records-portable-to-a-central-database.md) | Records can move to a central database | Decided |
+| [PDR-0047](0047-switch-confirms-when-new-key-not-in-a-release.md) | A switch confirms whenever the new active key is not in a release | Amended by PDR-0050, PDR-0051 |
+| [PDR-0048](0048-vendor-tool-menu-session.md) | The vendor tool runs as a menu session | Amended by PDR-0050, PDR-0052, PDR-0053 |
+| [PDR-0049](0049-passphrase-kept-for-a-session-with-idle-lock.md) | Passphrase kept for a session, with an idle lock | Amended by PDR-0050, PDR-0052 |
+| [PDR-0050](0050-menu-session-refinements.md) | Menu session refinements | Decided |
+| [PDR-0051](0051-release-confirmed-per-product.md) | Release confirmed per product | Decided |
+| [PDR-0052](0052-menu-session-review-refinements.md) | Menu session review refinements | Decided |
+| [PDR-0053](0053-unexpected-failure-in-a-session.md) | Unexpected failure in a session | Decided |
+| [PDR-0054](0054-product-defines-at-most-50-features.md) | A product defines at most 50 features | Decided |
+| [PDR-0055](0055-expired-license-not-resent.md) | An expired license is not resent | Decided |
+| [PDR-0056](0056-trusted-key-comment-lines.md) | Trusted key comment lines start with `//` | Decided |
+| [PDR-0057](0057-restore-asks-before-importing.md) | Restore asks before importing | Decided |
+| [PDR-0058](0058-partly-published-release-is-failed.md) | A partly published release is a failed release | Decided |
+| [PDR-0059](0059-clearing-customer-details-asks-first.md) | Clearing customer details asks first | Decided |
+| [PDR-0060](0060-release-run-does-not-check-timing.md) | The release run does not check timing | Decided |
 
 ## Template
 

@@ -1,6 +1,6 @@
 # PDR-0045: The tool never overwrites a file or creates a folder it was not asked for
 
-- Status: Decided
+- Status: Amended by PDR-0048
 - Date: 2026-11-08
 - Source: `add-vendor-tool` design.md Q42. Amends PDR-0031.
 - Personas: site owner (primary: an older backup can be the only copy of the records needed to

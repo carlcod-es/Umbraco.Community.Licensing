@@ -17,10 +17,10 @@ NOT be encrypted. The export SHALL NOT need the passphrase.
 
 ### Requirement: Files named by the vendor
 The tool SHALL NOT replace an existing file or create a folder for a file it writes. When a file
-it would write exists, it SHALL say so, showing the full path, and ask for another name, whether
-the name was given on the command or at the prompt. When its folder does not exist, it SHALL say
-so, showing the full path, and ask for the path again. This applies to the backup export and the
-export by signing key. Setup creating `.ucl` in the home folder is unchanged.
+it would write exists, it SHALL say so, showing the full path, and ask for another name. When its
+folder does not exist, it SHALL say so, showing the full path, and ask for the path again. This
+applies to the backup export, the export by signing key and a key string saved to a file. Setup
+creating `.ucl` in the home folder is unchanged.
 
 #### Scenario: Backup file already exists
 - **WHEN** the vendor exports a backup to `~/Backups/ucl-2026-10-28.zip`, which exists
@@ -43,11 +43,15 @@ showing the full path, and ask again. This applies to the backup import.
   is created
 
 ### Requirement: Backup import
-The vendor SHALL import a backup zip into a folder that holds no installation: the current folder or
-`.ucl` in the home folder, offered as at setup (vendor-tool-setup: Folder location). The tool SHALL
+The vendor SHALL import a backup zip into a folder that holds no installation. From the startup
+offer when no installation is found, the current folder or `.ucl` in the home folder SHALL be
+offered as at setup (vendor-tool-setup: Folder location); from the menu, only the current folder
+(vendor-tool-setup: New installation in the current folder). After import the session SHALL
+continue with the imported installation. The tool SHALL
 refuse a folder that holds one, saying to move or rename the current folder first, and change
 nothing. Before importing it SHALL show the date the backup was taken and warn that licenses
-issued after that date are not in it. A backup SHALL import on any supported operating system,
+issued after that date are not in it, then ask whether to restore, with no proposed; a no SHALL
+change nothing and return to where the restore was started. A backup SHALL import on any supported operating system,
 whichever one it was taken on. A zip that is not a complete backup, or that was taken by a
 newer tool version than the one running, SHALL be refused, changing nothing. After import,
 actions using a private key SHALL accept the passphrase that was in effect when the backup was taken.
@@ -57,6 +61,11 @@ actions using a private key SHALL accept the passphrase that was in effect when 
   installation
 - **THEN** the tool shows the backup date and the warning, then creates the installation, and
   every product, license and key from the backup is there
+
+#### Scenario: Restore declined
+- **WHEN** the vendor answers no after the backup date and the warning
+- **THEN** nothing is created, nothing changes, and the startup offer or menu the restore was
+  started from is shown
 
 #### Scenario: Restore on another operating system
 - **WHEN** the vendor imports a backup taken on Windows into `~/.ucl` on macOS

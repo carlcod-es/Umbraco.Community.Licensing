@@ -1,6 +1,6 @@
 # PDR-0033: License records and customer data
 
-- Status: Amended by PDR-0043; to revisit: FR-26 (PDR-0046)
+- Status: Amended by PDR-0043, PDR-0059; to revisit: FR-26 (PDR-0046)
 - Date: 2026-10-28
 - Source: `add-vendor-tool` design.md Q10, Q12, Q26
 - Personas: site owner (primary: a copied backup holds no usable key; erasure honoured; a lost
