@@ -34,6 +34,7 @@ Cite as FR-N.
 | FR-25 | Vendor tool works against the central database | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open; after FR-24 |
 | FR-26 | Shop integration: licenses issued and renewed on purchase | Carl, 2026-11-08 (`add-vendor-tool` explore) | Open; after FR-24, FR-22. Reopens PDR-0030, PDR-0031, PDR-0032, PDR-0033, PDR-0039 |
 | FR-27 | Ctrl+C cancels the current action in the vendor tool | Carl, 2026-11-08 (`add-vendor-tool` update) | Open. `/cancel` stays (design.md Q61, ADR-0020) |
+| FR-28 | Show a previously issued key string again | Carl, 2026-11-11 (`add-vendor-tool` apply) | Open; after `add-vendor-tool`. Reverses PDR-0033 (key strings not stored) |
 
 ## FR-1: Vendor-chosen key identifier prefix
 
@@ -780,3 +781,28 @@ unaffected.
 3. The guide and vendors used to Ctrl+C ending the session.
 
 **Related.** PDR-0048, PDR-0050, ADR-0020, FR-13.
+
+## FR-28: Show a previously issued key string again
+
+**Request.** The vendor can get the exact key string of a license issued earlier, shown on screen
+or saved to a file again, without issuing a new one (Carl, 2026-11-11, raised during
+`add-vendor-tool` apply). Today **Licenses > Resend** gives a new key string with the same
+contents; the original cannot be recovered because no key string is kept (PDR-0033, design.md
+Q12, vendor-tool-licenses "Key strings are not stored").
+
+**Personas.** Vendor: answers "send me my key again" without a new key, so the customer's
+installed key and the vendor's copy stay the same. Site owner: a copy of the vendor's folder or a
+backup would then hold working keys for their sites. Implementor: unaffected.
+
+**Issues to settle.**
+1. Reverses PDR-0033. Today a copied folder or backup holds no usable license key; with this it
+   would. Whether stored key strings need the passphrase to read, as private keys do.
+2. Which key strings: only the latest per license, or every one issued (issue, reissue, renew,
+   resend), and which one is offered when a license has several.
+3. Licenses issued before the change have no key string kept: say so and offer Resend.
+4. Erasure: whether clearing customer details (PDR-0059) also removes kept key strings, which
+   carry the license contents. Older backups keep them (as with cleared emails).
+5. A leak-replaced signing key (Switch leak): whether key strings signed by it are still offered.
+6. Personas order when the vendor's convenience and the site owner's exposure conflict.
+
+**Related.** PDR-0033, PDR-0059, design.md Q12, FR-11.
