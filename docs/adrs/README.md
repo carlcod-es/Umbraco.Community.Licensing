@@ -30,7 +30,7 @@ Deferred. Update this index in the same change as any status line.
 | [ADR-0016](0016-github-release-job.md) | GitHub Release job in the release run | Decided |
 | [ADR-0017](0017-vendor-tool-guided-console-and-startup.md) | Vendor tool guided console and startup | Amended by ADR-0020 |
 | [ADR-0018](0018-text-rule-character-table.md) | Text rule character table | Decided |
-| [ADR-0019](0019-vendor-tool-typed-values-and-named-files.md) | Vendor tool typed values, matching and named files | Amended by ADR-0020 |
+| [ADR-0019](0019-vendor-tool-typed-values-and-named-files.md) | Vendor tool typed values, matching and named files | Amended by ADR-0020; named files amended for PDR-0061 and PDR-0062 (2026-11-12) |
 | [ADR-0020](0020-vendor-tool-menu-session-and-console.md) | Vendor tool menu session and console | Decided |
 | [ADR-0021](0021-vendor-tool-session-passphrase-and-idle-lock.md) | Vendor tool session passphrase and idle lock | Amended by ADR-0022 |
 | [ADR-0022](0022-vendor-tool-release-marks-installation-switch-and-pasted-keys.md) | Vendor tool release marks, installation switch and pasted keys | Decided |

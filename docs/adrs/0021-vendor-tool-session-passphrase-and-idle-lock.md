@@ -73,6 +73,10 @@ when the command ends; it never held a secret across actions.
   `pre-1.0-considerations.md` C2).
 - A signing action takes about half a second more than holding decrypted keys would.
 - The timer is the tool's only second thread; everything it touches is behind the lock.
+- Idle time is measured on the wall clock, so a sleeping laptop still locks. A backward clock
+  step (manual change, NTP, VM restore) lengthens the lock by the size of the step. Accepted by
+  Carl, 2026-11-12 (`add-vendor-tool` follow-ups row 187); locking when either the wall clock or
+  the timer passes the idle time was not taken.
 
 ## Reversal Cost
 

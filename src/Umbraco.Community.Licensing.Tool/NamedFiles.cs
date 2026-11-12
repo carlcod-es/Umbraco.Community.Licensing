@@ -3,7 +3,9 @@ namespace Umbraco.Community.Licensing.Tool;
 /// <summary>
 /// Path questions for files the vendor names (ADR-0019). Relative paths resolve against
 /// <see cref="ToolEnvironment.CurrentDirectory"/>, never the process directory, and every path is
-/// shown in full. Nothing here creates a folder or replaces a file.
+/// shown in full. A typed path that is <c>~</c> alone or starts with <c>~/</c> (or <c>~\</c> on Windows) is read
+/// from <see cref="ToolEnvironment.Home"/>; every other <c>~</c> is part of the name (PDR-0061). Nothing here
+/// replaces a file, and a folder is created only after the vendor says yes to creating it (PDR-0062).
 /// </summary>
 /// <param name="environment">Supplies the current directory the answers resolve against.</param>
 /// <param name="questions">Asks the path questions, so <c>/cancel</c> and re-asking behave as everywhere else.</param>
@@ -14,10 +16,27 @@ internal sealed class NamedFiles(ToolEnvironment environment, Questions question
 
     /// <summary>
     /// Asks for a file to write, until the path is not an existing file or folder and its parent folder
-    /// exists. Returns the full path; nothing is written or created.
+    /// exists. When the parent folder is missing, names it in full and asks <c>Create it?</c>: yes creates it
+    /// with every missing level, no asks for the path again, <c>/cancel</c> ends the action with nothing created.
+    /// Returns the full path; no file is written.
     /// </summary>
-    public string AskOutputPath(string question) =>
-        Resolve(questions.AskText(question, Accepts, rule: CheckOutput).Value);
+    public string AskOutputPath(string question)
+    {
+        while (true)
+        {
+            var path = Resolve(questions.AskText(question, Accepts, rule: CheckOutput).Value);
+            var parent = Path.GetDirectoryName(path);
+            if (parent is null || Directory.Exists(parent))
+                return path;
+
+            environment.Console.WriteLine($"The folder {parent} does not exist.");
+            if (questions.AskYesNo("Create it?", proposed: true))
+            {
+                Directory.CreateDirectory(parent);
+                return path;
+            }
+        }
+    }
 
     /// <summary>
     /// Asks for a file to write and writes it, opened with <see cref="FileMode.CreateNew"/> so an
@@ -77,7 +96,17 @@ internal sealed class NamedFiles(ToolEnvironment environment, Questions question
     public string AskImportPath(string question) =>
         Resolve(questions.AskText(question, Accepts, rule: CheckImport).Value);
 
-    private string Resolve(string answer) => Path.GetFullPath(answer, environment.CurrentDirectory);
+    private string Resolve(string answer) => Path.GetFullPath(ExpandHome(answer), environment.CurrentDirectory);
+
+    /// <summary>Replaces a leading <c>~</c> that stands for the home folder; the home folder is never read from an environment variable (ADR-0017).</summary>
+    private string ExpandHome(string answer)
+    {
+        if (answer == "~")
+            return environment.Home;
+        if (answer.StartsWith("~/", StringComparison.Ordinal) || (OperatingSystem.IsWindows() && answer.StartsWith("~\\", StringComparison.Ordinal)))
+            return environment.Home + answer[1..];
+        return answer;
+    }
 
     private string? CheckOutput(string answer)
     {
@@ -88,10 +117,6 @@ internal sealed class NamedFiles(ToolEnvironment environment, Questions question
             return ExistsMessage(full);
         if (Directory.Exists(full))
             return FolderMessage(full);
-
-        var parent = Path.GetDirectoryName(full);
-        if (parent is null || !Directory.Exists(parent))
-            return $"The folder {parent ?? full} does not exist. Give the path again; no folder is created.";
         return null;
     }
 

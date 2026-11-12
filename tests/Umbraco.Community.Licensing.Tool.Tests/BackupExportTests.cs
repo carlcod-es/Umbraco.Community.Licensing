@@ -74,18 +74,132 @@ public class BackupExportTests : IDisposable
     }
 
     [Fact]
-    public void BackupFolderMissing_SaysSo_AsksAgain_AndCreatesNoFolder()
+    public void BackupFolderMissing_Declined_NamesTheFolder_AsksAgain_AndCreatesNoFolder()
     {
         var missing = InHome("Dropbx");
         var wrong = Path.Combine(missing, "ucl-2026-11-08.zip");
         Directory.CreateDirectory(InHome("Backups"));
         var right = InHome("Backups", "ucl-2026-11-08.zip");
 
-        var console = Export(wrong, right);
+        var console = Export(wrong, "n", right);
 
-        Assert.Contains($"The folder {missing} does not exist", console.Out);
+        Assert.Contains($"The folder {missing} does not exist.", console.Out);
+        Assert.Contains("Create it? [Y/n]", console.Out);
         Assert.False(Directory.Exists(missing));
         Assert.True(File.Exists(right));
+        Assert.Equal(2, SessionTestHost.Count(console.Out, "File to back up to"));
+    }
+
+    [Fact]
+    public void BackupFolderMissing_Created_WithEveryMissingLevel_AndTheZipWritten()
+    {
+        var folder = InHome("Backups", "2026", "Nov");
+        var target = Path.Combine(folder, "ucl-2026-11-08.zip");
+
+        var console = Export(target, "y");
+
+        Assert.Contains($"The folder {folder} does not exist.", console.Out);
+        Assert.True(Directory.Exists(InHome("Backups", "2026")));
+        Assert.True(File.Exists(target));
+        Assert.Contains($"Backup written to {target}, taken", console.Out);
+    }
+
+    [Fact]
+    public void BackupFolderMissing_EnterTakesTheProposedYes()
+    {
+        var target = InHome("Made", "b.zip");
+
+        Export(target, "");
+
+        Assert.True(File.Exists(target));
+    }
+
+    [Fact]
+    public void BackupFolderMissing_Cancelled_EndsTheActionAndCreatesNothing()
+    {
+        var folder = InHome("Never");
+
+        var console = Export(Path.Combine(folder, "b.zip"), "/cancel");
+
+        Assert.False(Directory.Exists(folder));
+        Assert.DoesNotContain("Backup written", console.Out);
+    }
+
+    [Fact]
+    public void HomeFolderTypedAsTilde_WritesUnderHome_AndReportsTheFullPath()
+    {
+        Directory.CreateDirectory(InHome("Backups"));
+
+        var console = Export("~/Backups/ucl-2026-11-08.zip");
+
+        var target = InHome("Backups", "ucl-2026-11-08.zip");
+        Assert.True(File.Exists(target));
+        Assert.Contains($"Backup written to {target}, taken", console.Out);
+        Assert.DoesNotContain("written to ~", console.Out);
+    }
+
+    [Fact]
+    public void HomeFolderTypedAsTilde_Alone_IsAFolder_AndAsksAgain()
+    {
+        var console = Export("~", "b.zip");
+
+        Assert.Contains($"{_kit.Host.Home} is a folder. Give a file name.", console.Out);
+        Assert.True(File.Exists(Path.Combine(_kit.Host.Cwd, "b.zip")));
+    }
+
+    [Fact]
+    public void HomeFolderTypedAsTildeOnWindows_BackslashIsRead_AsHome()
+    {
+        Assert.SkipUnless(OperatingSystem.IsWindows(), "Windows only: ~\\ is the home folder only there.");
+        Directory.CreateDirectory(InHome("Backups"));
+
+        var console = Export(@"~\Backups\w.zip");
+
+        Assert.True(File.Exists(InHome("Backups", "w.zip")));
+        Assert.Contains($"Backup written to {InHome("Backups", "w.zip")}, taken", console.Out);
+    }
+
+    [Fact]
+    public void TildeBackslashOutsideWindows_IsAName_NotTheHomeFolder()
+    {
+        Assert.SkipWhen(OperatingSystem.IsWindows(), "A backslash separates folders on Windows.");
+
+        Export(@"~\w.zip");
+
+        Assert.True(File.Exists(Path.Combine(_kit.Host.Cwd, @"~\w.zip")));
+        Assert.False(File.Exists(InHome("w.zip")));
+    }
+
+    [Fact]
+    public void TildeInAName_IsLeftAsTyped_AndReadFromTheCurrentFolder()
+    {
+        var target = Path.Combine(_kit.Host.Cwd, "~backups-x.zip");
+
+        var console = Export("~backups-x.zip");
+
+        Assert.True(File.Exists(target));
+        Assert.Contains($"Backup written to {target}, taken", console.Out);
+    }
+
+    [Fact]
+    public void RelativePath_IsReadFromTheCurrentFolder()
+    {
+        var console = Export("rel.zip");
+
+        Assert.True(File.Exists(Path.Combine(_kit.Host.Cwd, "rel.zip")));
+        Assert.False(File.Exists(InHome("rel.zip")));
+    }
+
+    [Fact]
+    public void ExistingFileTypedWithTilde_IsNeverReplaced()
+    {
+        byte[] bytes = [9, 8, 7];
+        File.WriteAllBytes(InHome("keep.zip"), bytes);
+
+        var console = Export("~/keep.zip", "other.zip");
+
+        Assert.Equal(bytes, File.ReadAllBytes(InHome("keep.zip")));
+        Assert.Contains($"The file {InHome("keep.zip")} already exists", console.Out);
     }
 
     [Fact]

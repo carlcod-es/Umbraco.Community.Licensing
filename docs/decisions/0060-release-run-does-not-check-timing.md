@@ -5,8 +5,9 @@
 - Source: `add-vendor-tool` design.md Q81 (raised by the 13.3 release rehearsal; follow-ups
   row 189; `pre-1.0-considerations.md` C13). Amends PDR-0028.
 - Personas: site visitor (the per-request cost is still checked on every change). Implementor: a
-  release is still built and tested from the tagged commit; only the timing and memory checks
-  are left to the pull-request check. Vendor, site owner, backoffice editor: unaffected.
+  release is still built and tested from the tagged commit; only the tests of *Evaluation on
+  every request* that run on their own are left to the pull-request check. Vendor, site owner,
+  backoffice editor: unaffected.
 
 ## Context
 
@@ -19,9 +20,10 @@ about the library, yet it fails the release and uses up a version number (PDR-00
 
 ## Decision
 
-- The release run runs every test except the timing and memory checks of *Evaluation on every
-  request* (PDR-0022).
-- Those checks run on every pull request and every push to `main` in the pull-request check, and
+- The release run runs every test except the tests of *Evaluation on every request* (PDR-0022)
+  that run on their own: the timing and memory checks, and a repeat of the result-snapshot check
+  that other tests also cover in the release run.
+- Those tests run on every pull request and every push to `main` in the pull-request check, and
   in local runs. PDR-0022's targets are unchanged.
 - Before releasing, Carl checks that the latest pull-request check on `main` passed.
 

@@ -16,22 +16,55 @@ NOT be encrypted. The export SHALL NOT need the passphrase.
 - **THEN** the zip is written, the tool reports its path and time, and no passphrase is asked
 
 ### Requirement: Files named by the vendor
-The tool SHALL NOT replace an existing file or create a folder for a file it writes. When a file
-it would write exists, it SHALL say so, showing the full path, and ask for another name. When its
-folder does not exist, it SHALL say so, showing the full path, and ask for the path again. This
-applies to the backup export, the export by signing key and a key string saved to a file. Setup
-creating `.ucl` in the home folder is unchanged.
+The tool SHALL NOT replace an existing file. When a file it would write exists, it SHALL say so,
+showing the full path, and ask for another name. This applies to the backup export, the export by
+signing key and a key string saved to a file. Setup creating `.ucl` in the home folder is
+unchanged.
 
 #### Scenario: Backup file already exists
 - **WHEN** the vendor exports a backup to `~/Backups/ucl-2026-10-28.zip`, which exists
 - **THEN** the tool says the file exists, showing its full path, asks for another name, and the
   existing file is unchanged
 
-#### Scenario: Backup folder missing
-- **WHEN** the vendor exports a backup to `~/Dropbx/ucl-2026-11-08.zip` and `~/Dropbx` does not
-  exist
-- **THEN** the tool says the folder does not exist, showing its full path, asks for the path
-  again, and creates no folder
+### Requirement: Missing folder for a written file
+When the folder of a file the tool would write does not exist, the tool SHALL say so, showing
+that folder's full path, and ask whether to create it, proposing yes. Yes SHALL create the folder,
+with every missing folder above it, and write the file; no SHALL ask for the path again and
+create nothing; `/cancel` SHALL end the action and create nothing. This applies to every file
+named in *Files named by the vendor*.
+
+#### Scenario: Backup folder missing, created
+- **WHEN** the vendor exports a backup to `~/Backups/2026/ucl-2026-11-12.zip`, `~/Backups/2026`
+  does not exist, and the vendor answers yes when asked to create it
+- **THEN** the tool shows the folder's full path, creates `~/Backups/2026` (and `~/Backups` if
+  missing), writes the zip and reports its path
+
+#### Scenario: Backup folder missing, declined
+- **WHEN** the vendor exports a backup to `~/Dropbx/ucl-2026-11-08.zip`, `~/Dropbx` does not
+  exist, and the vendor answers no when asked to create it
+- **THEN** the tool asks for the path again and creates no folder
+
+### Requirement: Paths typed by the vendor
+A path the vendor types SHALL be read from the current folder when it is relative. A typed path
+that is `~` alone, or `~` followed by a path separator (`/`, and on Windows also `\`), SHALL
+stand for the home folder (vendor-tool-setup: Folder location). Any other `~` SHALL be part of a
+name. The tool SHALL still show every path in full, never with `~`. This applies to the backup
+export, the export by signing key, a key string saved to a file and the backup import.
+
+#### Scenario: Home folder typed as ~ on macOS or Linux
+- **WHEN** user `carl` on macOS exports a backup to `~/Backups/ucl-2026-11-12.zip`
+- **THEN** the zip is written to `/Users/carl/Backups/ucl-2026-11-12.zip` and the tool reports
+  that full path
+
+#### Scenario: Home folder typed as ~ on Windows
+- **WHEN** user `carl` on Windows exports a backup to `~\Backups\ucl-2026-11-12.zip`
+- **THEN** the zip is written to `C:\Users\carl\Backups\ucl-2026-11-12.zip` and the tool reports
+  that full path
+
+#### Scenario: Tilde in a name
+- **WHEN** the vendor, in `~/acme`, imports `~backups/ucl.zip`
+- **THEN** the tool reads `~/acme/~backups/ucl.zip`, a folder named `~backups` in the current
+  folder
 
 ### Requirement: Files read by the tool
 When a file the tool would read does not exist, or the path is a folder, the tool SHALL say so,

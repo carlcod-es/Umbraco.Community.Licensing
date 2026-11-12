@@ -97,8 +97,11 @@ Key prefix (LIC, your own (1 to 16 characters of A to Z and 0 to 9) or none; Ent
   `/cancel` or `/remove` cannot be entered.
 - **Ctrl+C** ends the whole session at once, not only the action. An action that was not
   finished stores nothing, because each action writes only after its last answer.
-- **Paths** are typed in full. `~` is not expanded: `~/keys/a.txt` is read as a folder named `~`
-  inside the current folder.
+- **Paths** you type may be full, or relative to the current folder. `~` on its own, or
+  followed by `/` (on Windows also `\`), stands for your home folder: `~/keys/a.txt` is
+  `a.txt` in a `keys` folder in your home folder. Any other `~` is part of a name:
+  `~keys/a.txt` is read from a folder named `~keys` inside the current folder. The tool then
+  shows the path in full.
 
 ## Set up
 
@@ -182,7 +185,8 @@ So to use another installation, start `ucl` in its folder.
 | macOS | `/Users/alex` | `/Users/alex/.ucl` |
 | Linux | `/home/alex` | `/home/alex/.ucl` |
 
-The tool always shows full paths in your operating system's own form, never `~`.
+The tool always shows full paths in your operating system's own form, never `~`, even when you
+typed one with `~`.
 
 ### A second installation
 
@@ -414,8 +418,15 @@ exactly.
 ## Files the tool writes
 
 Backups, CSV exports and saved keys go to a path you type. The tool never replaces an existing
-file and never creates a folder. When the file exists, or its folder does not, it says so with the
-full path and asks again. When a backup to restore does not exist, it asks again too.
+file: when the file exists, it says so with the full path and asks again.
+
+When the file's folder does not exist, the tool shows that folder's full path and asks
+`Create it? [Y/n]`. Yes (or Enter) creates it, with any missing folders above it, and writes the
+file. No asks for the path again and creates nothing, so a mistyped folder such as `~/Dropbx` is
+caught before anything is made. `/cancel` ends the action and creates nothing.
+
+When a backup to restore does not exist, or the path is a folder, the tool asks again. It never
+creates a folder for a file it reads.
 
 ## Leak and loss
 

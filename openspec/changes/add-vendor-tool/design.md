@@ -65,7 +65,7 @@ C2), localisation.
 | R11 | Windows, macOS and Linux; PowerShell, Windows Terminal, Command Prompt | vendor-tool-setup: Operating systems and terminals | Vendor | PDR-0038 |
 | R12 | Typed values: product display name, customer email and order reference by the key's text rule; finding ignores case and accent form, whole value only; passphrase printable ASCII, 15 to 256 | vendor-tool-products: Adding a product; Feature definitions are add-only. vendor-tool-licenses: Customer email and order reference values; Matching when finding. vendor-tool-setup: Passphrase rule | Vendor; site owner (passphrase types the same on the next machine, so signing keys are not lost) | PDR-0043, PDR-0042 |
 | R13 | Switch answered off is not granted; each feature asked once | vendor-tool-licenses: Switch values and features at reissue | Vendor; site owner and implementor unaffected (same key) | PDR-0044, PDR-0010, PDR-0048 |
-| R14 | Named files never replaced, folders never created, asked again | vendor-tool-backup: Files named by the vendor; Files read by the tool. vendor-tool-signing-keys: Export by signing key | Site owner (an older backup survives); vendor | PDR-0045 |
+| R14 | Named files never replaced, a missing folder created after asking, asked again; `~` for the home folder in typed paths | vendor-tool-backup: Files named by the vendor; Missing folder for a written file; Paths typed by the vendor; Files read by the tool. vendor-tool-signing-keys: Export by signing key | Site owner (an older backup survives); vendor | PDR-0045, PDR-0061, PDR-0062 |
 | R15 | Records complete and free of local paths | vendor-tool-setup: Records can move to another database | Site owner (reissues survive a later move); vendor | PDR-0046 |
 
 Persona check: no requirement harms a higher-priority persona. Key strings are unchanged for site
@@ -116,7 +116,7 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q39 | Passphrase characters and maximum | Printable ASCII only, 15 to 256, spaces inside allowed, no leading or trailing space (Carl, 2026-11-08) | PDR-0043, ADR-0019 |
 | Q40 | Product display name rule (moved from `tighten-text-rule` Q7) | The key's display-name rule (PDR-0042), 1 to 64, checked at `product add` and `product rename` through the library, not a copy; a refused rename keeps the earlier name. The tool reaches the internal check through `InternalsVisibleTo` (Carl, 2026-11-08) | PDR-0043, ADR-0019 |
 | Q41 | `--feature name=off` | Not granted: left out at issue, removed at reissue as `--remove-feature`; a feature given twice, or given and removed, refused (Carl, 2026-11-08). Amended by Q54: features asked one by one, so no contradiction arises | PDR-0044, PDR-0048 |
-| Q42 | Output and import files | An output file is never replaced and its folder never created; the tool says so with the full path and asks again, also when the path was given on the command (Amended by Q47: always asked). An import path that is missing or a folder is asked again (Carl, 2026-11-08) | PDR-0045, ADR-0019 |
+| Q42 | Output and import files | An output file is never replaced and its folder never created; the tool says so with the full path and asks again, also when the path was given on the command (Amended by Q47: always asked). An import path that is missing or a folder is asked again (Carl, 2026-11-08). Amended by Q83: a missing folder is created after asking | PDR-0045, ADR-0019 |
 | Q43 | Stale rows | Q1 and Q7 marked amended by Q33 (Carl, 2026-11-08) | PDR-0039 |
 | Q44 | Records and a later central database | Every record complete and free of local paths, so it can move to another database with nothing lost. The later move is one-way and settled in FR-24 to FR-26 (Carl, 2026-11-08) | PDR-0046 |
 | Q45 | Switch when the new active key is not in a release | Warn and ask for confirmation whenever the key becoming active is not yet in a release: a standby not yet in a release, or a new key pair when there is no standby. Any reason, leak included; declining changes nothing (Carl, 2026-11-08). Amended by Q66: not in a release for every product it signs for, the products named | PDR-0047, PDR-0051 |
@@ -155,14 +155,17 @@ owners and implementors. Backoffice editor and site visitor never meet the tool.
 | Q78 | Release where the library is published and the tool push fails | A failed release (PDR-0027): the library version stays published and is not unlisted, no Release page, the next number publishes both; no re-run with skipped duplicates (Carl, 2026-11-10) | PDR-0058 |
 | Q79 | Confirmation before clearing customer details | Clear email and clear every order reference show the license and the values, then ask `[y/N]`; no or cancel changes nothing; change email and correct latest order reference ask nothing (Carl, 2026-11-10) | PDR-0059 |
 | Q80 | Switch with no standby key | No change: the switch makes a new active key and no standby. With standby keys on, every signing key has a standby (setup, Add a product and a switch with a standby create one), so this happens only with standby keys off; Add a standby key adds one after (Carl, 2026-11-10) | PDR-0035, PDR-0047 |
-| Q81 | Timing tests in the release run | The release run leaves out the timing and memory checks of *Evaluation on every request* (PDR-0022); the pull-request check and local runs keep them; Carl checks the pull-request check on `main` passed before releasing. Raised by the 13.3 rehearsal: 1.05 and 1.16 ms on the slower release machine (Carl, 2026-11-11; pre-1.0 C13) | PDR-0060, ADR-0024 |
+| Q81 | Timing tests in the release run | The release run leaves out the tests of *Evaluation on every request* (PDR-0022) that run on their own: the timing and memory checks, and a repeat of the result-snapshot check that other tests cover; the pull-request check and local runs keep them; Carl checks the pull-request check on `main` passed before releasing. Raised by the 13.3 rehearsal: 1.05 and 1.16 ms on the slower release machine (Carl, 2026-11-11; pre-1.0 C13) | PDR-0060, ADR-0024 |
+| Q82 | `~` in a typed path | A typed path that is `~` alone or `~` plus a separator (`/`, and `\` on Windows) is the home folder; any other `~` is part of a name; paths still shown in full. Raised while writing the guide, follow-ups row 173 (Carl, 2026-11-12) | PDR-0061 |
+| Q83 | Missing folder for a written file | The tool shows the missing folder's full path and asks `Create it? [Y/n]`; yes creates it with every missing parent and writes, no asks for the path again. Existing files still never replaced; import unchanged (Carl, 2026-11-12, with Q82). Amends Q42 | PDR-0062 |
 
 ## Open questions
 
 None. Q37 to Q58 were raised in `opsx:explore`, Q59 to Q65 in `opsx:update`, and Q66 to Q71 in
 an `opsx:explore` review of the menu session (Carl, 2026-11-08), Q72 in the section 3 review, Q73 in the section 7 review, Q74 in the section 8 apply and Q76, Q77 in the section 10 apply
 during `opsx:apply` (Carl, 2026-11-09), Q78 to Q80 after the section 11 apply (Carl,
-2026-11-10); all are settled above. Q37, Q38 and Q40 use the text rule from
+2026-11-10), Q81 after the 13.3 rehearsal (Carl, 2026-11-11), Q82 and Q83 during section 13 (Carl,
+2026-11-12); all are settled above. Q37, Q38 and Q40 use the text rule from
 `tighten-text-rule` (PDR-0042); this change waits for it.
 
 ## Decisions
@@ -420,9 +423,14 @@ other files and readable with a plain SQLite connection (PDR-0046).
 - Passphrase rule at setup: every character U+0020 to U+007E, 15 to 256, first and last not
   U+0020.
 - Idle lock: a whole number 1 to 1440 (ASCII digits only) or `never`, any case.
+- Typed paths (all four below): a leading `~` alone, or `~` followed by `/` (and `\` on Windows),
+  is replaced by `ToolEnvironment.Home`, never from an environment variable; the result is then
+  resolved with `Path.GetFullPath` against the current directory (PDR-0061).
 - Output files (backup export, key export, key saved to a file), always asked at a question:
-  full path from `Path.GetFullPath`. The tool asks again when the path is an existing file, a
-  folder, or has a missing parent folder. The file is opened with `FileMode.CreateNew`.
+  full path as above. The tool asks again when the path is an existing file or a folder. When the
+  parent folder is missing, it asks `Create it? [Y/n]` naming the parent's full path; yes calls
+  `Directory.CreateDirectory` (every missing level), no asks for the path again (PDR-0062). The
+  file is opened with `FileMode.CreateNew`.
 - Import path: asked again when it is missing or a folder.
 
 ### Private keys — ADR-0014
@@ -560,8 +568,12 @@ Validation for every block: `dotnet build Umbraco.Community.Licensing.slnx`,
 - [600,000 PBKDF2 iterations cost about half a second per unlock and per signing] → Acceptable
   for a person at a terminal (ADR-0021).
 - [First push of a new package ID under Trusted Publishing] → The policy is per repository and
-  workflow (ADR-0008); if nuget.org refuses, Carl publishes the first tool version with a
-  short-lived API key and records it in follow-ups.md.
+  workflow (ADR-0008) and lists every package ID it may push. Release 0.1.0-beta.8 published the
+  library alone: the tool's ID was not in the policy (follow-ups row 195). Carl added it and
+  0.1.0-beta.9 published both (PDR-0058). `docs/releasing.md` lists both IDs in the policy setup.
+- [A backward wall-clock step lengthens the idle lock by the size of the step] → Accepted (Carl,
+  2026-11-12; follow-ups row 187). The wall clock is kept so a sleeping laptop still locks;
+  locking when either clock passes was not taken (ADR-0021).
 - [Lockstep versions: a tool-only fix bumps the library version] → Accepted in beta (ADR-0011).
 - [Tool uses library internals through `InternalsVisibleTo`] → Safe: the tool package bundles
   the library assembly it was built with, and both release at one version (ADR-0011). A library

@@ -187,13 +187,32 @@ public class KeyExportTests : IDisposable
     }
 
     [Fact]
-    public void MissingParentFolder_IsAskedAgain_AndNoFolderIsCreated()
+    public void MissingParentFolder_Declined_IsAskedAgain_AndNoFolderIsCreated()
     {
-        var console = Export(ActiveKeyId(), Path.Combine("nowhere", "k.csv"), "k.csv");
+        var console = Export(ActiveKeyId(), Path.Combine("nowhere", "k.csv"), "n", "k.csv");
 
-        Assert.Contains("does not exist. Give the path again; no folder is created.", console.Out);
+        Assert.Contains($"The folder {PathOf("nowhere")} does not exist.", console.Out);
         Assert.False(Directory.Exists(PathOf("nowhere")));
         Assert.True(File.Exists(PathOf("k.csv")));
+    }
+
+    [Fact]
+    public void MissingParentFolder_Created_ThenTheFileIsWritten()
+    {
+        var console = Export(ActiveKeyId(), Path.Combine("a", "b", "k.csv"), "y");
+
+        Assert.True(File.Exists(Path.Combine(PathOf("a"), "b", "k.csv")));
+        Assert.Contains($"to {Path.Combine(PathOf("a"), "b", "k.csv")}.", console.Out);
+    }
+
+    [Fact]
+    public void HomeFolderTypedAsTilde_WritesUnderHome()
+    {
+        var console = Export(ActiveKeyId(), "~/k.csv");
+
+        var file = Path.Combine(_kit.Host.Home, "k.csv");
+        Assert.True(File.Exists(file));
+        Assert.Contains($"to {file}.", console.Out);
     }
 
     [Fact]

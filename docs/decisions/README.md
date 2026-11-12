@@ -56,7 +56,7 @@ Deferred. Update this index in the same change as any status line.
 | [PDR-0042](0042-text-rule-allows-characters-by-kind.md) | Text rule allows characters by kind | Decided |
 | [PDR-0043](0043-vendor-tool-typed-values.md) | Vendor tool typed values | Decided |
 | [PDR-0044](0044-switch-off-means-not-granted.md) | A switch typed as off means not granted | Amended by PDR-0048 |
-| [PDR-0045](0045-tool-never-overwrites-files-or-creates-folders.md) | The tool never overwrites a file or creates a folder it was not asked for | Amended by PDR-0048 |
+| [PDR-0045](0045-tool-never-overwrites-files-or-creates-folders.md) | The tool never overwrites a file or creates a folder it was not asked for | Amended by PDR-0048, PDR-0062 |
 | [PDR-0046](0046-records-portable-to-a-central-database.md) | Records can move to a central database | Decided |
 | [PDR-0047](0047-switch-confirms-when-new-key-not-in-a-release.md) | A switch confirms whenever the new active key is not in a release | Amended by PDR-0050, PDR-0051 |
 | [PDR-0048](0048-vendor-tool-menu-session.md) | The vendor tool runs as a menu session | Amended by PDR-0050, PDR-0052, PDR-0053 |
@@ -72,6 +72,8 @@ Deferred. Update this index in the same change as any status line.
 | [PDR-0058](0058-partly-published-release-is-failed.md) | A partly published release is a failed release | Decided |
 | [PDR-0059](0059-clearing-customer-details-asks-first.md) | Clearing customer details asks first | Decided |
 | [PDR-0060](0060-release-run-does-not-check-timing.md) | The release run does not check timing | Decided |
+| [PDR-0061](0061-typed-path-may-start-with-tilde.md) | A typed path may start with `~` for the home folder | Decided |
+| [PDR-0062](0062-missing-output-folder-created-after-asking.md) | A missing output folder is created after asking | Decided |
 
 ## Template
 

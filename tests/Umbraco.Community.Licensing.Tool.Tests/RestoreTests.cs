@@ -186,6 +186,30 @@ public class RestoreTests : IDisposable
         AssertNothingMade(_target);
     }
 
+    [Fact]
+    public void ImportPathTypedWithTilde_IsReadFromHome_AndRestores()
+    {
+        var zip = Backup;
+        File.Copy(zip, Path.Combine(_target.Home, "b.zip"));
+
+        var console = Run(_target, OfferRestore("~/b.zip").Line("0"));
+
+        Assert.Equal(Content(_source.HomeInstallation), Content(_target.HomeInstallation));
+        Assert.DoesNotContain("does not exist", console.Out);
+    }
+
+    [Fact]
+    public void ImportPathWithTildeInAName_IsReadFromTheCurrentFolder_NotHome()
+    {
+        var zip = Backup;
+        File.Copy(zip, Path.Combine(_target.Home, "~b.zip"));
+        File.Copy(zip, Path.Combine(_target.Cwd, "~b.zip"));
+
+        Run(_target, OfferRestore("~b.zip").Line("0"));
+
+        Assert.Equal(Content(_source.HomeInstallation), Content(_target.HomeInstallation));
+    }
+
     // --- Restore to a new machine / another operating system
 
     [Fact]

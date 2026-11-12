@@ -15,7 +15,7 @@ and files), ADR-0011 (tool package), ADR-0016 (GitHub Release job).
 | `RELEASES.md` | Repository root | One row per release attempt, newest first. Rows added only by the release command |
 | Release command | `node tools/release/release.mjs` | Works out the next version and tag, asks for a note, commits both files, pushes `main`, pushes the tag |
 | `ci.yml` | GitHub-hosted `ubuntu-latest` | Tool tests, build, test on every pull request to `main` and push to `main` |
-| `release.yml`, job `release` | Any self-hosted runner available to this repository | On a `release-*` tag: checks, tool tests, build, test, pack the library and the tool, **Package IDs**, install and run the tool from the pack folder, publish both. On manual dispatch: rehearsal, publishes nothing |
+| `release.yml`, job `release` | Any self-hosted runner available to this repository | On a `release-*` tag: checks, tool tests, build, test (without `Category=Performance`, PDR-0060), pack the library and the tool, **Package IDs**, install and run the tool from the pack folder, publish both. On manual dispatch: rehearsal, publishes nothing |
 | `release.yml`, job `github-release` | GitHub-hosted `ubuntu-latest` | On a `release-*` tag, only after job `release` passed: creates the GitHub Release on the tag. The only job with write access to the repository |
 | `all-platforms.yml` | GitHub-hosted Windows, Linux, macOS | Disabled. See [Pre-1.0 all-platform step](#pre-10-all-platform-step) |
 
@@ -71,13 +71,16 @@ every workflow change in a pull request before approving its run.
    | Repository | `Umbraco.Community.Licensing` |
    | Workflow file | `release.yml` |
    | Environment | empty |
+   | Scopes | Push new packages and package versions |
+   | Glob patterns and packages | `Umbraco.Community.Licensing` and `Umbraco.Community.Licensing.Tool`, one per line |
 
 3. Repository **Settings → Secrets and variables → Actions → Variables**: add `NUGET_USER` with
    value `CarlCod_es`, the user who created the policy.
 
-The policy covers both packages. The first release that includes the tool creates the package ID
-`Umbraco.Community.Licensing.Tool` on nuget.org; if nuget.org refuses that push, see [Failed
-releases and re-runs](#failed-releases-and-re-runs).
+The policy pushes only the package IDs it lists, so both must be listed; a package added to the
+release later needs its ID added here first. Release 0.1.0-beta.8 published the library alone
+because the tool's ID was missing: nuget.org answered 403 "does not have permission to access the
+specified package" (see [Failed releases and re-runs](#failed-releases-and-re-runs)).
 
 No API key is stored. Each release run exchanges its OIDC token for a short-lived key. Renaming
 `release.yml` breaks publishing until the policy is updated.
@@ -126,6 +129,8 @@ Before you start:
   alone: the command commits only its two files.
 - Node.js 22 or later, in an interactive terminal. With no terminal attached the command refuses.
 - A release runner online, or the run queues.
+- The latest CI run on `main` passed. It runs the performance tests the release run leaves out
+  (PDR-0060); the release command does not check it.
 
 Run from anywhere in the repository:
 
@@ -229,7 +234,7 @@ A refused tag stays on the remote. Delete it (`git push origin :refs/tags/<tag>`
 | **Push to NuGet** published the library but not the tool (nuget.org lists `Umbraco.Community.Licensing` at the version, not `Umbraco.Community.Licensing.Tool`) | A failed release (PDR-0058, PDR-0027). Leave the library version published; do not unlist it. No Release page is made, and the log row stays. Do not re-run the run: the library push would fail as a duplicate. Fix the cause, then run the release command again; the next number publishes both. That library version then has no matching tool version |
 | Job `release` passed, job `github-release` failed | The packages are published. Fix the cause if it is outside the repository (permissions, GitHub outage), then use **Re-run failed jobs**: it re-runs only `github-release`, reusing the package IDs from the passed job. Do not use **Re-run all jobs**: it fails at **Push to NuGet** as a duplicate and skips the Release. The re-run uses the script at the tagged commit; if the fix is a script or workflow change, or the log row at the tagged commit is missing or names another tag, create the Release by hand on the tag (title the version, body the `RELEASES.md` note and a nuget.org link per published package, prerelease below 1.0) and fix it for the next release |
 | nuget.org refuses the very first push of `Umbraco.Community.Licensing` under Trusted Publishing (already past: the library is published) | Publish that version once from a short-lived API key scoped to the package, then delete the key; record it in the change's `follow-ups.md` |
-| nuget.org refuses the first push of `Umbraco.Community.Licensing.Tool` under Trusted Publishing | Watch for this on the first release that includes the tool. The library is normally pushed first, so it is then published alone: the partial publish above (PDR-0058). Fix the policy, then release again with the release command; the next number publishes both and supersedes the library-only version |
+| **Push to NuGet** fails with 403 "does not have permission to access the specified package" for one package | That package's ID is not in the Trusted Publishing policy's package list (happened at 0.1.0-beta.8 for the tool). The library is pushed first, so it may be published alone: the partial publish above (PDR-0058). Add the ID to the policy (see [nuget.org Trusted Publishing](#nugetorg-trusted-publishing)), then release again with the release command; the next number publishes both |
 
 Re-running a tag run re-checks against the current `origin/main`. Commits added to `main` since
 do not affect it: the tagged commit is still on `main`, so the check still passes.

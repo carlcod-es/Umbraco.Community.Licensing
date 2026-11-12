@@ -1,6 +1,6 @@
 # ADR-0019: Vendor tool typed values, matching and named files
 
-- Status: Amended by ADR-0020
+- Status: Amended by ADR-0020; named files amended for PDR-0061 and PDR-0062 (2026-11-12)
 - Date: 2026-11-08
 - Source: `add-vendor-tool` design.md Q37, Q38, Q39, Q40, Q42. Amends ADR-0003, ADR-0013.
 
@@ -39,9 +39,14 @@ from Unicode 16.0.0 (ADR-0018). `ContentRules.CheckDisplayName` is internal. The
 - **Passphrase rule**: every UTF-16 code unit in U+0020 to U+007E, length 15 to 256, first and
   last not U+0020. Checked at setup. Later prompts check only against the stored passphrase check
   (ADR-0014). A non-ASCII key at the hidden prompt is taken as typed and then fails the rule.
+- **Typed paths** (2026-11-12, PDR-0061): before resolving, a leading `~` alone, or `~` followed
+  by `/` (and `\` on Windows), is replaced by `ToolEnvironment.Home`; no environment variable is
+  read. Every other `~` is left as typed.
 - **Named output files** (backup export, key export): the path is resolved with
-  `Path.GetFullPath`. The tool refuses and asks again at the prompt when any of these is true:
-  the path exists as a file, the path is a folder, or the parent folder does not exist. This
+  `Path.GetFullPath`. The tool refuses and asks again at the prompt when the path exists as a
+  file or is a folder. When the parent folder does not exist, it names the parent's full path and
+  asks `Create it? [Y/n]`; yes calls `Directory.CreateDirectory`, no asks for the path again
+  (2026-11-12, PDR-0062; until then a missing parent was refused). This
   applies whether the path came from `--out` or from a prompt. The file is opened with
   `FileMode.CreateNew`, so a file created between the check and the write is never replaced.
   Backup export writes its `VACUUM INTO` snapshot to a temp file, then zips it into that stream.

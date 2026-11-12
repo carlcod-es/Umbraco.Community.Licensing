@@ -375,7 +375,7 @@ public class LicenseIssueTests : IDisposable
         Directory.CreateDirectory(Path.Combine(_host.Cwd, "keys"));
         var console = Open(shared: false);
         Questions(console).Line("").Hidden(Words).Line("y")
-            .Line("taken.txt").Line("keys").Line(Path.Combine("nowhere", "k.txt")).Line("fresh.txt");
+            .Line("taken.txt").Line("keys").Line(Path.Combine("nowhere", "k.txt")).Line("n").Line("fresh.txt");
         Quit(console);
 
         Run(console);
@@ -383,7 +383,7 @@ public class LicenseIssueTests : IDisposable
         Assert.Equal("keep me", File.ReadAllText(existing));
         Assert.Contains($"The file {existing} already exists and is not replaced", console.Out);
         Assert.Contains(" is a folder. Give a file name.", console.Out);
-        Assert.Contains("does not exist", console.Out);
+        Assert.Contains($"The folder {Path.Combine(_host.Cwd, "nowhere")} does not exist.", console.Out);
         Assert.False(Directory.Exists(Path.Combine(_host.Cwd, "nowhere")));
         Assert.Equal(KeyStringOf(console), File.ReadAllText(Path.Combine(_host.Cwd, "fresh.txt")));
         Assert.Single(Licenses());
@@ -401,6 +401,45 @@ public class LicenseIssueTests : IDisposable
         Assert.Single(Licenses());
         Assert.Contains(LicenseActions.NotSaved, console.Out);
         Assert.Empty(Directory.GetFileSystemEntries(_host.Cwd));
+    }
+
+    [Fact]
+    public void KeySavedToAFile_TypedWithTilde_IsWrittenUnderHome()
+    {
+        var console = Open(shared: false);
+        Questions(console).Line("").Hidden(Words).Line("y").Line("~/key.txt");
+        Quit(console);
+
+        Run(console);
+
+        var path = Path.Combine(_host.Home, "key.txt");
+        Assert.Equal(KeyStringOf(console), File.ReadAllText(path));
+        Assert.Contains($"Saved the key to {path}", console.Out);
+    }
+
+    [Fact]
+    public void KeySavedToAFile_MissingFolder_Created()
+    {
+        var console = Open(shared: false);
+        Questions(console).Line("").Hidden(Words).Line("y").Line(Path.Combine("x", "y", "k.txt")).Line("y");
+        Quit(console);
+
+        Run(console);
+
+        Assert.Equal(KeyStringOf(console), File.ReadAllText(Path.Combine(_host.Cwd, "x", "y", "k.txt")));
+    }
+
+    [Fact]
+    public void KeySavedToAFile_MissingFolder_Cancelled_CreatesNothing()
+    {
+        var cancelled = Open(shared: false);
+        Questions(cancelled).Line("").Hidden(Words).Line("y").Line(Path.Combine("p", "k.txt")).Line("/cancel");
+        Quit(cancelled);
+
+        Run(cancelled);
+
+        Assert.Contains(LicenseActions.NotSaved, cancelled.Out);
+        Assert.False(Directory.Exists(Path.Combine(_host.Cwd, "p")));
     }
 
     [Fact]

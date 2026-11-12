@@ -10,9 +10,12 @@ public sealed class NamedFilesTests : IDisposable
 
     private string P(params string[] parts) => Path.Combine([_dir, .. parts]);
 
+    private string Home => P("home");
+
     private (NamedFiles N, ScriptedConsole C) Make(ScriptedConsole c, Action<string>? between = null)
     {
-        var env = new ToolEnvironment(c, new FakeTimeProvider(), "h", _dir, 1);
+        Directory.CreateDirectory(Home);
+        var env = new ToolEnvironment(c, new FakeTimeProvider(), Home, _dir, 1);
         return (new NamedFiles(env, new Questions(c), between), c);
     }
 
@@ -45,13 +48,121 @@ public sealed class NamedFilesTests : IDisposable
     }
 
     [Fact]
-    public void Output_MissingParentFolder_SaysSoWithFullPathAsksAgain_CreatesNoFolder()
+    public void Output_MissingParentFolder_Declined_NamesItInFull_AsksAgain_CreatesNoFolder()
     {
-        var (n, c) = Make(new ScriptedConsole().Line(P("Dropbx", "x.zip")).Line(P("x.zip")));
+        var (n, c) = Make(new ScriptedConsole().Line(P("Dropbx", "x.zip")).Line("n").Line(P("x.zip")));
 
         Assert.Equal(P("x.zip"), n.AskOutputPath("Out"));
-        Assert.Contains($"The folder {P("Dropbx")} does not exist", c.Out);
+        Assert.Contains($"The folder {P("Dropbx")} does not exist.", c.Out);
+        Assert.Contains("Create it? [Y/n]", c.Out);
         Assert.False(Directory.Exists(P("Dropbx")));
+        Assert.Equal(2, CountOf(c.Out, "Out ("));
+    }
+
+    [Fact]
+    public void Output_MissingParentFolder_Yes_CreatesEveryLevel_AndWrites()
+    {
+        var (n, _) = Make(new ScriptedConsole().Line(P("a", "b", "x.zip")).Line("y"));
+
+        var path = n.AskAndWrite("Out", s => Text("data", s));
+
+        Assert.Equal(P("a", "b", "x.zip"), path);
+        Assert.Equal("data", File.ReadAllText(path));
+    }
+
+    [Fact]
+    public void Output_MissingParentFolder_Cancel_EndsTheActionAndCreatesNothing()
+    {
+        var (n, _) = Make(new ScriptedConsole().Line(P("a", "b", "x.zip")).Line("/cancel"));
+
+        Assert.Throws<ActionCancelledException>(() => n.AskAndWrite("Out", s => Text("x", s)));
+        Assert.False(Directory.Exists(P("a")));
+    }
+
+    [Fact]
+    public void Output_ExistingFile_IsAskedBeforeAnyFolderQuestion()
+    {
+        File.WriteAllText(P("a.zip"), "old");
+        var (n, c) = Make(new ScriptedConsole().Line(P("a.zip")).Line("ok.zip"));
+
+        n.AskOutputPath("Out");
+
+        Assert.DoesNotContain("Create it?", c.Out);
+    }
+
+    [Fact]
+    public void Tilde_Alone_IsTheHomeFolder_SoAFolder()
+    {
+        var (n, c) = Make(new ScriptedConsole().Line("~").Line("f.zip"));
+
+        Assert.Equal(P("f.zip"), n.AskOutputPath("Out"));
+        Assert.Contains($"{Home} is a folder", c.Out);
+    }
+
+    [Fact]
+    public void Tilde_Slash_ReadsFromHome_OutputAndImport_ShowingTheFullPath()
+    {
+        Directory.CreateDirectory(P("home", "Backups"));
+        File.WriteAllText(P("home", "Backups", "in.zip"), "z");
+        var (n, c) = Make(new ScriptedConsole().Line("~/Backups/out.zip").Line("~/Backups/in.zip"));
+
+        Assert.Equal(P("home", "Backups", "out.zip"), n.AskOutputPath("Out"));
+        Assert.Equal(P("home", "Backups", "in.zip"), n.AskImportPath("In"));
+        Assert.DoesNotContain("~", c.Out.Replace("(Enter", ""));
+    }
+
+    [Fact]
+    public void Tilde_Backslash_IsHomeOnlyOnWindows()
+    {
+        Directory.CreateDirectory(P("home", "B"));
+        File.WriteAllText(P("home", "B", "in.zip"), "z");
+        if (OperatingSystem.IsWindows())
+        {
+            var (n, _) = Make(new ScriptedConsole().Line(@"~\B\in.zip"));
+            Assert.Equal(P("home", "B", "in.zip"), n.AskImportPath("In"));
+        }
+        else
+        {
+            var (n, c) = Make(new ScriptedConsole().Line(@"~\B\in.zip").Line("/cancel"));
+            Assert.Throws<ActionCancelledException>(() => n.AskImportPath("In"));
+            Assert.Contains($"The file {P(@"~\B\in.zip")} does not exist.", c.Out);
+        }
+    }
+
+    [Theory]
+    [InlineData("~backups/x.zip")]
+    [InlineData("a~b.zip")]
+    [InlineData("~user/x.zip")]
+    public void TildeInAName_IsLeftAsTyped_ReadFromTheCurrentFolder(string typed)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(P(typed))!);
+        File.WriteAllText(P(typed), "z");
+        var (n, _) = Make(new ScriptedConsole().Line(typed));
+
+        Assert.Equal(P(typed), n.AskImportPath("In"));
+    }
+
+    [Fact]
+    public void NoEnvironmentVariableIsReadForTheHomeFolder()
+    {
+        // Source-level check (changing HOME in-process would race the parallel tests): the home folder
+        // comes from ToolEnvironment.Home alone (ADR-0017).
+        var source = File.ReadAllText(FindSource("NamedFiles.cs"));
+        foreach (var banned in new[] { "GetEnvironmentVariable", "ExpandEnvironmentVariables", "GetFolderPath", "USERPROFILE", "\"HOME\"" })
+            Assert.DoesNotContain(banned, source);
+        Assert.Contains("environment.Home", source);
+    }
+
+    private static string FindSource(string file)
+    {
+        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
+        {
+            var candidate = Path.Combine(dir.FullName, "src", "Umbraco.Community.Licensing.Tool", file);
+            if (File.Exists(candidate))
+                return candidate;
+        }
+
+        throw new FileNotFoundException(file);
     }
 
     [Fact]
@@ -146,7 +257,7 @@ public sealed class NamedFilesTests : IDisposable
         var (n, _) = Make(new ScriptedConsole().Line("/cancel"));
 
         Assert.Throws<ActionCancelledException>(() => n.AskAndWrite("Out", s => Text("x", s)));
-        Assert.Empty(Directory.GetFileSystemEntries(_dir));
+        Assert.Equal([Home], Directory.GetFileSystemEntries(_dir));
     }
 
     [Fact]
