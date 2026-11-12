@@ -19,7 +19,7 @@ Cite as FR-N.
 | FR-10 | Version marker for each release | Carl, 2026-10-27 | Closed by `add-github-release` (design.md Q1 to Q6; PDR-0037, ADR-0016); first GitHub Release `0.1.0-beta.6`, 2026-10-28 |
 | FR-11 | Private-key export from the vendor tool | `add-vendor-tool` explore, 2026-10-28 | Open |
 | FR-12 | Change the vendor tool passphrase | `add-vendor-tool` explore, 2026-10-28 | Open |
-| FR-13 | Richer console prompts in the vendor tool | Carl, 2026-10-28 | Open |
+| FR-13 | Richer console prompts in the vendor tool | Carl, 2026-10-28 | Taken into `add-vendor-tool-rich-console` (design.md Q1 to Q11; PDR-0063 to PDR-0066, ADR-0025); applied after `add-vendor-tool` is archived |
 | FR-14 | Retire a feature definition | `add-vendor-tool` explore, 2026-10-28 | Open |
 | FR-15 | Standby key stored apart from the active key | `add-vendor-tool` explore, 2026-10-28 | Open |
 | FR-16 | Import licenses issued before the vendor tool | `add-vendor-tool` explore, 2026-10-28 | Open |
@@ -368,6 +368,9 @@ which passphrase each backup needs.
 Spectre.Console (Carl, 2026-10-28).
 
 **Related.** ADR-0012 (BCL console prompts in `add-vendor-tool`).
+
+**Status.** Taken into `add-vendor-tool-rich-console` (Carl, 2026-11-12): bring `ucl` in line with
+Package Script Writer's `psw` tool. design.md Q1 to Q11; PDR-0063 to PDR-0066, ADR-0025.
 
 ## FR-14: Retire a feature definition
 

@@ -1,6 +1,6 @@
 # PDR-0044: A switch typed as off means not granted
 
-- Status: Amended by PDR-0048
+- Status: Amended by PDR-0048, PDR-0064
 - Date: 2026-11-08
 - Source: `add-vendor-tool` design.md Q41. Amends PDR-0034. Builds on PDR-0010.
 - Personas: vendor (the obvious answer to "on or off?" works at the prompt and on the command).

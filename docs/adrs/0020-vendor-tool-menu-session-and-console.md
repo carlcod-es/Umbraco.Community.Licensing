@@ -1,6 +1,6 @@
 # ADR-0020: Vendor tool menu session and console
 
-- Status: Decided
+- Status: Amended by ADR-0025
 - Date: 2026-11-08
 - Source: `add-vendor-tool` design.md Q59, Q61, Q63, Q65. Supersedes ADR-0012. Amends ADR-0013, ADR-0017,
   ADR-0019.

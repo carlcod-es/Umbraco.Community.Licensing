@@ -28,11 +28,12 @@ Deferred. Update this index in the same change as any status line.
 | [ADR-0014](0014-vendor-tool-private-key-encryption.md) | Vendor tool private-key encryption | Amended by ADR-0021 |
 | [ADR-0015](0015-vendor-tool-backup-and-export-formats.md) | Vendor tool backup and export formats | Amended by ADR-0023 |
 | [ADR-0016](0016-github-release-job.md) | GitHub Release job in the release run | Decided |
-| [ADR-0017](0017-vendor-tool-guided-console-and-startup.md) | Vendor tool guided console and startup | Amended by ADR-0020 |
+| [ADR-0017](0017-vendor-tool-guided-console-and-startup.md) | Vendor tool guided console and startup | Amended by ADR-0020, ADR-0025 |
 | [ADR-0018](0018-text-rule-character-table.md) | Text rule character table | Decided |
 | [ADR-0019](0019-vendor-tool-typed-values-and-named-files.md) | Vendor tool typed values, matching and named files | Amended by ADR-0020; named files amended for PDR-0061 and PDR-0062 (2026-11-12) |
-| [ADR-0020](0020-vendor-tool-menu-session-and-console.md) | Vendor tool menu session and console | Decided |
+| [ADR-0020](0020-vendor-tool-menu-session-and-console.md) | Vendor tool menu session and console | Amended by ADR-0025 |
 | [ADR-0021](0021-vendor-tool-session-passphrase-and-idle-lock.md) | Vendor tool session passphrase and idle lock | Amended by ADR-0022 |
 | [ADR-0022](0022-vendor-tool-release-marks-installation-switch-and-pasted-keys.md) | Vendor tool release marks, installation switch and pasted keys | Decided |
 | [ADR-0023](0023-vendor-tool-backup-version-check.md) | Vendor tool backup version check | Decided |
 | [ADR-0024](0024-release-run-skips-performance-tests.md) | Release run skips the performance tests | Decided |
+| [ADR-0025](0025-vendor-tool-rich-console-rendering.md) | Vendor tool rich console rendering | Decided |
