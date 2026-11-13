@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Acme.ContactForm.Licensing;
 using Umbraco.Community.Licensing;
 
 namespace Acme.ContactForm.Tests;
@@ -9,7 +10,6 @@ namespace Acme.ContactForm.Tests;
 /// </summary>
 public class DemoKeyTests
 {
-    private const string Product = "acme.contact-form";
     private const string UntrustedKeyId = "3gpjfm6DKNU";
 
     private static readonly string[] ExpectedNames =
@@ -23,8 +23,8 @@ public class DemoKeyTests
     public static TheoryData<string> EntryNames => [.. Entries.Select(e => e.Name)];
 
     private static LicenseEvaluator EvaluatorAt(DateTimeOffset now) => new(
-        Product,
-        TrustedSigningKeys.Create(DemoKeyFiles.LoadPublic("demo.public.txt")),
+        ContactFormProduct.ProductId,
+        ContactFormProduct.TrustedSigningKeys,
         new DemoKeyFile.FixedTimeProvider(now));
 
     private static DateTimeOffset ClockFor(DemoKeyEntry entry) =>
@@ -77,7 +77,7 @@ public class DemoKeyTests
     [Fact]
     public void The_untrusted_key_is_not_trusted()
     {
-        var trusted = TrustedSigningKeys.Create(DemoKeyFiles.LoadPublic("demo.public.txt"));
+        var trusted = ContactFormProduct.TrustedSigningKeys;
         Assert.False(trusted.Contains(UntrustedKeyId));
         Assert.Equal(UntrustedKeyId, DemoKeyFiles.LoadPublic("untrusted.public.txt").SigningKeyId);
 

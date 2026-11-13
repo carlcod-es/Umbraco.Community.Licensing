@@ -65,3 +65,26 @@ dotnet run --project samples/Acme.ContactForm.Tests -- -explicit only -method "*
 ```
 
 It prints the new JSON and replaces `Demo/demo-keys.json`. Regenerating replaces every key and identifier. It is not part of the normal test run.
+
+## Licensing/: what to copy
+
+A vendor builds the licensing for their own product by copying files from `Acme.ContactForm/Licensing/`:
+
+| File | What it is for |
+|---|---|
+| `ContactFormProduct.cs` | The product: its ID, its feature names and the public key it trusts, compiled in. Holds the one license evaluator. |
+| `ContactFormOptions.cs`, `ILicenseKeySource.cs` | The site owner's `ContactForm` settings and the key source that reads the key on every use, so a changed key needs no restart. |
+| `ContactFormLicensing.cs` | The snapshot check. It evaluates the key and answers what the product acts on: state, uploads, monthly limit, domain, days left. |
+| `FirstActions.cs` | The first action to tell a site owner for each state. |
+| `AdminLicenseStatus.cs`, `EditorLicenseBanner.cs` | The two projections of a snapshot: the full status for an administrator and a short banner for an editor. Neither holds the key. |
+| `LicenseStateLog.cs` | One warning each time the state changes, naming the key identifier and never the key. |
+
+The wiring is in `Extensions/` (`AddContactForm()`, which calls `AddContactFormLicensing()`) and `Composers/ContactFormComposer.cs`. Calling `AddContactForm()` from the composer and from `Program.cs` registers each service once.
+
+Change these in your copy:
+
+- The product ID in `ContactFormProduct`.
+- The public key in `ContactFormProduct`. Use your own, never the demo key.
+- The feature names, and the checks that use them in `ContactFormLicensing`.
+
+`Submissions/` is an in-memory stand-in for real storage behind `ISubmissionStore`. Replace it. `Demo/` is for the demo site only and is not to be copied.

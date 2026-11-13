@@ -147,3 +147,84 @@ Minors and nits from reviews. Read at the start of each apply session.
     update `ContactForm:LicenseKey` in the site's `appsettings.json`.
   - Section 8 / before push: committed demo PEMs may raise GitHub or gitleaks private-key alerts;
     dismiss as test data or allowlist `samples/demo-signing-keys/`.
+
+## Block 4.1–4.2 (reviewer, 2026-11-13, APPROVED after one rework)
+
+- Rework: the renewal test now uses a real `IOptionsMonitor` with a configuration reload (the major from the first review).
+- **nit**: `samples/Acme.ContactForm.Tests/LicensingCoreTests.cs:82-88`
+  `Demo_is_off_by_default_and_binds_from_configuration` binds with `Get<>` rather than through
+  the monitor. Acceptable: it checks the default and the binding only.
+
+## Block 4.3 (reviewer, 2026-11-13, APPROVED)
+
+- **minor** (for 5.1): `samples/Acme.ContactForm/Licensing/ContactFormLicensing.cs:53` a zero or
+  negative `max-submissions-per-month` gives `OverLimit` from the first submission. `Check`
+  cannot throw; 5.1's controller must record the submission whatever `OverLimit` says (already
+  required by "Visitor never blocked"). Optionally treat a negative number as no limit.
+- **minor**: `ContactFormLicensing.cs:53` number feature floored and clamped to `int`; safe, but
+  add a comment and a test with a fractional or huge number.
+- **minor**: `ContactFormLicensing.cs:58-64` a `licensed-domains` of only commas gives an empty
+  list, so no host is covered. Strict reading of the spec; untested.
+- **nit**: `ContactFormLicensing.cs:46` `host ?? ""` on a non-nullable parameter.
+
+## Block 4.4 (reviewer, 2026-11-13, APPROVED)
+
+- **note**: `FirstActions` uses `#pragma warning disable CS8524` (undefined numeric enum values);
+  a new named state still fails the build (CS8509). Reached only from the admin projection.
+- **minor**: `samples/Acme.ContactForm/Licensing/AdminLicenseStatus.cs` `Feature` number format
+  `"0.############################"`; use `"G"` with the invariant culture.
+- **minor**: `LicenseProjectionTests.cs` no dashboard test asserts the claimed identifier, marked
+  unverified, for `SigningKeyNotRecognised` or `NotVerified` (spec names `WrongProduct` only).
+- **nit**: `AdminLicenseStatus.cs` `BuildDomain` "Not checked: … Host: {host}" lacks a full stop.
+- **nit**: `Dashboard_data_with_a_valid_key`/`_damaged_key` are subsets of the all-entries theory;
+  kept for the scenario names.
+
+## Block 4.5–4.6 (reviewer, 2026-11-13, APPROVED)
+
+- **minor**: `samples/Acme.ContactForm.Tests/AddContactFormTests.cs`
+  `A_site_key_in_configuration_reaches_the_snapshot` configures no key and asserts `Missing`
+  (misleading name); the twice-called test asserts only `NotEqual(Missing)` for the perpetual
+  full-plan key. Assert `Valid`, and rename or fix the other.
+- **minor / risk for section 6**: `samples/Acme.ContactForm/Extensions/ContactFormServiceCollectionExtensions.cs:20`
+  the guard returns early on any `ContactFormProduct` descriptor, skipping the options binding.
+  Section 6 brief: register demo services after `AddContactForm()` with `Replace` (product and
+  licensing get the demo clock; the store keeps the real clock), or guard on a dedicated marker.
+- **minor (accepted risk)**: `Extensions/UmbracoBuilderExtensions.cs` `AddContactForm()` is a
+  one-line delegate, compile-only, no test.
+- **nit**: `LicenseStateLogTests.cs` concurrency test uses 4 threads × 300 iterations; fast and
+  deterministic.
+
+## Section 4 (supervisor, 2026-11-13, APPROVED)
+
+- **minor** (section 6.1): `samples/Acme.ContactForm/Licensing/AdminLicenseStatus.cs:140-146`
+  dashboard data for "Fourth submission on a three-submission plan" (4 of 3, over limit) and the
+  over-limit report clearing in a new month are not asserted. Add with 6.1's controller tests.
+- **minor** (section 6.2): `Extensions/ContactFormServiceCollectionExtensions.cs:21` guard on a
+  private marker type instead of `ContactFormProduct` (confirms block 4.5–4.6 minor).
+- **minor** (section 6.2): `ContactFormServiceCollectionExtensions.cs:28-37` product, licensing
+  and store share the container's `TimeProvider`. Never register `DemoClock` as `TimeProvider`;
+  replace the product and licensing registrations with one `DemoClock` instance; the store keeps
+  `TimeProvider.System`.
+- **minor** (section 6.2): `Licensing/ContactFormLicensing.cs:33-38` the expiring-soon clock is
+  separate from the evaluator's. Expose `ContactFormProduct.Clock` and use it, dropping the
+  constructor parameter, so they cannot differ.
+- **minor** (section 5): `samples/README.md` "Licensing/: what to copy": `ContactFormLicensing`
+  needs `ISubmissionStore` (a monthly count) and `HostString`; say keep the interface and replace
+  only `InMemorySubmissionStore`.
+- **minor** (section 6 or 7): `AdminLicenseStatus.cs:148-153` `Domain.Covered` is true with text
+  "Not checked" when not `Valid`. Add `Checked`, or the client shows `Domain.Text` with no tick
+  unless `Valid`.
+- **nit / question for Carl**: `LicenseStateLog.cs:34` the first report each start logs a
+  warning, including "now Valid" on a healthy site. Matches the spec; Information for a first
+  `Valid` would change the spec wording.
+- **nit**: `InMemorySubmissionStore.cs:18-21` unbounded list on a public form; prototype, spam is
+  a non-goal. Comment or cap in 5.1.
+- **nit** (section 6.1): projection serialisation tests use Web defaults, not the Management
+  API's serializer; repeat the no-key/no-details checks on controller output.
+- **accepted**: `#pragma warning disable CS8524` in `FirstActions`; `AddContactForm()` compile-only.
+- **brief notes**: section 5 passes `Request.Host.Value ?? ""`, records whatever `OverLimit`,
+  `DomainCovered` or the state say, adds no state logging of its own, and the README regeneration
+  note says to update `ContactForm:LicenseKey` in the site's `appsettings.json`. Section 6.2
+  decorates `ILicenseKeySource` via `ActivatorUtilities.CreateInstance<ConfiguredLicenseKeySource>`,
+  registers demo services after `AddContactForm()`, reads `Demo:Enabled` at registration (no
+  runtime toggle). Section 7 shows a null banner as nothing.
