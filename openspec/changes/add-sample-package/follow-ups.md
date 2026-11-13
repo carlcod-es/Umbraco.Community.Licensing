@@ -519,3 +519,29 @@ Baseline for review: `35221e3`. No blockers or majors.
   fallbacks. Reword in a later worker-backend block (9.1).
 - **risks**: commit `git add --renormalize samples/Acme.ContactForm/Client` before section 8; CI
   cannot check `src/api/**` against the live OpenAPI document (section 8 to accept or add a check).
+
+## Block 8.1 (reviewer, 2026-11-13, APPROVED; task not ticked: GitHub run deferred to PO)
+
+- Acceptance: workflow content, "Library change", "Release run", every step run locally (npm ci,
+  npm run build, run-demo test 7/7, dotnet build 0 warnings, dotnet test 281 passed / 2 explicit
+  skipped) met. Green GitHub Actions run: deferred to Carl.
+- **minor (Carl to decide)**: `.github/workflows/sample.yml` paths omit `Version.props`, which the
+  library csproj imports; a change there does not trigger the sample run. Add it to both path
+  lists (opsx:update to design.md's path list) or accept.
+- **nit**: `node-version: 24` floats; `run-demo.mjs` needs ≥ 24.13 but CI does not run it; latest
+  24.x is above that.
+- **note**: local `npm ci` warns that esbuild/fsevents install scripts are not covered by
+  `allowScripts`; confirm esbuild works on the first Ubuntu run.
+
+## Section 8 (supervisor, 2026-11-13, APPROVED; 8.1 open until Carl reports the GitHub run)
+
+- Workflow matches design.md and ADR-0026; all commands re-run (sample, root solution, tools
+  148/148). Nothing found that fails only on Linux (import casing, csproj separators, esbuild and
+  rollup Linux binaries in the lockfile, untracked local files handled).
+- **minor (Carl to decide; supervisor recommends accepting)**: `Version.props` not in the paths. It
+  holds only version strings; `ci.yml` catches a malformed file; adding it means an Umbraco restore on
+  every version bump and an opsx:update to design.md and ADR-0026.
+- **nit**: `node-version: 24` floats (consistent with `ci.yml`); no `workflow_dispatch` (beyond design).
+- **risks**: confirm esbuild on the first Ubuntu run; do not make "Sample" a required check (path
+  filter would leave other PRs waiting); demo PEM alerts to dismiss; no NuGet cache (slower, correct);
+  9.1: `docs/development.md` gives Node 24.13+ and the local equivalent of `sample.yml`.
