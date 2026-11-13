@@ -78,9 +78,10 @@ Deferred. Update this index in the same change as any status line.
 | [PDR-0064](0064-switch-features-chosen-together.md) | Switch features are chosen together | Decided |
 | [PDR-0065](0065-review-before-signing.md) | Review before signing: Sign, Change answers or Cancel | Decided |
 | [PDR-0066](0066-vendor-tool-screen-presentation.md) | Vendor tool screen presentation | Decided |
-| [PDR-0067](0067-sample-product-package.md) | A sample product package shows the library in use | Decided |
+| [PDR-0067](0067-sample-product-package.md) | A sample product package shows the library in use | Amended by PDR-0070 |
 | [PDR-0068](0068-sample-shows-each-persona.md) | What the sample product shows each persona | Decided |
 | [PDR-0069](0069-sample-demo-keys-and-picker.md) | Sample demo keys and the demo key picker | Decided |
+| [PDR-0070](0070-sample-demo-administrator-committed.md) | The sample demo site has a committed demo administrator | Decided |
 
 ## Template
 

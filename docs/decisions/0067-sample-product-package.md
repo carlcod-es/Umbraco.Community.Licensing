@@ -1,6 +1,6 @@
 # PDR-0067: A sample product package shows the library in use
 
-- Status: Decided
+- Status: Amended by PDR-0070
 - Date: 2026-11-13
 - Source: `add-sample-package` design.md Q1, Q2, Q5, Q14, Q17. Takes up FR-3.
 - Personas: vendor (a working product to read and copy); implementor (a site to try keys in).

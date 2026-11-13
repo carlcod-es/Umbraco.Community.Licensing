@@ -4,7 +4,7 @@ Minors and nits from reviews. Read at the start of each apply session.
 
 ## Section 1 (supervisor, 2026-11-13)
 
-- **minor** (fixed in CLAUDE.md; design.md still to align via `opsx:update`): design.md:122
+- **minor** (resolved: CLAUDE.md fixed; design.md aligned by opsx:update, 2026-11-13): design.md:122
   says `Client/**` first creation is template output and every later edit is worker-frontend's,
   but design.md:228-229 has section 2 (worker-backend) apply the template patches. CLAUDE.md
   now says the patches are part of worker-backend's scaffold output; mirror that in
@@ -16,14 +16,14 @@ Minors and nits from reviews. Read at the start of each apply session.
 
 ## Section 2 (Architect, 2026-11-13)
 
-- **records drift** (needs `opsx:update`, Architect hat): ADR-0026 Decision and design.md
+- **records drift** (resolved by opsx:update, 2026-11-13): ADR-0026 Decision and design.md
   "Umbraco and packages" table still name `Umbraco.Cms.Web.BackOffice` (no 17.x release) and
   `Umbraco.Cms.Persistence.Sqlite` (transitive through `Umbraco.Cms`), and omit the packages
   Carl approved on 2026-11-13 from the 17.8.1 templates (`Umbraco.Cms.Web.Common`,
   `Umbraco.Cms.Api.Common`, `Swashbuckle.AspNetCore` 10.2.3, `Umbraco.Cms.DevelopmentMode.Backoffice`,
   `Microsoft.ICU.ICU4C.Runtime` 72.1.0.3). ADR-0026's approval line already records the
   approved set.
-- **records drift** (needs `opsx:update`): design.md (Context; Backoffice API and client) and
+- **records drift** (resolved by opsx:update, 2026-11-13): design.md (Context; Backoffice API and client) and
   task 2.2 say the template defects (hey-api peer minimum, 17 generator config, `hey-api.ts`
   cast) are patched in section 2 and listed in the sample README. On 17.8.1 none applied
   (worker-backend, verified by `npm ci`/`npm run build` unpatched). Reword to "checked; none
@@ -55,7 +55,7 @@ Minors and nits from reviews. Read at the start of each apply session.
 
 ## Section 2 (supervisor, 2026-11-13, APPROVED)
 
-- **minor**: ADR-0026 approval line names four npm packages; the template set also brings
+- **minor** (resolved: Carl confirmed, ADR-0026 names them): ADR-0026 approval line names four npm packages; the template set also brings
   `chalk` 5.6.2, `cross-env` 10.1.0 (unused by any script) and `node-fetch` 3.3.2. Asked Carl to
   confirm; then name them in the approval line.
 - **minor** (fixed): ADR-0026 approval line said "with the hey-api peer-version patch",

@@ -10,19 +10,19 @@ the sample ever being released.
 
 ### Requirement: Runs from a clone
 The repository SHALL hold a demo site with the sample product installed that starts with one
-documented command after cloning, with no database server, creates its first administrator
-from a local settings file the developer copies from a committed example, and contains a
-published page showing the contact form.
+documented command after cloning, with no database server and no setup step, creates its first
+administrator from demo credentials committed in the site's settings and documented as
+demo-only, and contains a published page showing the contact form.
 
 #### Scenario: First run
-- **WHEN** a developer clones the repository, copies the example local settings file, fills in
-  an administrator email and password, and runs the documented start command
+- **WHEN** a developer clones the repository and runs the documented start command
 - **THEN** the site starts, the page with the contact form is shown at the site root, and the
-  developer can log in to the backoffice with those details
+  developer can log in to the backoffice with the documented demo administrator
 
-#### Scenario: No administrator password committed
-- **WHEN** the repository is searched for the demo site's administrator password
-- **THEN** only placeholders are found, in the committed example file
+#### Scenario: Demo administrator documented as demo-only
+- **WHEN** a reader looks up the demo site's administrator login
+- **THEN** the sample documentation gives the email and password and states that they are for
+  the local demo only and must be changed in any site built from the sample
 
 ### Requirement: Demo signing keys
 The repository SHALL hold a demo signing key pair, both halves committed, used to sign the demo

@@ -11,8 +11,6 @@ const samplesDir = path.dirname(fileURLToPath(import.meta.url));
 const clientDir = path.join(samplesDir, 'Acme.ContactForm', 'Client');
 const bundleDir = path.join(samplesDir, 'Acme.ContactForm', 'wwwroot', 'App_Plugins', 'AcmeContactForm');
 const siteDir = path.join(samplesDir, 'Acme.ContactForm.Site');
-const localSettings = path.join(siteDir, 'appsettings.Local.json');
-const exampleSettings = path.join(siteDir, 'appsettings.Local.example.json');
 
 export const MIN_NODE = [24, 13];
 
@@ -66,15 +64,6 @@ function run(command, args, cwd) {
 function main() {
   if (!nodeVersionOk()) {
     console.error(`Node ${MIN_NODE.join('.')} or newer is required (this is ${process.versions.node}).`);
-    process.exit(1);
-  }
-
-  if (!fs.existsSync(localSettings)) {
-    console.error(
-      `Missing ${path.relative(process.cwd(), localSettings)}.\n` +
-        `Copy ${path.relative(process.cwd(), exampleSettings)} to appsettings.Local.json in the same folder,\n` +
-        'then set an administrator email and password in it. See samples/README.md.',
-    );
     process.exit(1);
   }
 

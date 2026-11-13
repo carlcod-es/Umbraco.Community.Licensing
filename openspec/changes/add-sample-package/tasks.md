@@ -6,7 +6,7 @@ Validation for every worker block: `dotnet build samples/Acme.ContactForm.slnx` 
 `dotnet build Umbraco.Community.Licensing.slnx` and `node --test "tools/**/*.test.mjs"`. Bar:
 prototype, licensing code at production care (design.md Bar). Test names follow spec scenario
 names. Specs: `specs/sample-package/spec.md`, `specs/sample-demo-site/spec.md`. Records:
-PDR-0067 to PDR-0069, ADR-0026 to ADR-0028. The library (`src/Umbraco.Community.Licensing`)
+PDR-0067 to PDR-0070, ADR-0026 to ADR-0028. The library (`src/Umbraco.Community.Licensing`)
 and `release.yml` are not changed by any task.
 
 ## 1. Ownership
@@ -19,12 +19,13 @@ Depends on: none. Owner: Architect.
 
 Depends on: 1, and Carl's approval of the packages in design.md (Umbraco and packages). Owner:
 worker-backend (including the first creation of `Client/**` as template output; `.gitignore`
-assigned in the brief). Records: ADR-0026, ADR-0027.
+assigned in the brief). Records: ADR-0026, ADR-0027, PDR-0070 (task 2.5).
 
 - [x] 2.1 Record Carl's package approval (date, exact Umbraco 17.x version, npm versions) in ADR-0026 (Architect, before the brief), then create `samples/Directory.Build.props` (imports the root props; `WarningsNotAsErrors` NU1901 to NU1904; `IsPackable=false`) and `samples/Acme.ContactForm.slnx` holding the package, site and tests projects, and verify `dotnet build samples/Acme.ContactForm.slnx` passes with no warnings and `dotnet build Umbraco.Community.Licensing.slnx` is unchanged (same project list, no new package)
 - [x] 2.2 Scaffold `samples/Acme.ContactForm` from the Umbraco 17 `umbraco-extension` template and `samples/Acme.ContactForm.Site` from the `umbraco` template (SQLite, unattended install), both from a temporary template hive, with a project reference from the package to the library and from the site to the package; apply the template patches listed in design.md (Backoffice API and client); move unattended credentials to the gitignored `appsettings.Local.json` with a committed `appsettings.Local.example.json` of placeholders; add sample build output, `node_modules`, the client bundle and the site's SQLite and `umbraco/` runtime folders to `.gitignore`; and verify `npm ci` and `npm run build` in `Client`, the solution build, that `git status` shows no build output, database or `appsettings.Local.json`, and that a search of the repo for the password typed during verification finds nothing ("No administrator password committed")
 - [x] 2.3 Create `samples/Acme.ContactForm.Tests` (xUnit v3 `[4.0.1]`, no mocking package, project reference to the package) with one smoke test that the package assembly loads, and verify `dotnet test --solution samples/Acme.ContactForm.slnx` runs it
 - [x] 2.4 Add `samples/run-demo.mjs` (Node, no packages): `npm ci` when `Client/node_modules` is missing, `npm run build` when the bundle is missing or older than `Client/src`, then `dotnet run --project samples/Acme.ContactForm.Site`; start `samples/README.md` with prerequisites (.NET 10 SDK, Node 24.13+), the local settings step and this command; and verify by running it from a fresh clone of the working tree on macOS that the site reaches the Umbraco login, and by a `node --test` unit test of its "needs build" decision
+- [ ] 2.5 Commit the demo administrator of PDR-0070 (`demo@acme.example`, `Acme-Demo-Only-1`) in the unattended section of the site's `appsettings.Development.json`; delete `appsettings.Local.example.json` (keep `appsettings.Local.json` gitignored as an optional override); remove the local settings check from `run-demo.mjs` and its test, and the copy step from `samples/README.md`; give the login in `samples/README.md` as local-demo-only, to be changed in any site built from the sample; and verify "First run" from a fresh copy of the working tree with no `appsettings.Local.json` (site reaches the backoffice and the demo login works) and "Demo administrator documented as demo-only"
 
 ## 3. Demo signing keys and demo key set
 
@@ -99,7 +100,7 @@ Depends on: 4 to 8. Owner: Architect.
 
 Depends on: 9. Owner: Carl.
 
-- [ ] 10.1 From a fresh clone: copy the example local settings, set an administrator, run `node samples/run-demo.mjs`, log in, and verify "First run" and "Fresh clone"; record the result here
+- [ ] 10.1 From a fresh clone: run `node samples/run-demo.mjs`, log in with the documented demo administrator, and verify "First run" and "Fresh clone"; record the result here
 - [ ] 10.2 As administrator, choose each picker entry in turn and check the licensing dashboard against its row in the demo key table; with "Damaged key" and "Expired", open the public page and its source; and verify "Valid small plan", "Wrong product", "Expired shows what lapsed", "Every state has its action" (seven states shown; `NotSupported` by test only), "Submission with a damaged key" and "Visitor page with an expired key"; record the result here
 - [ ] 10.3 Create an editor user with Content but not Settings access, sign in as them with "Missing", "Valid: small plan" after four submissions, "Valid: another domain" and "Valid: expiring soon" chosen, and verify each banner, "Valid and within limits" with the full plan, that the Settings dashboard is not shown, and that opening `license/status` directly is refused; record the result here
 - [ ] 10.4 Verify "Choose Expired" (dashboard, editor banner, no upload field on the public page), "Settings unchanged" (`git status` clean after choosing), "Restart" (configured key after restarting), "Expiring soon at its demo date", and "Demo setting off" (set `ContactForm:Demo:Enabled` false, restart: no picker); record the result here
