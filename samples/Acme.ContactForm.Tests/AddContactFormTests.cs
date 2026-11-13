@@ -1,4 +1,5 @@
 using Acme.ContactForm.Extensions;
+using Acme.ContactForm.Form;
 using Acme.ContactForm.Licensing;
 using Acme.ContactForm.Submissions;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +21,8 @@ public class AddContactFormTests
         typeof(ISubmissionStore),
         typeof(LicenseStateLog),
         typeof(ContactFormLicensing),
+        typeof(ContactFormViewModelBuilder),
+        typeof(ContactFormHandler),
     ];
 
     [Fact]
@@ -47,7 +50,7 @@ public class AddContactFormTests
         Assert.Same(licensing, provider.GetRequiredService<ContactFormLicensing>());
 
         var snapshot = licensing.Check("localhost");
-        Assert.Equal(ConfiguredLicenseKeySource.Name, snapshot.KeySourceName);
+        Assert.Equal("Configured key", snapshot.KeySourceName);
         Assert.NotEqual(LicenseState.Missing, snapshot.State);
     }
 

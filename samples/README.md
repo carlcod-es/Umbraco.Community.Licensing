@@ -28,7 +28,7 @@ When the site is up, browse to <http://localhost:15329> and log in at <http://lo
 
 This login is public and is for the local demo only. Change it in any site you build from this sample.
 
-The first start installs Umbraco, so it takes a little longer.
+The first start installs Umbraco, so it takes a little longer. It also seeds a home page with the contact form at `/`.
 
 ## Notes
 
@@ -64,7 +64,7 @@ To issue the whole set again, for example after a change to the key format, run 
 dotnet run --project samples/Acme.ContactForm.Tests -- -explicit only -method "*DemoKeyGenerator*" -showLiveOutput
 ```
 
-It prints the new JSON and replaces `Demo/demo-keys.json`. Regenerating replaces every key and identifier. It is not part of the normal test run.
+It prints the new JSON and replaces `Demo/demo-keys.json`. Regenerating replaces every key and identifier, including the full-plan key, so update `ContactForm:LicenseKey` in `Acme.ContactForm.Site/appsettings.json` afterwards. It is not part of the normal test run.
 
 ## Licensing/: what to copy
 
@@ -86,5 +86,9 @@ Change these in your copy:
 - The product ID in `ContactFormProduct`.
 - The public key in `ContactFormProduct`. Use your own, never the demo key.
 - The feature names, and the checks that use them in `ContactFormLicensing`.
+
+`ContactFormLicensing` needs `ISubmissionStore` (for the monthly count) and the request host. Keep the interface and replace only `InMemorySubmissionStore`.
+
+`Form/` is the public form: a view component, its view model, a surface controller and the handler it delegates to. The view model has `ShowUploads` only, so nothing else about the license reaches the page. Submissions are recorded whatever the license state; the file is read (name and size only) only when uploads are shown for that request. The view is `Views/Shared/Components/ContactForm/Default.cshtml`, compiled into the package.
 
 `Submissions/` is an in-memory stand-in for real storage behind `ISubmissionStore`. Replace it. `Demo/` is for the demo site only and is not to be copied.

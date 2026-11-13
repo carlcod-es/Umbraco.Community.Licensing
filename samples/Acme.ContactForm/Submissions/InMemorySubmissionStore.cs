@@ -2,6 +2,7 @@ namespace Acme.ContactForm.Submissions;
 
 /// <summary>Keeps submissions in memory while the site runs. Register as a singleton, with the real clock.
 /// An upload is kept as name and size only; a size supplied without a file name is dropped.</summary>
+// Unbounded on purpose: a real product needs real storage, and spam handling on a public form is out of scope here.
 public sealed class InMemorySubmissionStore(TimeProvider timeProvider) : ISubmissionStore
 {
     private readonly Lock _gate = new();

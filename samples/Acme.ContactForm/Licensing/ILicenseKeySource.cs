@@ -14,7 +14,7 @@ public interface ILicenseKeySource
 /// <summary>Reads the key from the site's configuration through the options monitor, never caching it.</summary>
 public sealed class ConfiguredLicenseKeySource(IOptionsMonitor<ContactFormOptions> options) : ILicenseKeySource
 {
-    public const string Name = "Site setting " + ContactFormOptions.LicenseKeySettingName;
+    public const string Name = "Configured key";
 
     public LicenseKeyReading Read()
     {

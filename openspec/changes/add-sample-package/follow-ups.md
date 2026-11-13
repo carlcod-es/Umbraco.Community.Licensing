@@ -251,3 +251,58 @@ Minors and nits from reviews. Read at the start of each apply session.
   Information for `Acme.*`, or a healthy start logs nothing.
 - **note for Carl**: renewing an expiring-soon key logs one Information line (condition back to
   plain `Valid`). Follows the spec; no scenario names it.
+
+## Block 5.1 (reviewer, 2026-11-13, APPROVED)
+
+- Acceptance met at handler and view-model-builder level for every demo key.
+- **minor**: `Form/ContactFormSurfaceController.cs` glue (ModelState, TempData, redirect) untested;
+  a `SurfaceController` needs Umbraco services and no mocking package is allowed. The rendered
+  page is checked in 5.2 (run the site) and 10.2.
+- **minor**: `ContactFormSurfaceController.cs:27` `[RequestSizeLimit]` 1 MB: an oversized post gets
+  a bare 413 and is not recorded, in every state (not a licensing refusal; design.md "Public
+  form" requires the cap). Untested beyond the constant.
+- **minor**: `Views/Shared/Components/ContactForm/Default.cshtml` does not repopulate fields after
+  a validation error.
+- **minor**: `ContactFormHandler.cs:41`, `ContactFormViewComponent.cs:11` a throwing key source
+  would fail the page; `Check` itself has no throw path. Configured source reads options only.
+- **nit**: `ContactFormHandler.cs:37` an empty file counts as no file.
+
+## Block 5.2 (reviewer, 2026-11-13, APPROVED; task not ticked, see below)
+
+- Restores `samples/Acme.ContactForm.Site/appsettings.Development.json`, deleted by accident in
+  `fc1f052` (Carl confirmed); byte-identical to `0b8ec61`.
+- Carl's added acceptance: no config effort for a cloner (no file to copy or edit, no env var,
+  no user secret, no dev certificate). Met: http-only first launch profile `http`.
+- **minor**: `Acme.ContactForm.Site/Properties/launchSettings.json` changed from CRLF to LF, so
+  the diff is the whole file. Restore CRLF or accept; optionally `.gitattributes` (Architect).
+- **minor**: `DemoContentSeeder` idempotence has no automated test; two-run evidence only.
+- **nit**: `DemoContentSeeder` reads the view with `File.ReadAllTextAsync` (BOM dropped from the
+  string); no runtime rewrite observed.
+- **nit**: `http` profile `launchBrowser: false`, unlike the others.
+- **Architect finding (out of scope, for triage)**: spec "Fresh clone" (sample-demo-site
+  spec.md:99) requires the source "Configured key"; `Licensing/ILicenseKeySource.cs`
+  `ConfiguredLicenseKeySource.Name` is "Site setting ContactForm:LicenseKey" (since 4.1). No test
+  asserts the name. 5.2 acceptance "Fresh clone" not met as written until resolved.
+
+## Section 5 (supervisor, 2026-11-13, APPROVED conditional on the 5.2 rework; rework APPROVED by reviewer)
+
+- Out-of-scope triage: "Configured key" source name rated **minor**; fixed in the 5.2 rework
+  (`ConfiguredLicenseKeySource.Name = "Configured key"`, literal asserted; "Fresh clone" at data
+  level in `SiteSettingsTests`; dashboard display in 10.1).
+- Rework also: upload cap enforced in `ContactFormHandler` (file over 1 MB not read, submission
+  kept); `[RequestSizeLimit]` dropped (observed ineffective under Umbraco: "request body size
+  limit could not be applied", 2 MB post accepted); seeder checks `Attempt.Success`;
+  `launchSettings.json` CRLF restored.
+- **minor (records, for Carl / opsx:update)**: design.md "Public form" says "Request size is
+  capped at 1 MB for the upload"; the request body is now accepted up to Kestrel's default
+  (~30 MB) and only the stored upload is capped. Reword, or add a site-wide body limit.
+- **nit**: `DemoContentSeeder.cs:64` logs `createdType.Result`, line 43 logs `created.Status`;
+  make both log the status.
+- **nit**: seeder failure path and surface controller glue untested (prototype bar).
+- **nit**: `Views/home.cshtml` has a BOM and no final newline (Umbraco write-back form); 10.1:
+  check `git status` clean after the first start.
+- **risks**: 6.2 picker's first entry uses `ConfiguredLicenseKeySource.Name`; one `DemoClock`
+  for evaluator and licensing, store keeps `TimeProvider.System`. 10.4: a picker change between
+  render and post drops the file silently (spec-conformant). 6.1: assert 4-of-3 dashboard data in
+  controller tests. 7.2: show `KeySourceName` as given; setting name and env var separately.
+  8: CI never exercises the seeder or the cap; any smoke step uses the `http` profile.

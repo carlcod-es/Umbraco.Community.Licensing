@@ -1,3 +1,4 @@
+using Acme.ContactForm.Form;
 using Acme.ContactForm.Licensing;
 using Acme.ContactForm.Submissions;
 using Microsoft.Extensions.Configuration;
@@ -36,6 +37,8 @@ public static class ContactFormServiceCollectionExtensions
             sp.GetRequiredService<ISubmissionStore>(),
             sp.GetRequiredService<TimeProvider>(),
             sp.GetRequiredService<LicenseStateLog>()));
+        services.TryAddSingleton<ContactFormViewModelBuilder>();
+        services.TryAddSingleton<ContactFormHandler>();
 
         return services;
     }

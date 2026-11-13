@@ -96,7 +96,7 @@ public class LicensingCoreTests
         var reading = SourceFor(value).Read();
 
         Assert.Null(reading.Key);
-        Assert.Contains(ContactFormOptions.LicenseKeySettingName, reading.SourceName);
+        Assert.Equal("Configured key", reading.SourceName);
         Assert.Equal(LicenseState.Missing, Product().Evaluator.Evaluate(reading.Key).State);
     }
 
