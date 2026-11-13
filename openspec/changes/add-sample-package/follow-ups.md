@@ -77,3 +77,24 @@ Minors and nits from reviews. Read at the start of each apply session.
   - Section 10.1: log in and reach the backoffice, not just the login page.
 - **heads-up for Carl**: committed demo PEM private keys (section 3) may trigger GitHub secret
   scanning on push.
+
+## Block 2.5 (reviewer, 2026-11-13, APPROVED)
+
+- Committed by Carl (`0b8ec61`) before review; reviewed against `HEAD~1..HEAD -- samples/`.
+  No findings above nit. "First run" from a fresh copy rests on worker-backend's evidence
+  (demo login 200, wrong password 401); Carl repeats it in 10.1.
+- **note**: the default shell runs Node 20, which `run-demo.mjs` refuses (needs 24.13+). Worth
+  saying in `docs/development.md` (9.1).
+
+## Section 2 re-review with 2.5 (supervisor, 2026-11-13, APPROVED)
+
+- **nit**: tasks.md 2.2 and 2.4 (ticked) still describe the removed local-settings step and the
+  "No administrator password committed" scenario. Next `opsx:update`: mark them "(amended by
+  2.5, PDR-0070)".
+- **nit**: `docs/adrs/0026-sample-solution-umbraco-and-ci.md:11` one ~130-char line; rewrap.
+- **risk**: Carl's working tree has a gitignored `appsettings.Local.json` (another admin) and an
+  installed SQLite database, so the demo login will not work there; delete both for a local
+  run. 10.1 uses a fresh clone.
+- **risk for section 8**: any CI step that starts the site must use the Development
+  environment, where the demo administrator lives.
+- **risk for 9.1**: Node 24.13+ needed for `run-demo.mjs` and for the `tools/**` test glob.
