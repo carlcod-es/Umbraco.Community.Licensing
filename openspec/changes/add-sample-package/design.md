@@ -140,9 +140,14 @@ Task 1.1 adds the `samples/` rows to the CLAUDE.md ownership table before any ot
   library change that breaks a real product's usage fails the sample at once.
 - **CI**: new `.github/workflows/sample.yml` on pull requests and pushes to `main` with paths
   `samples/**`, `src/Umbraco.Community.Licensing/**`, `global.json`, `Directory.Build.props`
-  and the workflow itself. Ubuntu, Node 24, `npm ci` and `npm run build` in the client, then
-  `dotnet build` and `dotnet test` of the sample solution in Release. Actions pinned by commit
-  as in `ci.yml`.
+  and the workflow itself. Ubuntu, Node 24, `npm ci` and `npm run build` in the client,
+  `node --test samples/run-demo.test.mjs`, then `dotnet build` and `dotnet test` of the sample
+  solution in Release. Actions pinned by commit as in `ci.yml`. The steps are run locally first;
+  Carl then pushes and the run on GitHub Actions is the final check.
+- **Generated client not checked against the live API** (accepted, Carl 2026-11-13): generating
+  needs a running site, so CI does not regenerate `src/api/**` and compare. The server contract
+  is covered by the C# controller tests and the export check (task 6.3); the screens by the
+  observed checks in section 10.
 - **Versions** pinned inline and exactly, as the rest of the repo does; no central package
   management for one solution.
 
@@ -318,7 +323,7 @@ Prototype bar with the licensing code at production care (Bar).
 | Unit | Demo: picker selection changes the key source; source name; `DemoClock` only for the dated entry; demo disabled → demo services absent and endpoints 404 | xUnit on the services; controller test with demo off |
 | Unit | Endpoint authorization: each controller action carries the policy in the table | xUnit reflection over attributes |
 | Demo keys | Every entry yields its documented state, product, expiry, features; key IDs distinct from the library examples | xUnit, always run |
-| Build | Client builds; sample solution builds with warnings as errors; release workflow and root solution unchanged | CI `sample.yml`; root `ci.yml` unchanged |
+| Build | Client builds; `run-demo.mjs` unit test; sample solution builds with warnings as errors; release workflow and root solution unchanged | CI `sample.yml`; root `ci.yml` unchanged |
 | Observed | First run from a clean clone; every picker entry on the dashboard, the submissions screen (editor user) and the public page; public page source has no licensing text; editor refused the dashboard; demo off hides the picker; restart resets the selection; settings file unchanged by the picker | Carl, recorded in tasks.md section 10 |
 
 Validation for worker blocks in `samples/**`:

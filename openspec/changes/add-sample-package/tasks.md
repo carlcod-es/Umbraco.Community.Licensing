@@ -91,7 +91,7 @@ configuration alone; Demo date). Records: PDR-0068, PDR-0069, ADR-0027.
 Depends on: 2 to 7. Owner: worker-backend (`.github/workflows/sample.yml` assigned in the
 brief). Spec: sample-demo-site (Outside the release). Records: ADR-0026.
 
-- [ ] 8.1 Add `.github/workflows/sample.yml` (pull requests and pushes to `main` with the paths in design.md; Ubuntu; Node 24; `npm ci` and `npm run build` in the client; `dotnet build` and `dotnet test` of the sample solution in Release; actions pinned by commit as `ci.yml`), and verify "Library change" (the workflow's paths include the library), "Release run" (`release.yml` and `Umbraco.Community.Licensing.slnx` unchanged; no sample project is packable), and a green run on the pull request
+- [ ] 8.1 Add `.github/workflows/sample.yml` (pull requests and pushes to `main` with the paths in design.md; Ubuntu; Node 24; `npm ci` and `npm run build` in the client; `node --test samples/run-demo.test.mjs`; `dotnet build` and `dotnet test` of the sample solution in Release; actions pinned by commit as `ci.yml`), and verify "Library change" (the workflow's paths include the library), "Release run" (`release.yml` and `Umbraco.Community.Licensing.slnx` unchanged; no sample project is packable), every workflow step run locally with the same commands and passing, and, after Carl pushes, a green run on GitHub Actions (reported by Carl)
 
 ## 9. Documentation
 
