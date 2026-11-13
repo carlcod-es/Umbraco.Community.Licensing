@@ -37,7 +37,7 @@ show one sound set of choices for every persona and state, consistent with
   product.
 - **Never the key string**, on any screen or in any response, for any user.
 - **Evaluated on use**: a key changed in configuration takes effect without a restart.
-- **Log**: one warning per state change, naming the state and the identifier; never the key. (Levels amended by PDR-0071.)
+- **Log**: one warning per state change, naming the state and the identifier; never the key. (Amended by PDR-0071: one message per condition change, level by condition.)
 - **Domains** are compared ignoring case, spaces and port; with no `licensed-domains`, any
   domain is covered.
 

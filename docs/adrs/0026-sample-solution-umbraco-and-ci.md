@@ -8,8 +8,9 @@
   `Umbraco.Cms` and `Umbraco.Cms.DevelopmentMode.Backoffice` at `17.8.1` exact (the template
   floats `17.*`), and `Microsoft.ICU.ICU4C.Runtime` `72.1.0.3` on Windows and Linux only, as the
   template has it. `Umbraco.Cms.Web.BackOffice` has no 17.x release and is not used;
-  `Umbraco.Cms.Persistence.Sqlite` comes through `Umbraco.Cms` and is not referenced directly. Tests: `xunit.v3` `[4.0.1]`. Scaffolded with
-  `Umbraco.Templates` `17.8.1` in a temporary hive. npm: `@umbraco-cms/backoffice` `~17.8.1`, and `vite`,
+  `Umbraco.Cms.Persistence.Sqlite` comes through `Umbraco.Cms` and is not referenced directly.
+  Tests: `xunit.v3` `[4.0.1]`. Scaffolded with `Umbraco.Templates` `17.8.1` in a temporary hive.
+  npm: `@umbraco-cms/backoffice` `~17.8.1`, and `vite`,
   `typescript`, `@hey-api/openapi-ts`, `chalk`, `cross-env` and `node-fetch` at the versions
   the 17.8.1 template sets (the last three confirmed by Carl the same day); exact resolved
   versions below, from the committed lockfile

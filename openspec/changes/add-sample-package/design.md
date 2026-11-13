@@ -206,7 +206,9 @@ unit-tested without a site:
   licensing in public output). A test builds the view model for every demo key.
 - A surface controller posts the form, checks required fields, and records the submission
   whatever the state. A file is read for name and length only when `ShowUploads` is true for
-  that request; otherwise it is ignored. Request size is capped at 1 MB for the upload.
+  that request; otherwise it is ignored. A file over 1 MB is not read and the submission is kept
+  without it; the request body itself is limited only by the server's default (Umbraco does not
+  apply a per-action request size limit).
 - The thank-you response is the same in every state.
 
 ### Submissions
@@ -246,10 +248,11 @@ it. Behind `ISubmissionStore` so a vendor sees where real storage would plug in.
   never holds a private key.
 - **`Demo/demo-keys.json`**, embedded in the package: per entry `name`, `description`, `key`
   (null for No key), `demoDate` (only Valid: expiring soon), and the expected `state`,
-  `product`, `expires` and features, which the tests assert.
+  `product`, `productVerified` (false when the product is only claimed), `expires` and features,
+  which the tests assert.
 - **Generator**: an explicit xUnit test (`-explicit only -method "*DemoKeyGenerator*"`), as
-  ADR-0005, reading the PEMs, issuing with `LicenseIssuer` and a fixed issue clock, and printing
-  the JSON. Edited key: the full-plan key with one character of its signature part replaced by a
+  ADR-0005, reading the PEMs, issuing with `LicenseIssuer` and a fixed issue clock, printing
+  the JSON and writing it to `Demo/demo-keys.json`. Edited key: the full-plan key with one character of its signature part replaced by a
   fixed different character; the test asserts `NotVerified`. Damaged key: a fixed string that is
   not a key. Fixed expiries: small plan 2099-12-31T23:59:59Z; expiring soon
   2030-01-31T23:59:59Z with demo date 2030-01-17T12:00:00Z (14 days); expired
@@ -271,7 +274,9 @@ it. Behind `ISubmissionStore` so a vendor sees where real storage would plug in.
 - **Removed in one step** (PDR-0069): a composer in `Demo/`, ordered after the package's
   composer, registers the demo services, and no file outside `Demo/` (and the client's
   `src/demo/`) refers to them. The picker reads the selection and demo date from
-  `demo/entries`, so `license/status` carries no demo field.
+  `demo/entries`, so `license/status` carries no demo field. On the client, the picker is
+  loaded through its own manifest entry in `src/demo/`, never imported by the dashboard, so
+  deleting `src/demo/` leaves the client building.
 
 ### Demo site
 

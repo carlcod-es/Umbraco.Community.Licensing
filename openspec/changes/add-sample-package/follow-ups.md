@@ -427,3 +427,12 @@ Baseline for review: `35221e3`. No blockers or majors.
   entry in `src/demo/`); proposed 7.4 acceptance: delete `src/demo/` in a scratch copy, then
   `npm run build` (needs opsx:update; Carl to decide).
 - Section 8 / 10.3: real 401/403 refusals and the OpenAPI document are observed only.
+
+## opsx:update (2026-11-13, Carl's answers)
+
+- Resolved: design.md "Public form" reworded (upload read capped at 1 MB, request body at the server
+  default); task 5.1 marked amended. 7.4 gains the client one-step removal check; design.md "Removed
+  in one step" says the picker loads through its own manifest entry in `src/demo/`.
+- Resolved records nits: tasks 2.2/2.4 "(amended by 2.5, PDR-0070)"; design.md generator writes
+  `Demo/demo-keys.json` and the field list names `productVerified`; PDR-0068 amendment note
+  reworded; ADR-0026 prose rewrapped (table rows left as they are).
