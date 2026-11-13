@@ -175,7 +175,8 @@ unit-tested without a site:
   up without restart. The demo source (below) wraps it.
 - **`ContactFormLicensing.Check(string host)`** → `LicenseSnapshot`: reads the key source,
   calls `Evaluate`, and derives: uploads granted; monthly limit and usage; domain covered for
-  `host`; expiring soon (expiry minus now ≤ 30 days, using the injected `TimeProvider`); and
+  `host`; expiring soon (expiry minus now ≤ 30 days, using `ContactFormProduct.Clock`, the clock
+  the evaluator was built with, so the two cannot differ); and
   the key source name. Called on every render, submission, dashboard and banner request
   (spec: Evaluated when used). One evaluation is microseconds (PDR-0022), so no cache.
 - **`FirstActions`**: a switch over `LicenseState` with no default branch, giving the
@@ -194,7 +195,9 @@ unit-tested without a site:
   expiry date), Error for any other state (PDR-0071). It names the identifier or claimed identifier
   (`LicenseResult.ToString()` already prints only the identifier).
 - **Domain check**: `licensed-domains` split on `,`, trimmed, compared ordinal-ignore-case with
-  `HostString.Host` (port dropped). Empty entries are ignored.
+  `HostString.Host` (port dropped). Empty entries are ignored. The check runs only for a `Valid`
+  license; `AdminDomainStatus.Checked` says whether it ran, and `Covered` means something only
+  when it did.
 
 ### Public form
 
@@ -219,10 +222,10 @@ it. Behind `ISubmissionStore` so a vendor sees where real storage would plug in.
 
 | Endpoint | Policy | Returns |
 |---|---|---|
-| `GET license/status` | Settings section access | `AdminLicenseStatus`, including demo selection and demo date when set |
+| `GET license/status` | Settings section access | `AdminLicenseStatus` only; no demo field (a demo selection shows in `KeySourceName`) |
 | `GET submissions` | Content section access | Submissions this month and `EditorLicenseBanner` |
-| `GET demo/entries` | Settings section access; 404 when demo off | Entries and the current selection |
-| `POST demo/select` | Settings section access; 404 when demo off | 204; entry name, or "configured" |
+| `GET demo/entries` | Settings section access; 404 when demo off | `DemoEntriesResponse`: `Entries` ("Configured key" first; each `DemoEntryItem` with name, description, `HasDemoDate`, `DemoDate` as `yyyy-MM-ddTHH:mm:ssZ`) and `Selected` (entry name, or "Configured key") |
+| `POST demo/select` | Settings section access; 404 when demo off | Body `{ "entry": "<name>" }`; "configured" or "Configured key" returns to the configured key; 204; an unknown entry gets 400 (ProblemDetails) and leaves the selection unchanged |
 
 - **Client**: the 17 template's Lit, Vite and TypeScript setup and its generated hey-api client
   (regenerated with `npm run generate-client` against a running site; generated files
@@ -260,9 +263,15 @@ it. Behind `ISubmissionStore` so a vendor sees where real storage would plug in.
   configuration.
 - **Demo clock**: `DemoClock : TimeProvider` returns the chosen entry's demo date when it has
   one and the system clock otherwise; given to the evaluator and the expiring-soon check only.
+  It is never registered as the container's `TimeProvider`, so the submission count keeps the
+  real clock.
 - **Off by default**: `ContactForm:Demo:Enabled` defaults to false in `ContactFormOptions`; the
   demo site's committed `appsettings.json` sets it true. With it false, the demo services are
   not registered and the demo endpoints answer 404.
+- **Removed in one step** (PDR-0069): a composer in `Demo/`, ordered after the package's
+  composer, registers the demo services, and no file outside `Demo/` (and the client's
+  `src/demo/`) refers to them. The picker reads the selection and demo date from
+  `demo/entries`, so `license/status` carries no demo field.
 
 ### Demo site
 

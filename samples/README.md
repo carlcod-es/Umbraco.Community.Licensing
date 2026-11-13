@@ -93,9 +93,22 @@ Change these in your copy:
 
 `Submissions/` is an in-memory stand-in for real storage behind `ISubmissionStore`. Replace it. `Demo/` is described next.
 
+## Controllers/
+
+The package's back-office API: four endpoints in one OpenAPI document, `acme-contact-form`. In development the site serves it at `http://localhost:15329/umbraco/swagger/acme-contact-form/swagger.json`. Every endpoint needs a signed-in back-office user and answers 401 otherwise.
+
+| Endpoint | Policy | Returns |
+|---|---|---|
+| `GET license/status` | Settings section access | `AdminLicenseStatus`: the dashboard's data for the request host. |
+| `GET submissions` | Content section access | This month's submissions and the editor banner, or no banner when nothing is due. |
+| `GET demo/entries` | Settings section access | The demo picker's list and the selection. Demo only; 404 when the demo is off. |
+| `POST demo/select` | Settings section access | 204 once chosen, 400 for an unknown entry. Demo only; 404 when the demo is off. |
+
+The policy is on each action, never on the class. A class-level `[Authorize]` combines with each action's own, so a user admitted by an action alone (a Content-only editor reading submissions) would be refused by the class policy as well. A test checks each action carries exactly its own policy.
+
 ## Demo/: delete when copying
 
-`Demo/` exists for the demo site only. Delete it, and the lines listed below, when you copy the licensing into your own product.
+`Demo/` exists for the demo site only. To remove it, delete the `Demo/` folder (and `Client/src/demo/` once the client has it). No other file needs an edit: the package builds and runs without it.
 
 What is in it:
 
@@ -103,7 +116,7 @@ What is in it:
 - `DemoKeySelection`: the entry the picker chose, or none. Held in memory only.
 - `DemoKeySource`: wraps the configured key source. While an entry is chosen it supplies that entry's key, and the key source name reads `Demo selection: <entry>`.
 - `DemoClock`: the chosen entry's demo date when it has one (only "Valid: expiring soon" does), the real clock otherwise. It is given to the product only and is never registered as the container's `TimeProvider`, so the monthly submission count always uses the real clock.
-- `DemoController` and `ContactFormDemoServiceCollectionExtensions` (`AddContactFormDemo()`): the `demo/entries` and `demo/select` endpoints, and the registration. `Client/src/demo/` will hold the picker element in the client.
+- `DemoController`, `ContactFormDemoServiceCollectionExtensions` (`AddContactFormDemo()`) and `ContactFormDemoComposer`: the `demo/entries` and `demo/select` endpoints, the registration, and the composer that runs it after `ContactFormComposer` so it replaces the licensing that composer registered. `Client/src/demo/` will hold the picker element in the client.
 
 It is off unless `ContactForm:Demo:Enabled` is true, read once at start-up. With it off nothing in `Demo/` is registered and both demo endpoints answer 404. The demo site's committed `appsettings.json` turns it on. Both endpoints need Settings section access.
 
@@ -111,9 +124,6 @@ The picker never writes settings: the choice lives in memory and a restart goes 
 
 Expect log noise in a demo session: each choice changes the licensing condition, so the state log writes Warning and Error lines on purpose (for example when you choose Expired or Damaged key). That is the logging working, not a fault.
 
-When copying, also remove:
-
-- the `AddContactFormDemo(...)` line in `Extensions/UmbracoBuilderExtensions.cs`;
-- in `Controllers/LicenseStatusController.cs`, the `DemoKeySelection? demo` constructor parameter and the `DemoSelection` and `DemoDate` fields of `LicenseStatusResponse`, so the action returns `AdminLicenseStatus` directly.
+`license/status` returns `AdminLicenseStatus` whether or not the demo is on; while an entry is chosen it shows in `KeySourceName` (`Demo selection: <entry>`). The chosen entry and its demo date come from `demo/entries`. Nothing outside `Demo/` refers to the demo services; the `ContactForm:Demo` setting is the one mention, in `ContactFormOptions`, and is harmless to leave.
 
 `Licensing/` itself holds no demo code: `ContactFormProduct.Clock` is the one clock the evaluator and the expiring-soon check share.

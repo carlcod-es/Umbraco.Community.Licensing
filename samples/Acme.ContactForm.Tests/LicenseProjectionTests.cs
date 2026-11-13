@@ -109,6 +109,7 @@ public class LicenseProjectionTests
         Assert.Equal("1 of 3 submissions used this month", status.Usage.Text);
 
         Assert.Equal("localhost", status.Domain.Host);
+        Assert.True(status.Domain.Checked);
         Assert.True(status.Domain.Covered);
 
         Assert.Equal("ContactForm:LicenseKey", status.SettingName);
@@ -183,6 +184,25 @@ public class LicenseProjectionTests
 
         Assert.False(status.Domain.Covered);
         Assert.Contains("does not cover localhost", status.Domain.Text);
+    }
+
+    [Theory]
+    [MemberData(nameof(EntryNames))]
+    public void Domain_is_checked_only_for_a_valid_license(string name)
+    {
+        var entry = Entries.Single(e => e.Name == name);
+        var domain = AdminLicenseStatus.From(Snapshot(name)).Domain;
+
+        Assert.Equal(entry.State == nameof(LicenseState.Valid), domain.Checked);
+    }
+
+    [Fact]
+    public void An_uncovered_host_on_a_valid_license_is_checked_and_not_covered()
+    {
+        var domain = AdminLicenseStatus.From(Snapshot("Valid: another domain")).Domain;
+
+        Assert.True(domain.Checked);
+        Assert.False(domain.Covered);
     }
 
     // ---- Banner data

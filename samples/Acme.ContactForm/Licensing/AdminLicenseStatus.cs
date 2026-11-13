@@ -15,7 +15,9 @@ public sealed record AdminFeatureStatus(string Name, string Grants, bool Include
 public sealed record AdminUsageStatus(int Used, int? Limit, bool OverLimit, string Text);
 
 /// <param name="Host">The host checked, without its port.</param>
-public sealed record AdminDomainStatus(string Host, bool Covered, string Text);
+/// <param name="Checked">True only when the domain check ran, which it does only for a Valid license. When false, <c>Covered</c> says nothing.</param>
+/// <param name="Covered">True when the host is covered (or any domain is, with no licensed domains). Meaningful only when <c>Checked</c>.</param>
+public sealed record AdminDomainStatus(string Host, bool Checked, bool Covered, string Text);
 
 /// <summary>
 /// The licensing dashboard's data, for administrators. Holds no key string. Wording is built here; the client only lays it out.
@@ -155,6 +157,6 @@ public sealed record AdminLicenseStatus(
                 : s.DomainCovered
                     ? $"{host} is covered by the licensed domains ({string.Join(", ", s.LicensedDomains)})."
                     : $"The license does not cover {host}. Licensed domains: {string.Join(", ", s.LicensedDomains)}.";
-        return new AdminDomainStatus(host, s.DomainCovered, text);
+        return new AdminDomainStatus(host, s.State == LicenseState.Valid, s.DomainCovered, text);
     }
 }

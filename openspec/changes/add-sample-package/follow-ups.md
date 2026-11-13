@@ -321,3 +321,109 @@ Minors and nits from reviews. Read at the start of each apply session.
 - **note**: `submissions` returns visitor-entered text verbatim (intended for Content users).
 - **for section 7**: client still calls the removed template endpoints and the old
   `acmecontactform` route; regenerate from `acme-contact-form`.
+
+## Block 6.2 (reviewer, 2026-11-13, APPROVED; already in Carl's commit 807973b)
+
+- Acceptance met: "Choose Expired", "Restart", "Settings unchanged", "Expiring soon at its demo
+  date", "Demo setting off", "Editor tries to choose" (attribute level), README "Demo/: delete when
+  copying". Optional `DemoKeySelection? demo = null` resolves as null through `ActivatorUtilities`.
+- Decisions: `license/status` → `LicenseStatusResponse(Status, DemoSelection, DemoDate)` (Architect,
+  keeps `Licensing/` demo-free); `POST demo/select` body `{ "entry": "<name>" }`, "configured" or
+  "Configured key" → configured key; unknown entry → 400 ProblemDetails, selection unchanged;
+  `DemoDate` `yyyy-MM-ddTHH:mm:ssZ`.
+- **minor**: `samples/Acme.ContactForm.Tests/DemoPickerTests.cs:429-440`
+  `A_user_refused_by_the_policy_...` exercises no refusal (fresh rig, `Chosen == null`). The real
+  guard is the attribute test at 413-427. Rename, or observe in 10.3.
+- **minor**: `DemoKeySource.Read()` and `DemoClock.GetUtcNow()` read `Chosen` separately; a change
+  between them inside one `Check` could pair one entry's key with another's date. Negligible for
+  the demo.
+- **nit**: `Demo/ContactFormDemoServiceCollectionExtensions.cs:1-5` usings out of order.
+- **nit**: `samples/README.md` "in the same request body" wording.
+
+## Block 6.3 (worker-backend run, Architect spot-check, 2026-11-13; no repo files changed)
+
+- Document `acme-contact-form` (OpenAPI 3.0.4, "Acme Contact Form Backoffice API" 1.0) served at
+  `http://localhost:15329/umbraco/swagger/acme-contact-form/swagger.json` (`http` profile). Four
+  paths under `/umbraco/acme-contact-form/api/v1/`: `GET demo/entries` (GetDemoEntries),
+  `POST demo/select` (PostDemoSelect), `GET license/status` (GetLicenseStatus), `GET submissions`
+  (GetSubmissions); each carries `Backoffice-User`. Property names with "key": `keyIdentifier`,
+  `keyIdentifierVerified`, `keySourceName`; none carries the key string. `git status` unchanged
+  after the run.
+- Export kept outside the repo (Architect scratchpad); section 7.1 regenerates from a running site.
+- **for 7.1**: `Client/package.json` `generate-client` points at
+  `https://localhost:5000/umbraco/swagger/acmecontactform/swagger.json`; use the URL above.
+- **note**: the site ignored the first SIGINT under the worker's background run; SIGTERM stopped it
+  cleanly.
+
+## Section 6 (supervisor, 2026-11-13, APPROVED)
+
+Baseline for review: `35221e3`. No blockers or majors.
+
+- **minor (records drift, before 7.1)** (resolved by opsx:update, 2026-11-13): design.md:222 and :174-176 do not name
+  `LicenseStatusResponse` and its demo fields, the `{ "entry" }` body or the 400 for an unknown
+  entry; the `Check` paragraph still says "the injected `TimeProvider`" (now `ContactFormProduct.Clock`).
+  opsx:update.
+- **minor (PDR-0069 "removed in one step", decide before 7.1)** (Carl agreed 2026-11-13; task 6.4): removing the demo takes three steps
+  (delete `Demo/`, edit `LicenseStatusController.cs` and `UmbracoBuilderExtensions.cs`). Option:
+  `license/status` returns `AdminLicenseStatus` directly (selection and date already come from
+  `demo/entries`), and a `Demo/` composer `[ComposeAfter(typeof(ContactFormComposer))]` calls
+  `AddContactFormDemo`, so deleting `Demo/` is the only step.
+- **minor (before 7.1)** (Carl agreed; task 6.4): `Licensing/AdminLicenseStatus.cs:151-158` `Domain.Covered` true with "Not
+  checked" when not `Valid` (open since section 4). Add `bool Checked`, or 7.2 shows a tick only
+  when `Valid`.
+- **minor** (task 6.4): `samples/README.md` does not describe `Controllers/`, `ContactFormApi.cs` or the API
+  composer; add the endpoint/policy table and the per-action policy lesson.
+- **minor** (task 6.4 rename; 10.3 amended by opsx:update): `DemoPickerTests.cs:429-440` rename (refuses nothing); add "POST `demo/select` as the
+  editor is refused, dashboard unchanged" to 10.3 via opsx:update.
+- **nit**: `LicenseStatusController.cs` reads `demo?.Chosen` twice; read once.
+- **nit**: `Demo/ContactFormDemoServiceCollectionExtensions.cs` copies `ContactFormLicensing`'s
+  constructor arguments; and wraps a new `ConfiguredLicenseKeySource`, dropping a host's own
+  source in demo mode (comment).
+- **nit**: no test serialises `demo/entries` and asserts no key string (safe by construction).
+- **risks**: 7.1 `generate-client` URL (see block 6.3); 7.2/7.4 show `KeySourceName` as given and a
+  null banner as nothing; 8: CI never exercises the OpenAPI document or real policy refusals.
+- **still open for Carl**: design.md "Public form" 1 MB request-cap wording (section 5).
+
+## Block 6.4 (reviewer, 2026-11-13, APPROVED)
+
+- Acceptance met: `license/status` returns `AdminLicenseStatus` only; `Demo/ContactFormDemoComposer`
+  `[ComposeAfter(typeof(ContactFormComposer))]`; no demo service referenced outside `Demo/`;
+  scratch copy builds with `Demo/` deleted; `Domain.Checked` per demo key; README "Controllers/";
+  test renamed; export repeated (Architect checked: `license/status` 200 → `AdminLicenseStatus`,
+  `AdminDomainStatus` {host, checked, covered, text}, key-named properties only `keyIdentifier`,
+  `keyIdentifierVerified`, `keySourceName`).
+- Remaining non-`Demo/` references kept by the Architect: `ContactFormOptions.Demo` (design.md puts
+  the `Demo:Enabled` default there) and the `ContactFormProduct.DemoPublicKey` constant.
+- **minor (accepted deviation)**: `Acme.ContactForm.csproj:56` `EmbeddedResource` for
+  `Demo\demo-keys.json` has `Condition="Exists(...)"` so deleting `Demo/` is one step; a missing
+  file now drops the resource silently (demo key tests fail at run time).
+- **minor**: `Demo/ContactFormDemoComposer.cs` still runs if a host disables `ContactFormComposer`;
+  documented dependency, unverified Umbraco behaviour. README note or guard optional.
+- **minor**: `samples/README.md` Controllers/ "answers 401 otherwise" is untested; soften or observe
+  in 10.3.
+- **nit**: README "(and `Client/src/demo/` once the client has it)" forward-looking.
+- **for section 7**: the dashboard reads the demo selection and demo date from `demo/entries`;
+  `license/status` has no demo fields.
+
+## Section 6 re-review with 6.4 (supervisor, 2026-11-13, APPROVED)
+
+- design.md matches the code; specs hold (demo selection via `KeySourceName` and `demo/entries`
+  `Selected`; demo date via `demo/entries`); no spec or PDR change. csproj condition and
+  `ContactFormOptions.Demo` acceptable against PDR-0069.
+- **minor**: `samples/Acme.ContactForm/Demo/DemoController.cs:13` `DemoEntryItem` doc says
+  `DemoDate` is set "while the entry is chosen"; it is the entry's date whether chosen or not. Fix
+  the comment (worker-backend, next backend block).
+- **minor**: `Demo/ContactFormDemoComposer.cs` with `ContactFormComposer` disabled, the demo
+  `Replace` registers a `ContactFormLicensing` with missing dependencies. Fix: `AddContactFormDemo`
+  calls `AddContactFormLicensing` first (marker makes it safe), or a README note.
+- **nit**: `AdminDomainStatus.Covered` stays true when `Checked` is false; consider
+  `Checked && DomainCovered`.
+- **nit**: the 2 skipped tests are the explicit generators (as since section 3).
+- **risks for section 7**: 7.1 regenerate after 6.4 from
+  `http://localhost:15329/umbraco/swagger/acme-contact-form/swagger.json`. 7.2 shows covered only
+  when `domain.checked`, otherwise `domain.text`; `keySourceName` as given. 7.4 refreshes itself and
+  the dashboard after 204, shows the 400 `detail`, treats 404 as "no picker". **Client-side
+  one-step removal**: nothing outside `src/demo/` may import from it (e.g. a separate manifest
+  entry in `src/demo/`); proposed 7.4 acceptance: delete `src/demo/` in a scratch copy, then
+  `npm run build` (needs opsx:update; Carl to decide).
+- Section 8 / 10.3: real 401/403 refusals and the OpenAPI document are observed only.

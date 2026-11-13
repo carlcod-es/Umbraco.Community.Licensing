@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Security.Cryptography;
 using Acme.ContactForm.Controllers;
+using Acme.ContactForm.Demo;
 using Acme.ContactForm.Extensions;
 using Acme.ContactForm.Form;
 using Acme.ContactForm.Licensing;
@@ -59,7 +60,7 @@ public class DemoPickerTests
             var selection = Provider.GetService<DemoKeySelection>();
             Licensing = Provider.GetRequiredService<ContactFormLicensing>();
             Demo = new DemoController(selection) { ControllerContext = context };
-            Status = new LicenseStatusController(Licensing, selection) { ControllerContext = context };
+            Status = new LicenseStatusController(Licensing) { ControllerContext = context };
             Submissions = new SubmissionsController(Licensing, Provider.GetRequiredService<ISubmissionStore>()) { ControllerContext = context };
         }
 
@@ -105,6 +106,18 @@ public class DemoPickerTests
         Assert.Equal("Expired", rig.Demo.Entries().Value!.Selected);
     }
 
+    [Theory]
+    [MemberData(nameof(EntryNames))]
+    public void Serialised_picker_list_holds_no_demo_key(string name)
+    {
+        using var rig = new Rig();
+        rig.Select(name);
+
+        var json = System.Text.Json.JsonSerializer.Serialize(rig.Demo.Entries().Value, ApiControllerTests.BackOfficeJson);
+
+        Assert.All(Entries.Where(e => e.Key is not null), e => Assert.DoesNotContain(e.Key!, json, StringComparison.Ordinal));
+    }
+
     // ---- Choosing
 
     [Theory]
@@ -120,11 +133,14 @@ public class DemoPickerTests
         Assert.Equal(entry.State, snapshot.State.ToString());
         Assert.Equal($"Demo selection: {name}", snapshot.KeySourceName);
 
-        var response = rig.Status.Status();
-        Assert.Equal(entry.State, response.Status.State);
-        Assert.Equal($"Demo selection: {name}", response.Status.KeySourceName);
-        Assert.Equal(name, response.DemoSelection);
-        Assert.Equal(entry.DemoDate, response.DemoDate);
+        var status = rig.Status.Status();
+        Assert.Equal(entry.State, status.State);
+        Assert.Equal($"Demo selection: {name}", status.KeySourceName);
+
+        // The picker's list carries the selection and the date; license/status does not
+        var list = rig.Demo.Entries().Value!;
+        Assert.Equal(name, list.Selected);
+        Assert.Equal(entry.DemoDate, list.Entries.Single(e => e.Name == name).DemoDate);
     }
 
     [Fact]
@@ -140,9 +156,7 @@ public class DemoPickerTests
         var snapshot = rig.Licensing.Check("localhost");
         Assert.Equal(LicenseState.Valid, snapshot.State);
         Assert.Equal(ConfiguredLicenseKeySource.Name, snapshot.KeySourceName);
-        var response = rig.Status.Status();
-        Assert.Null(response.DemoSelection);
-        Assert.Null(response.DemoDate);
+        Assert.Equal(ConfiguredLicenseKeySource.Name, rig.Demo.Entries().Value!.Selected);
     }
 
     [Fact]
@@ -190,7 +204,7 @@ public class DemoPickerTests
         rig.Select("Expired");
 
         Assert.Equal(LicenseState.Expired, rig.Licensing.Check("localhost").State);
-        Assert.Equal("Expired", rig.Status.Status().Status.State);
+        Assert.Equal("Expired", rig.Status.Status().State);
         var banner = rig.Submissions.List().Banner;
         Assert.NotNull(banner);
         Assert.Equal([BannerCases.NeedsAttention], banner.Cases);
@@ -275,7 +289,7 @@ public class DemoPickerTests
         Assert.True(snapshot.ExpiringSoon);
         Assert.Equal(14, snapshot.DaysLeft);
 
-        var admin = rig.Status.Status().Status;
+        var admin = rig.Status.Status();
         Assert.True(admin.ExpiringSoon);
         Assert.Equal("2030-01-31", admin.ExpiryDate);
         Assert.Contains("2030-01-31", admin.ExpiringSoonText);
@@ -377,14 +391,15 @@ public class DemoPickerTests
     }
 
     [Fact]
-    public void Demo_setting_off_leaves_the_demo_fields_of_license_status_null()
+    public void Demo_setting_off_license_status_names_the_configured_key_and_the_picker_answers_404()
     {
         using var rig = new Rig(demo: false);
-        var response = rig.Status.Status();
+        var status = rig.Status.Status();
 
-        Assert.Null(response.DemoSelection);
-        Assert.Null(response.DemoDate);
-        Assert.Equal("Configured key", response.Status.KeySourceName);
+        Assert.Equal("Configured key", status.KeySourceName);
+        Assert.Equal("Valid", status.State);
+        Assert.IsType<NotFoundResult>(rig.Demo.Entries().Result);
+        Assert.IsType<NotFoundResult>(rig.Demo.Select(new DemoSelectRequest("Expired")));
     }
 
     [Fact]
@@ -427,15 +442,22 @@ public class DemoPickerTests
     }
 
     [Fact]
-    public void A_user_refused_by_the_policy_never_reaches_the_action_so_the_selection_stays_none()
+    public void A_fresh_container_has_no_selection_and_the_configured_key_in_force()
     {
-        // The policy refuses before the action runs, so nothing here calls Select; the key in force is still the configured one
         using var rig = new Rig();
 
         Assert.Null(rig.Selection.Chosen);
         var snapshot = rig.Licensing.Check("localhost");
         Assert.Equal(LicenseState.Valid, snapshot.State);
         Assert.Equal(ConfiguredLicenseKeySource.Name, snapshot.KeySourceName);
+    }
+
+    [Fact]
+    public void The_demo_composer_runs_after_the_core_composer()
+    {
+        var after = typeof(ContactFormDemoComposer).GetCustomAttributes<Umbraco.Cms.Core.Composing.ComposeAfterAttribute>().Single();
+
+        Assert.Equal(typeof(Composers.ContactFormComposer), after.RequiredType);
     }
 
     // ---- Registration

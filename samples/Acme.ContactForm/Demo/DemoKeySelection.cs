@@ -50,6 +50,8 @@ public sealed class DemoKeySource(ILicenseKeySource configured, DemoKeySelection
 {
     public const string NamePrefix = "Demo selection: ";
 
+    // Reads Chosen once. DemoClock reads it separately, so a choice made between the two could pair one entry's key with
+    // another's date for a single check; accepted, a demo picks one entry at a time
     public LicenseKeyReading Read() =>
         selection.Chosen is { } entry
             ? new LicenseKeyReading(entry.Key, NamePrefix + entry.Name)

@@ -44,7 +44,7 @@ public class ApiControllerTests
     }
 
     /// <summary>The options Umbraco's Management API serialises with (Umbraco's own configuration class), built without a host.</summary>
-    private static readonly JsonSerializerOptions BackOfficeJson = BuildBackOfficeJson();
+    internal static readonly JsonSerializerOptions BackOfficeJson = BuildBackOfficeJson();
 
     private static JsonSerializerOptions BuildBackOfficeJson()
     {
@@ -162,10 +162,7 @@ public class ApiControllerTests
     public void License_status_returns_the_admin_data_for_the_request_host()
     {
         var rig = RigFor("Valid: full plan", "localhost:44321");
-        var response = rig.Status.Status();
-        var status = response.Status;
-        Assert.Null(response.DemoSelection);
-        Assert.Null(response.DemoDate);
+        var status = rig.Status.Status();
 
         Assert.Equal("Valid", status.State);
         Assert.Equal("localhost", status.Domain.Host);
@@ -176,7 +173,7 @@ public class ApiControllerTests
     [Fact]
     public void License_status_with_no_key()
     {
-        var status = RigFor("No key").Status.Status().Status;
+        var status = RigFor("No key").Status.Status();
         Assert.Equal("Missing", status.State);
         Assert.Equal(FirstActions.For(LicenseState.Missing), status.FirstAction);
     }
@@ -186,12 +183,12 @@ public class ApiControllerTests
     {
         var rig = RigFor("Valid: small plan");
         rig.Add(3);
-        var three = rig.Status.Status().Status;
+        var three = rig.Status.Status();
         Assert.False(three.Usage.OverLimit);
         Assert.Null(rig.Submissions.List().Banner);
 
         rig.Add(1);
-        var four = rig.Status.Status().Status;
+        var four = rig.Status.Status();
         Assert.Equal(4, four.Usage.Used);
         Assert.Equal(3, four.Usage.Limit);
         Assert.True(four.Usage.OverLimit);
@@ -208,11 +205,11 @@ public class ApiControllerTests
     {
         var rig = RigFor("Valid: small plan", now: new DateTimeOffset(2026, 6, 30, 23, 59, 0, TimeSpan.Zero));
         rig.Add(4);
-        Assert.True(rig.Status.Status().Status.Usage.OverLimit);
+        Assert.True(rig.Status.Status().Usage.OverLimit);
         Assert.NotNull(rig.Submissions.List().Banner);
 
         rig.Clock.Set(new DateTimeOffset(2026, 7, 1, 0, 0, 0, TimeSpan.Zero));
-        var status = rig.Status.Status().Status;
+        var status = rig.Status.Status();
         Assert.Equal(0, status.Usage.Used);
         Assert.False(status.Usage.OverLimit);
         Assert.Null(rig.Submissions.List().Banner);
