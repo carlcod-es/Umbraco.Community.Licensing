@@ -13,7 +13,7 @@ and `release.yml` are not changed by any task.
 
 Depends on: none. Owner: Architect.
 
-- [ ] 1.1 Add the `samples/` rows from design.md (Layout and ownership) to the CLAUDE.md ownership table, naming `samples/Acme.ContactForm/Client/**` as the UI project owned by worker-frontend and `.github/workflows/sample.yml` as shared CI, and verify every path in the design.md layout resolves to exactly one owner row
+- [x] 1.1 Add the `samples/` rows from design.md (Layout and ownership) to the CLAUDE.md ownership table, naming `samples/Acme.ContactForm/Client/**` as the UI project owned by worker-frontend and `.github/workflows/sample.yml` as shared CI, and verify every path in the design.md layout resolves to exactly one owner row
 
 ## 2. Scaffold
 

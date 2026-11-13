@@ -116,15 +116,16 @@ agents cannot delegate.
 | Path | Owner |
 |---|---|
 | `src/**` (except UI projects), `tests/**` (except UI tests) | worker-backend |
-| UI projects and their tests | worker-frontend. None yet; paths named in the design.md of the change that adds the UI |
+| UI projects and their tests | worker-frontend: `samples/Acme.ContactForm/Client/**` (from `add-sample-package`; its first creation, including the template patches listed in that change's design.md, is worker-backend's scaffold output; every later edit is worker-frontend's) |
+| `samples/**` except `samples/Acme.ContactForm/Client/**` | worker-backend, including `samples/README.md` (each section documents its own work; the Architect reviews it in each section) |
 | `Umbraco.Community.Licensing.slnx` | worker that adds the project, for its own project entry only |
-| `Directory.Build.props`, `global.json`, `.gitignore`, `LICENSE`, CI, package manifests, lockfiles, public API contracts, end-to-end tests | Shared: changed only when the Architect assigns it in a brief |
-| `docs/`, `openspec/`, `.claude/`, `CLAUDE.md`, `README.md` | Architect |
+| `Directory.Build.props` (root), `global.json`, `.gitignore` (root), `LICENSE`, CI, package manifests and lockfiles outside `samples/`, public API contracts, end-to-end tests | Shared: changed only when the Architect assigns it in a brief. Package manifests and lockfiles under `samples/` belong to the `samples/` rows; adding a dependency still needs Carl's approval |
+| `docs/`, `openspec/`, `.claude/`, `CLAUDE.md`, `README.md` (root) | Architect |
 | `tools/**` | worker-backend |
 | `assets/**` | Architect. Files packed into the package are referenced from the library project by worker-backend |
 | `THIRD-PARTY-NOTICES.md` | Architect. Packed into the package from the library project by worker-backend |
 | `.gitattributes` | Architect |
-| `.github/**` | Shared (CI): assigned to worker-backend in the brief |
+| `.github/**` (including `.github/workflows/sample.yml`) | Shared (CI): assigned to worker-backend in the brief |
 | `.config/**` | Shared: assigned in the brief |
 | `Version.props` | Shared: assigned in the brief; `VersionLine` changed only by Carl, `Version` only by the release command after `add-release-pipeline` |
 | `RELEASES.md` | Architect creates it; rows added only by the release command |
