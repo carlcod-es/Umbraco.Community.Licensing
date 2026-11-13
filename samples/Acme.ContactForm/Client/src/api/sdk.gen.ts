@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetPingData, GetPingErrors, GetPingResponses, GetWhatsMyNameData, GetWhatsMyNameErrors, GetWhatsMyNameResponses, GetWhatsTheTimeMrWolfData, GetWhatsTheTimeMrWolfErrors, GetWhatsTheTimeMrWolfResponses, GetWhoAmIData, GetWhoAmIErrors, GetWhoAmIResponses } from './types.gen';
+import type { GetDemoEntriesData, GetDemoEntriesErrors, GetDemoEntriesResponses, GetLicenseStatusData, GetLicenseStatusErrors, GetLicenseStatusResponses, GetSubmissionsData, GetSubmissionsErrors, GetSubmissionsResponses, PostDemoSelectData, PostDemoSelectErrors, PostDemoSelectResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -18,26 +18,30 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
 
-export const getPing = <ThrowOnError extends boolean = true>(options?: Options<GetPingData, ThrowOnError>): RequestResult<GetPingResponses, GetPingErrors, ThrowOnError> => (options?.client ?? client).get<GetPingResponses, GetPingErrors, ThrowOnError>({
+export const getDemoEntries = <ThrowOnError extends boolean = true>(options?: Options<GetDemoEntriesData, ThrowOnError>): RequestResult<GetDemoEntriesResponses, GetDemoEntriesErrors, ThrowOnError> => (options?.client ?? client).get<GetDemoEntriesResponses, GetDemoEntriesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/umbraco/acmecontactform/api/v1/ping',
+    url: '/umbraco/acme-contact-form/api/v1/demo/entries',
     ...options
 });
 
-export const getWhatsMyName = <ThrowOnError extends boolean = true>(options?: Options<GetWhatsMyNameData, ThrowOnError>): RequestResult<GetWhatsMyNameResponses, GetWhatsMyNameErrors, ThrowOnError> => (options?.client ?? client).get<GetWhatsMyNameResponses, GetWhatsMyNameErrors, ThrowOnError>({
+export const postDemoSelect = <ThrowOnError extends boolean = true>(options?: Options<PostDemoSelectData, ThrowOnError>): RequestResult<PostDemoSelectResponses, PostDemoSelectErrors, ThrowOnError> => (options?.client ?? client).post<PostDemoSelectResponses, PostDemoSelectErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/umbraco/acmecontactform/api/v1/whatsMyName',
+    url: '/umbraco/acme-contact-form/api/v1/demo/select',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers
+    }
+});
+
+export const getLicenseStatus = <ThrowOnError extends boolean = true>(options?: Options<GetLicenseStatusData, ThrowOnError>): RequestResult<GetLicenseStatusResponses, GetLicenseStatusErrors, ThrowOnError> => (options?.client ?? client).get<GetLicenseStatusResponses, GetLicenseStatusErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/umbraco/acme-contact-form/api/v1/license/status',
     ...options
 });
 
-export const getWhatsTheTimeMrWolf = <ThrowOnError extends boolean = true>(options?: Options<GetWhatsTheTimeMrWolfData, ThrowOnError>): RequestResult<GetWhatsTheTimeMrWolfResponses, GetWhatsTheTimeMrWolfErrors, ThrowOnError> => (options?.client ?? client).get<GetWhatsTheTimeMrWolfResponses, GetWhatsTheTimeMrWolfErrors, ThrowOnError>({
+export const getSubmissions = <ThrowOnError extends boolean = true>(options?: Options<GetSubmissionsData, ThrowOnError>): RequestResult<GetSubmissionsResponses, GetSubmissionsErrors, ThrowOnError> => (options?.client ?? client).get<GetSubmissionsResponses, GetSubmissionsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/umbraco/acmecontactform/api/v1/whatsTheTimeMrWolf',
-    ...options
-});
-
-export const getWhoAmI = <ThrowOnError extends boolean = true>(options?: Options<GetWhoAmIData, ThrowOnError>): RequestResult<GetWhoAmIResponses, GetWhoAmIErrors, ThrowOnError> => (options?.client ?? client).get<GetWhoAmIResponses, GetWhoAmIErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/umbraco/acmecontactform/api/v1/whoAmI',
+    url: '/umbraco/acme-contact-form/api/v1/submissions',
     ...options
 });

@@ -106,9 +106,36 @@ The package's back-office API: four endpoints in one OpenAPI document, `acme-con
 
 The policy is on each action, never on the class. A class-level `[Authorize]` combines with each action's own, so a user admitted by an action alone (a Content-only editor reading submissions) would be refused by the class policy as well. A test checks each action carries exactly its own policy.
 
+## Client/
+
+The back-office client: Lit, Vite and TypeScript, from the Umbraco 17 template. `npm run build` in `Acme.ContactForm/Client` builds it into the package's `wwwroot/App_Plugins/AcmeContactForm`; `run-demo.mjs` does this when needed. It needs Node 24.13 or newer.
+
+Two dashboards, each fetching on every open:
+
+- The licensing dashboard, in Settings: `src/dashboards/license-dashboard.element.ts`.
+- The submissions dashboard with the editor banner, in Content: `src/dashboards/submissions-dashboard.element.ts`.
+
+All wording comes from the server. The client only lays it out. The only words it adds are its labels and the tags "unverified", "covered" and "not covered".
+
+The licensing dashboard has two add-on points:
+
+- An `<umb-extension-slot>` for extension type `acmeContactFormLicensePanel`. Any extension of that type is shown in the dashboard.
+- The `window` event `acme-contact-form-license-changed`. Dispatch it and the dashboard reloads.
+
+The demo picker (`src/demo/demo-picker.element.ts`) uses both. Nothing imports it.
+
+`src/bundle.manifests.ts` loads `src/demo/manifest.ts` through `import.meta.glob`. With the folder deleted the glob finds nothing, so the client still builds.
+
+To regenerate the API client:
+
+1. Start the site: `dotnet run --project samples/Acme.ContactForm.Site --launch-profile http`.
+2. In `Acme.ContactForm/Client`, run `npm run generate-client`.
+
+It reads `http://localhost:15329/umbraco/swagger/acme-contact-form/swagger.json` and writes `src/api/`, which is committed. Regenerate after any controller or response change. Generated calls throw on an error response unless called with `throwOnError: false`; the picker does this to read the 404 and 400 answers.
+
 ## Demo/: delete when copying
 
-`Demo/` exists for the demo site only. To remove it, delete the `Demo/` folder (and `Client/src/demo/` once the client has it). No other file needs an edit: the package builds and runs without it.
+`Demo/` exists for the demo site only. To remove it, delete the `Demo/` folder and `Client/src/demo/`. No other file needs an edit: the package builds and runs without it.
 
 What is in it:
 
@@ -116,7 +143,7 @@ What is in it:
 - `DemoKeySelection`: the entry the picker chose, or none. Held in memory only.
 - `DemoKeySource`: wraps the configured key source. While an entry is chosen it supplies that entry's key, and the key source name reads `Demo selection: <entry>`.
 - `DemoClock`: the chosen entry's demo date when it has one (only "Valid: expiring soon" does), the real clock otherwise. It is given to the product only and is never registered as the container's `TimeProvider`, so the monthly submission count always uses the real clock.
-- `DemoController`, `ContactFormDemoServiceCollectionExtensions` (`AddContactFormDemo()`) and `ContactFormDemoComposer`: the `demo/entries` and `demo/select` endpoints, the registration, and the composer that runs it after `ContactFormComposer` so it replaces the licensing that composer registered. `Client/src/demo/` will hold the picker element in the client.
+- `DemoController`, `ContactFormDemoServiceCollectionExtensions` (`AddContactFormDemo()`) and `ContactFormDemoComposer`: the `demo/entries` and `demo/select` endpoints, the registration, and the composer that runs it after `ContactFormComposer` so it replaces the licensing that composer registered. The picker element is in `Client/src/demo/`, loaded through its own manifest (see Client/).
 
 It is off unless `ContactForm:Demo:Enabled` is true, read once at start-up. With it off nothing in `Demo/` is registered and both demo endpoints answer 404. The demo site's committed `appsettings.json` turns it on. Both endpoints need Settings section access.
 

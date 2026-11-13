@@ -436,3 +436,86 @@ Baseline for review: `35221e3`. No blockers or majors.
 - Resolved records nits: tasks 2.2/2.4 "(amended by 2.5, PDR-0070)"; design.md generator writes
   `Demo/demo-keys.json` and the field list names `productVerified`; PDR-0068 amendment note
   reworded; ADR-0026 prose rewrapped (table rows left as they are).
+
+## Block 7.1 (reviewer, 2026-11-13, APPROVED)
+
+- Acceptance met: client regenerated from `http://localhost:15329/umbraco/swagger/acme-contact-form/swagger.json`
+  (four SDK functions), template dashboard and greetings removed, `npm run build` strict, no `any`
+  in hand-written code, lockfile unchanged.
+- **note**: the regenerated `src/api/**` files are LF where the template's were CRLF, so the diff is
+  large (~144/277 real lines). Optional (Architect): `.gitattributes` `eol=lf` for `Client/src/**`.
+- **note**: `client.gen.ts` bakes `baseUrl: 'http://localhost:15329'`; `configureClient` replaces it at
+  runtime (`auth.context.js` `client.setConfig({ baseUrl: serverUrl, ... })`).
+- **for 7.2-7.4**: generated calls throw on error by default; a 404 (demo off) rejects with an empty
+  body. Call `getDemoEntries`/`postDemoSelect` with `throwOnError: false` and read `response.status`
+  and `error` (400 ProblemDetails).
+- **nit**: `entrypoint.ts:25` empty `onUnload` body; `dashboards/manifest.ts` exports `[]` until 7.2.
+- Generation needs a live site, so "generated matches the document" is not reproducible in CI.
+
+## Block 7.2-7.3 (reviewer, 2026-11-13, APPROVED)
+
+- Acceptance met in code and build; the observed checks are Carl's (10.2, 10.3). Lit escapes all
+  visitor text; no `unsafeHTML`.
+- Extension point for 7.4: window event `acme-contact-form-license-changed` (dashboard re-fetches)
+  and `<umb-extension-slot type="acmeContactFormLicensePanel">` (custom types work in 17's slot).
+- **minor (folded into 7.4)**: `license-dashboard.element.ts:91-94` shows "no longer in effect"
+  twice (server `grants` already ends with it); the `included ? grants : "not included"` branch
+  duplicates the server. Render `grants`; use `included`/`inEffect` for styling only.
+- **minor (folded into 7.4)**: `license-dashboard.element.ts:52` client "Perpetual"; render
+  `expiry` only.
+- **minor (folded into 7.4)**: a static import of `./demo/manifest.js` in `bundle.manifests.ts` would
+  break one-step removal; use `import.meta.glob("./demo/manifest.ts", { eager: true })` with
+  `/// <reference types="vite/client" />`.
+- **minor (accepted)**: tag texts ("unverified", "covered"/"not covered") and row labels are client
+  layout text.
+- **nit**: exported `LICENSE_CHANGED_EVENT`/`LICENSE_PANEL_EXTENSION_TYPE` must not be imported by
+  `src/demo/`; make them module-private.
+- **nit**: the submissions dashboard does not re-fetch on the license-changed event (different
+  section; re-mount re-fetches).
+
+## Block 7.4 (reviewer, 2026-11-13, APPROVED)
+
+- Acceptance met: picker in the dashboard's `acmeContactFormLicensePanel` slot, shown only on a
+  200 from `demo/entries`; entries in server order with descriptions; selection marked; refresh
+  via the window event; demo-selection and demo-date notices; 400 `detail` shown. `npm run build`
+  passes; the reviewer repeated the scratch copy with `src/demo/` deleted (builds, no demo chunk).
+  Dashboard folds done (server `grants`/`expiry` as given; constants module-private).
+  Observed 10.4 deferred to Carl.
+- **nit**: `src/demo/demo-picker.element.ts:30-31` `#load()` has no try/catch; a network throw is an
+  unhandled rejection (picker still renders nothing).
+- **nit**: `demo-picker.element.ts:11` literal "Configured key" duplicates the server's name (spec
+  names it literally).
+
+## Section 7 (supervisor, 2026-11-13, CHANGES REQUESTED → rework)
+
+- **major** (rework, worker-backend): `samples/README.md` lacked a "Client/" section and still
+  described `Client/src/demo/` as future. Fixed in the README rework block.
+- **minor (records)** (resolved by opsx:update, Carl 2026-11-13): design.md "Backoffice API and
+  client" records the add-on points (slot type `acmeContactFormLicensePanel`, window event
+  `acme-contact-form-license-changed`); "Removed in one step" names the `import.meta.glob` seam.
+  ADR-0027 "Template patches" now says none was needed on 17.8.1.
+- **minor (line endings)** (Carl 2026-11-13: LF for `Client/**`): `.gitattributes` gains
+  `samples/Acme.ContactForm/Client/** text eol=lf`. **Carl**: run
+  `git add --renormalize samples/Acme.ContactForm/Client` as its own commit.
+- **nit**: `src/demo/demo-picker.element.ts:67` demo date shown raw (`yyyy-MM-ddTHH:mm:ssZ`).
+- **nit**: `demo-picker.element.ts:45` cast of `result.error` to `{ detail?, title? }` (not `any`).
+- **risks**: section 8: Node 24 ≥ 24.13 on Ubuntu, `npm ci`; check esbuild's Linux binary resolves
+  (local npm warns "allowScripts"); CI cannot check `src/api/**` against the live OpenAPI document.
+  Section 9: `docs/development.md` Node 24 and the generate-client prerequisite. 10.3: calling
+  `license/status`/`demo/select` as the editor needs devtools or a token.
+
+## Section 7 README rework (reviewer, 2026-11-13, APPROVED)
+
+- Finding fixed: "Client/" section added; Demo/ lines corrected.
+- **nit**: `samples/README.md` Client/ says the only client words are labels and the three tags;
+  the two load-failure messages are client text too.
+
+## Section 7 re-review (supervisor, 2026-11-13, APPROVED)
+
+- Major resolved; README, design.md and ADR-0027 agree with the code. `.gitattributes` rule scoped
+  to `Client/**` (no binaries tracked there). Index: 22 files LF, 9 CRLF until Carl's renormalize.
+- **nit** (widens the README rework nit): `samples/README.md:119` client-written text also includes
+  the load-failure messages and the picker's heading, notice, "Demo date:" label and error
+  fallbacks. Reword in a later worker-backend block (9.1).
+- **risks**: commit `git add --renormalize samples/Acme.ContactForm/Client` before section 8; CI
+  cannot check `src/api/**` against the live OpenAPI document (section 8 to accept or add a check).

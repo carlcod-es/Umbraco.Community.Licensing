@@ -236,6 +236,11 @@ it. Behind `ISubmissionStore` so a vendor sees where real storage would plug in.
   Content section condition. The picker element lives in `src/demo/` and is shown only when
   `demo/entries` answers. All wording comes from the server; the client lays it out with UUI
   elements.
+- **Add-on points on the licensing dashboard**: an `<umb-extension-slot>` for the custom
+  extension type `acmeContactFormLicensePanel`, where the picker renders, and the `window`
+  event `acme-contact-form-license-changed`, which makes the dashboard fetch `license/status`
+  again. The picker registers its own manifest and dispatches the event; the dashboard imports
+  nothing from `src/demo/`.
 - Template defects from the scaffold notes (hey-api peer minimum, 17 generator config, 17
   `hey-api.ts` cast) were checked in section 2; none occurs on 17.8.1, so none is patched.
 
@@ -276,7 +281,9 @@ it. Behind `ISubmissionStore` so a vendor sees where real storage would plug in.
   `src/demo/`) refers to them. The picker reads the selection and demo date from
   `demo/entries`, so `license/status` carries no demo field. On the client, the picker is
   loaded through its own manifest entry in `src/demo/`, never imported by the dashboard, so
-  deleting `src/demo/` leaves the client building.
+  deleting `src/demo/` leaves the client building: `bundle.manifests.ts` names
+  `./demo/manifest.ts` only through `import.meta.glob`, which matches nothing once the folder is
+  gone.
 
 ### Demo site
 
