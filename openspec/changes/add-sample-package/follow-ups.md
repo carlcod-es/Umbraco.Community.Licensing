@@ -538,10 +538,11 @@ Baseline for review: `35221e3`. No blockers or majors.
 - Workflow matches design.md and ADR-0026; all commands re-run (sample, root solution, tools
   148/148). Nothing found that fails only on Linux (import casing, csproj separators, esbuild and
   rollup Linux binaries in the lockfile, untracked local files handled).
-- **minor (Carl to decide; supervisor recommends accepting)**: `Version.props` not in the paths. It
+- **minor (accepted by Carl 2026-11-13)**: `Version.props` not in the paths. It
   holds only version strings; `ci.yml` catches a malformed file; adding it means an Umbraco restore on
   every version bump and an opsx:update to design.md and ADR-0026.
 - **nit**: `node-version: 24` floats (consistent with `ci.yml`); no `workflow_dispatch` (beyond design).
 - **risks**: confirm esbuild on the first Ubuntu run; do not make "Sample" a required check (path
   filter would leave other PRs waiting); demo PEM alerts to dismiss; no NuGet cache (slower, correct);
   9.1: `docs/development.md` gives Node 24.13+ and the local equivalent of `sample.yml`.
+- 8.1 ticked 2026-11-13: Carl reported "Sample / build-test" green on PR #7 (esbuild fine on Ubuntu).
