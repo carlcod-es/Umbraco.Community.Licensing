@@ -1,0 +1,14 @@
+{
+  "id": "Acme.ContactForm",
+  "name": "Acme.ContactForm",
+  "version": "0.0.0",
+  "allowTelemetry": true,
+  "extensions": [
+    {
+      "name": "Acme Contact Form Bundle",
+      "alias": "Acme.ContactForm.Bundle",
+      "type": "bundle",
+      "js": "/App_Plugins/AcmeContactForm/acme-contact-form.js"
+    }
+  ]
+}

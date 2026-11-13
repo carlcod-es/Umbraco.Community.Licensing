@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Acme.ContactForm/Acme.ContactForm.csproj" />
+  <Project Path="Acme.ContactForm.Site/Acme.ContactForm.Site.csproj" />
+  <Project Path="Acme.ContactForm.Tests/Acme.ContactForm.Tests.csproj" />
+</Solution>

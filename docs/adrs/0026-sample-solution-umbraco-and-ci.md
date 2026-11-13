@@ -1,7 +1,21 @@
 # ADR-0026: Sample solution, Umbraco version and CI
 
 - Status: Decided
-- Package approval: pending Carl (requested 2026-11-13); recorded here with the pinned versions at task 2.1
+- Package approval: Carl, 2026-11-13, the set the 17.8.1 templates list. Package project:
+  `Umbraco.Cms.Web.Website`, `Umbraco.Cms.Web.Common`, `Umbraco.Cms.Api.Management`,
+  `Umbraco.Cms.Api.Common` at `17.8.1` exact, and `Swashbuckle.AspNetCore` `10.2.3` exact (the
+  template references it directly to avoid a Microsoft.OpenApi version conflict). Site:
+  `Umbraco.Cms` and `Umbraco.Cms.DevelopmentMode.Backoffice` at `17.8.1` exact (the template
+  floats `17.*`), and `Microsoft.ICU.ICU4C.Runtime` `72.1.0.3` on Windows and Linux only, as the
+  template has it. `Umbraco.Cms.Web.BackOffice` has no 17.x release and is not used;
+  `Umbraco.Cms.Persistence.Sqlite` comes through `Umbraco.Cms` and is not referenced directly
+  (Decision text to align via `opsx:update`). Tests: `xunit.v3` `[4.0.1]`. Scaffolded with
+  `Umbraco.Templates` `17.8.1` in a temporary hive. npm: `@umbraco-cms/backoffice` `~17.8.1`, and `vite`,
+  `typescript` and `@hey-api/openapi-ts` at the versions the 17.8.1 template sets; exact
+  resolved versions below, from the committed lockfile
+- npm versions resolved at scaffold (2026-11-13, lockfile): `@umbraco-cms/backoffice` 17.8.1,
+  `vite` 7.3.8, `typescript` 5.9.3, `@hey-api/openapi-ts` 0.99.0. The 17.8.1 template needed
+  none of the hey-api patches.
 - Date: 2026-11-13
 - Source: `add-sample-package` design.md Q2, Q4, Q19, Q20
 
