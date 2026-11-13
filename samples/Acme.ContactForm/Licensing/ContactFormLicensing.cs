@@ -29,7 +29,7 @@ public sealed record LicenseSnapshot(
 /// Evaluated on every call, never cached. Register as a singleton.
 /// </summary>
 /// <param name="timeProvider">The licensing clock; the same one the product's evaluator was built with.</param>
-/// <param name="stateLog">Told the state on every evaluation; it logs a change once.</param>
+/// <param name="stateLog">Told the snapshot on every evaluation; it logs a change of condition once.</param>
 public sealed class ContactFormLicensing(
     ContactFormProduct product,
     ILicenseKeySource keySource,
@@ -44,7 +44,6 @@ public sealed class ContactFormLicensing(
     {
         var reading = keySource.Read();
         var result = product.Evaluator.Evaluate(reading.Key);
-        stateLog.Report(result);
         var valid = result.State == LicenseState.Valid;
         var hostChecked = new HostString(host ?? "").Host;
 
@@ -69,7 +68,7 @@ public sealed class ContactFormLicensing(
         DateTimeOffset? expires = valid ? result.License?.Expires : null;
         int? daysLeft = expires is { } e ? (int)Math.Floor((e - timeProvider.GetUtcNow()).TotalDays) : null;
 
-        return new LicenseSnapshot(
+        var snapshot = new LicenseSnapshot(
             result.State,
             result,
             reading.SourceName,
@@ -83,5 +82,8 @@ public sealed class ContactFormLicensing(
             daysLeft is <= ExpiringSoonDays,
             expires,
             daysLeft);
+
+        stateLog.Report(snapshot);
+        return snapshot;
     }
 }

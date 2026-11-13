@@ -214,7 +214,7 @@ Minors and nits from reviews. Read at the start of each apply session.
 - **minor** (section 6 or 7): `AdminLicenseStatus.cs:148-153` `Domain.Covered` is true with text
   "Not checked" when not `Valid`. Add `Checked`, or the client shows `Domain.Text` with no tick
   unless `Valid`.
-- **nit / question for Carl**: `LicenseStateLog.cs:34` the first report each start logs a
+- **nit / question for Carl** (resolved by Q24, PDR-0071; task 4.7): `LicenseStateLog.cs:34` the first report each start logs a
   warning, including "now Valid" on a healthy site. Matches the spec; Information for a first
   `Valid` would change the spec wording.
 - **nit**: `InMemorySubmissionStore.cs:18-21` unbounded list on a public form; prototype, spam is
@@ -228,3 +228,26 @@ Minors and nits from reviews. Read at the start of each apply session.
   decorates `ILicenseKeySource` via `ActivatorUtilities.CreateInstance<ConfiguredLicenseKeySource>`,
   registers demo services after `AddContactForm()`, reads `Demo:Enabled` at registration (no
   runtime toggle). Section 7 shows a null banner as nothing.
+
+## Block 4.7 (reviewer, 2026-11-13, APPROVED)
+
+- Acceptance met: "Good license at startup", "Expiring soon logged" (at startup and crossing into
+  30 days while running, once), "Key expires" (Error), "Log holds no key", two-thread once.
+- **nit**: `samples/Acme.ContactForm/Licensing/LicenseStateLog.cs` `?? "unknown"` expiry-date
+  fallback is unreachable (expiring soon implies an expiry). Harmless.
+
+## Section 4 re-review with 4.7 (supervisor, 2026-11-13, APPROVED)
+
+- **nit (records, next opsx:update)**: `docs/decisions/0068-sample-shows-each-persona.md:40`
+  "(Levels amended by PDR-0071.)" understates the change; PDR-0071 also changes the trigger from
+  a state change to a condition change. Suggested: "(Amended by PDR-0071: one message per
+  condition change, level by condition.)"
+- **risk (6.2)**: `DemoClock` must be the one clock given to both the evaluator and
+  `ContactFormLicensing`; test "DemoClock only for the dated entry" through `Check`'s
+  `ExpiringSoon`, not the evaluator alone.
+- **risk (6.2)**: each picker choice changes the condition, so a demo session logs Errors and
+  Warnings on purpose; say so in "Demo/: delete when copying".
+- **risk (5.2)**: committed `appsettings.json` must not raise the minimum level above
+  Information for `Acme.*`, or a healthy start logs nothing.
+- **note for Carl**: renewing an expiring-soon key logs one Information line (condition back to
+  plain `Valid`). Follows the spec; no scenario names it.

@@ -77,7 +77,7 @@ A vendor builds the licensing for their own product by copying files from `Acme.
 | `ContactFormLicensing.cs` | The snapshot check. It evaluates the key and answers what the product acts on: state, uploads, monthly limit, domain, days left. |
 | `FirstActions.cs` | The first action to tell a site owner for each state. |
 | `AdminLicenseStatus.cs`, `EditorLicenseBanner.cs` | The two projections of a snapshot: the full status for an administrator and a short banner for an editor. Neither holds the key. |
-| `LicenseStateLog.cs` | One warning each time the state changes, naming the key identifier and never the key. |
+| `LicenseStateLog.cs` | One line each time the condition changes (Information when Valid, Warning when expiring soon, Error for any other state), naming the key identifier and never the key. |
 
 The wiring is in `Extensions/` (`AddContactForm()`, which calls `AddContactFormLicensing()`) and `Composers/ContactFormComposer.cs`. Calling `AddContactForm()` from the composer and from `Program.cs` registers each service once.
 
