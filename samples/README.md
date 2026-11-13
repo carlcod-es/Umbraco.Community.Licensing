@@ -91,4 +91,29 @@ Change these in your copy:
 
 `Form/` is the public form: a view component, its view model, a surface controller and the handler it delegates to. The view model has `ShowUploads` only, so nothing else about the license reaches the page. Submissions are recorded whatever the license state; the file is read (name and size only) only when uploads are shown for that request. The view is `Views/Shared/Components/ContactForm/Default.cshtml`, compiled into the package.
 
-`Submissions/` is an in-memory stand-in for real storage behind `ISubmissionStore`. Replace it. `Demo/` is for the demo site only and is not to be copied.
+`Submissions/` is an in-memory stand-in for real storage behind `ISubmissionStore`. Replace it. `Demo/` is described next.
+
+## Demo/: delete when copying
+
+`Demo/` exists for the demo site only. Delete it, and the lines listed below, when you copy the licensing into your own product.
+
+What is in it:
+
+- `demo-keys.json` and its reader (`DemoKeyEntry`, `DemoKeys`): the committed demo key set, embedded in the package.
+- `DemoKeySelection`: the entry the picker chose, or none. Held in memory only.
+- `DemoKeySource`: wraps the configured key source. While an entry is chosen it supplies that entry's key, and the key source name reads `Demo selection: <entry>`.
+- `DemoClock`: the chosen entry's demo date when it has one (only "Valid: expiring soon" does), the real clock otherwise. It is given to the product only and is never registered as the container's `TimeProvider`, so the monthly submission count always uses the real clock.
+- `DemoController` and `ContactFormDemoServiceCollectionExtensions` (`AddContactFormDemo()`): the `demo/entries` and `demo/select` endpoints, and the registration. `Client/src/demo/` will hold the picker element in the client.
+
+It is off unless `ContactForm:Demo:Enabled` is true, read once at start-up. With it off nothing in `Demo/` is registered and both demo endpoints answer 404. The demo site's committed `appsettings.json` turns it on. Both endpoints need Settings section access.
+
+The picker never writes settings: the choice lives in memory and a restart goes back to the configured key. Choosing "configured" in the same request body (`{ "entry": "configured" }`) also goes back to it. An unknown entry name answers 400 and changes nothing.
+
+Expect log noise in a demo session: each choice changes the licensing condition, so the state log writes Warning and Error lines on purpose (for example when you choose Expired or Damaged key). That is the logging working, not a fault.
+
+When copying, also remove:
+
+- the `AddContactFormDemo(...)` line in `Extensions/UmbracoBuilderExtensions.cs`;
+- in `Controllers/LicenseStatusController.cs`, the `DemoKeySelection? demo` constructor parameter and the `DemoSelection` and `DemoDate` fields of `LicenseStatusResponse`, so the action returns `AdminLicenseStatus` directly.
+
+`Licensing/` itself holds no demo code: `ContactFormProduct.Clock` is the one clock the evaluator and the expiring-soon check share.

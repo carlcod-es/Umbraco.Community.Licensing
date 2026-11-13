@@ -28,7 +28,7 @@ public class ContactFormLicensingTests
             Clock = new TestClock(now);
             Source = new SwitchableSource(key);
             Store = new InMemorySubmissionStore(TimeProvider.System);
-            Licensing = new ContactFormLicensing(new ContactFormProduct(Clock), Source, Store, Clock, new LicenseStateLog(NullLogger<LicenseStateLog>.Instance));
+            Licensing = new ContactFormLicensing(new ContactFormProduct(Clock), Source, Store, new LicenseStateLog(NullLogger<LicenseStateLog>.Instance));
         }
 
         public TestClock Clock { get; }

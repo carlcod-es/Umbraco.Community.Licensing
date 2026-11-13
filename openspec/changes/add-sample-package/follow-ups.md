@@ -306,3 +306,18 @@ Minors and nits from reviews. Read at the start of each apply session.
   render and post drops the file silently (spec-conformant). 6.1: assert 4-of-3 dashboard data in
   controller tests. 7.2: show `KeySourceName` as given; setting name and env var separately.
   8: CI never exercises the seeder or the cap; any smoke step uses the `http` profile.
+
+## Block 6.1 (reviewer, 2026-11-13, APPROVED)
+
+- Acceptance met: per-action policies (no class-level policy; reflection tests), `license/status`
+  returns the 4.4 admin data (incl. 4 of 3 and the new-month reset), `submissions` returns the
+  month's list and banner; serialised with Umbraco's `ConfigureUmbracoBackofficeJsonOptions` for
+  every demo key. OpenAPI document and operation IDs not exercised without a host: 6.3.
+- **nit**: `ApiControllerTests.Submissions_banner_from_the_controller_holds_no_license_details`
+  builds a second `ContactFormLicensing`; expose it on `Rig`.
+- **nit**: `SubmissionItem`/`SubmissionsResponse` declared in `Controllers/SubmissionsController.cs`.
+- **nit**: `Composers/AcmeContactFormApiComposer.cs` keeps template comments (commented-out
+  `Contact`, doc links) and a blank line after `Compose(`.
+- **note**: `submissions` returns visitor-entered text verbatim (intended for Content users).
+- **for section 7**: client still calls the removed template endpoints and the old
+  `acmecontactform` route; regenerate from `acme-contact-form`.

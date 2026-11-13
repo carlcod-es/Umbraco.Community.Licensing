@@ -25,7 +25,6 @@ public class ContactFormFormTests
                 new ContactFormProduct(clock),
                 new FixedSource(entry.Key),
                 Store,
-                clock,
                 new LicenseStateLog(NullLogger<LicenseStateLog>.Instance));
             Builder = new ContactFormViewModelBuilder(licensing);
             Handler = new ContactFormHandler(Builder, Store);

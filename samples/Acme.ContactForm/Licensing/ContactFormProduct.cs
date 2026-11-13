@@ -26,8 +26,14 @@ public sealed class ContactFormProduct
     public static TrustedSigningKeys TrustedSigningKeys { get; } = TrustedSigningKeys.Create(SigningPublicKey.Parse(DemoPublicKey));
 
     /// <param name="timeProvider">The clock expiry is judged against (the demo clock in the demo site); null for the system clock.</param>
-    public ContactFormProduct(TimeProvider? timeProvider = null) =>
-        Evaluator = new LicenseEvaluator(ProductId, TrustedSigningKeys, timeProvider);
+    public ContactFormProduct(TimeProvider? timeProvider = null)
+    {
+        Clock = timeProvider ?? TimeProvider.System;
+        Evaluator = new LicenseEvaluator(ProductId, TrustedSigningKeys, Clock);
+    }
+
+    /// <summary>The clock the evaluator judges expiry against. The expiring-soon check uses it too, so the two cannot differ.</summary>
+    public TimeProvider Clock { get; }
 
     public LicenseEvaluator Evaluator { get; }
 }

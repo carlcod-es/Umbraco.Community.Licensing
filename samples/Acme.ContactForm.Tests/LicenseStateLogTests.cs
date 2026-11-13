@@ -59,12 +59,12 @@ public class LicenseStateLogTests
         var entry = Entries.Single(e => e.Name == name);
         var clock = new TestClock(entry.DemoDate is { } date ? DemoKeyFile.ParseInstant(date) : DemoKeyFile.FixedClock);
         return new ContactFormLicensing(
-            new ContactFormProduct(clock), new SwitchableSource(entry.Key), new InMemorySubmissionStore(TimeProvider.System), clock,
+            new ContactFormProduct(clock), new SwitchableSource(entry.Key), new InMemorySubmissionStore(TimeProvider.System),
             new LicenseStateLog(NullLogger<LicenseStateLog>.Instance)).Check("localhost");
     }
 
     private static ContactFormLicensing LicensingWith(TestClock clock, SwitchableSource source, LicenseStateLog log) =>
-        new(new ContactFormProduct(clock), source, new InMemorySubmissionStore(TimeProvider.System), clock, log);
+        new(new ContactFormProduct(clock), source, new InMemorySubmissionStore(TimeProvider.System), log);
 
     [Fact]
     public void Good_license_at_startup()

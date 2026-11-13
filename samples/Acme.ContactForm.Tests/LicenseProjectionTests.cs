@@ -37,7 +37,7 @@ public class LicenseProjectionTests
             store.Add("n", "e@example.com", "m");
         }
 
-        return new ContactFormLicensing(new ContactFormProduct(clock), new FixedSource(entry.Key), store, clock, new LicenseStateLog(NullLogger<LicenseStateLog>.Instance)).Check(host);
+        return new ContactFormLicensing(new ContactFormProduct(clock), new FixedSource(entry.Key), store, new LicenseStateLog(NullLogger<LicenseStateLog>.Instance)).Check(host);
     }
 
     // ---- FirstActions

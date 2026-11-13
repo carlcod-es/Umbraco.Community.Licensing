@@ -28,13 +28,11 @@ public sealed record LicenseSnapshot(
 /// The licensing core to copy: reads the key, evaluates it and turns the result into the answers the product acts on.
 /// Evaluated on every call, never cached. Register as a singleton.
 /// </summary>
-/// <param name="timeProvider">The licensing clock; the same one the product's evaluator was built with.</param>
 /// <param name="stateLog">Told the snapshot on every evaluation; it logs a change of condition once.</param>
 public sealed class ContactFormLicensing(
     ContactFormProduct product,
     ILicenseKeySource keySource,
     ISubmissionStore submissions,
-    TimeProvider timeProvider,
     LicenseStateLog stateLog)
 {
     public const int ExpiringSoonDays = 30;
@@ -66,7 +64,7 @@ public sealed class ContactFormLicensing(
         var covered = domains is null || domains.Any(d => string.Equals(d, hostChecked, StringComparison.OrdinalIgnoreCase));
 
         DateTimeOffset? expires = valid ? result.License?.Expires : null;
-        int? daysLeft = expires is { } e ? (int)Math.Floor((e - timeProvider.GetUtcNow()).TotalDays) : null;
+        int? daysLeft = expires is { } e ? (int)Math.Floor((e - product.Clock.GetUtcNow()).TotalDays) : null;
 
         var snapshot = new LicenseSnapshot(
             result.State,

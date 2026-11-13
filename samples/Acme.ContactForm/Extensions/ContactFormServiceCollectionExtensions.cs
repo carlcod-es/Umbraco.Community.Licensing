@@ -18,11 +18,14 @@ public static class ContactFormServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        // TryAdd does not dedupe the options binding, so an earlier call is recognised by its product registration.
-        if (services.Any(d => d.ServiceType == typeof(ContactFormProduct)))
+        // TryAdd does not dedupe the options binding, so an earlier call is recognised by a marker. The product is not used
+        // for this: the demo registration replaces it.
+        if (services.Any(d => d.ServiceType == typeof(RegisteredMarker)))
         {
             return services;
         }
+
+        services.AddSingleton<RegisteredMarker>();
 
         services.AddOptions<ContactFormOptions>().Bind(configuration.GetSection(ContactFormOptions.SectionName));
 
@@ -35,11 +38,12 @@ public static class ContactFormServiceCollectionExtensions
             sp.GetRequiredService<ContactFormProduct>(),
             sp.GetRequiredService<ILicenseKeySource>(),
             sp.GetRequiredService<ISubmissionStore>(),
-            sp.GetRequiredService<TimeProvider>(),
             sp.GetRequiredService<LicenseStateLog>()));
         services.TryAddSingleton<ContactFormViewModelBuilder>();
         services.TryAddSingleton<ContactFormHandler>();
 
         return services;
     }
+
+    private sealed class RegisteredMarker;
 }
