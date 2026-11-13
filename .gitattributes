@@ -1,2 +1,4 @@
 # Generated sources keep LF on every OS, matching the generator output (tighten-text-rule design.md "Line endings").
 *.g.cs text eol=lf
+# The sample backoffice client keeps LF on every OS, so regenerating src/api on Windows does not churn it.
+samples/Acme.ContactForm/Client/** text eol=lf

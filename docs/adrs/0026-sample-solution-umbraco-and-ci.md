@@ -1,7 +1,23 @@
 # ADR-0026: Sample solution, Umbraco version and CI
 
 - Status: Decided
-- Package approval: pending Carl (requested 2026-11-13); recorded here with the pinned versions at task 2.1
+- Package approval: Carl, 2026-11-13, the set the 17.8.1 templates list. Package project:
+  `Umbraco.Cms.Web.Website`, `Umbraco.Cms.Web.Common`, `Umbraco.Cms.Api.Management`,
+  `Umbraco.Cms.Api.Common` at `17.8.1` exact, and `Swashbuckle.AspNetCore` `10.2.3` exact (the
+  template references it directly to avoid a Microsoft.OpenApi version conflict). Site:
+  `Umbraco.Cms` and `Umbraco.Cms.DevelopmentMode.Backoffice` at `17.8.1` exact (the template
+  floats `17.*`), and `Microsoft.ICU.ICU4C.Runtime` `72.1.0.3` on Windows and Linux only, as the
+  template has it. `Umbraco.Cms.Web.BackOffice` has no 17.x release and is not used;
+  `Umbraco.Cms.Persistence.Sqlite` comes through `Umbraco.Cms` and is not referenced directly.
+  Tests: `xunit.v3` `[4.0.1]`. Scaffolded with `Umbraco.Templates` `17.8.1` in a temporary hive.
+  npm: `@umbraco-cms/backoffice` `~17.8.1`, and `vite`,
+  `typescript`, `@hey-api/openapi-ts`, `chalk`, `cross-env` and `node-fetch` at the versions
+  the 17.8.1 template sets (the last three confirmed by Carl the same day); exact resolved
+  versions below, from the committed lockfile
+- npm versions resolved at scaffold (2026-11-13, lockfile): `@umbraco-cms/backoffice` 17.8.1,
+  `vite` 7.3.8, `typescript` 5.9.3, `@hey-api/openapi-ts` 0.99.0, `chalk` 5.6.2, `cross-env`
+  10.1.0, `node-fetch` 3.3.2. The 17.8.1 template needed
+  none of the hey-api patches.
 - Date: 2026-11-13
 - Source: `add-sample-package` design.md Q2, Q4, Q19, Q20
 
@@ -21,10 +37,12 @@ which the root `TreatWarningsAsErrors` would turn into failures.
   NU1901 to NU1904.
 - **Project reference** from the sample package to `src/Umbraco.Community.Licensing` (Carl,
   2026-11-13).
-- **Umbraco 17 LTS**, exact pin at the latest 17.x patch at apply, for all Umbraco packages in
-  the sample: the package takes `Umbraco.Cms.Web.Website`, `Umbraco.Cms.Web.BackOffice` and
-  `Umbraco.Cms.Api.Management`; the site `Umbraco.Cms` and `Umbraco.Cms.Persistence.Sqlite`, as
-  the 17 templates list them. Tests take `xunit.v3` `[4.0.1]` and no mocking package.
+- **Umbraco 17 LTS**, exact pin at the latest 17.x patch at apply (17.8.1), for all Umbraco
+  packages in the sample, as the 17.8.1 templates list them: the package takes
+  `Umbraco.Cms.Web.Website`, `Umbraco.Cms.Web.Common`, `Umbraco.Cms.Api.Management`,
+  `Umbraco.Cms.Api.Common` and `Swashbuckle.AspNetCore`; the site `Umbraco.Cms`,
+  `Umbraco.Cms.DevelopmentMode.Backoffice` and, on Windows and Linux, `Microsoft.ICU.ICU4C.Runtime`.
+  SQLite comes through `Umbraco.Cms`. Tests take `xunit.v3` `[4.0.1]` and no mocking package.
 - **Scaffolded** from `Umbraco.Templates` 17.x installed into a temporary template hive; the
   templates are not a repo dependency.
 - **CI**: `.github/workflows/sample.yml` on pull requests and pushes to `main` touching

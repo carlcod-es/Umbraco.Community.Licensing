@@ -210,16 +210,32 @@ numbers.
 - **THEN** the banner and its data contain neither the claimed product nor the key identifier
 
 ### Requirement: Licensing changes logged
-The product SHALL write one warning to the site log when the license state it evaluates differs
-from the last state it logged, naming the new state and the key identifier (or claimed
-identifier, or none). The log SHALL never contain the key string. A repeat of the same state
-SHALL not be logged again.
+The product SHALL write one message to the site log when the license condition (the state and,
+for a `Valid` license, whether it is expiring soon) differs from the last one logged, including
+at startup, naming the state, the key identifier (or claimed identifier, or none) and, when
+expiring soon, the expiry date. The log SHALL never contain the key string. A repeated
+condition SHALL not be logged again.
 
 #### Scenario: Key expires
 - **WHEN** the state changes from `Valid` to `Expired`
-- **THEN** one warning naming `Expired` and the key identifier is logged, and none on later
+- **THEN** one Error naming `Expired` and the key identifier is logged, and none on later
   evaluations while it stays `Expired`
 
 #### Scenario: Log holds no key
-- **WHEN** any state change is logged
+- **WHEN** any change is logged
 - **THEN** the log entry does not contain the key string
+
+### Requirement: Log level follows the license condition
+Each licensing log message SHALL be Information for a `Valid` license not expiring soon, Warning
+for a `Valid` license expiring soon, and Error for any other state, at startup and on every
+later change.
+
+#### Scenario: Good license at startup
+- **WHEN** the first evaluation after the site starts is `Valid` and not expiring soon
+- **THEN** one Information message naming `Valid` and the key identifier is logged
+
+#### Scenario: Expiring soon logged
+- **WHEN** a `Valid` license comes within 30 days of its expiry, at startup or while the site
+  runs
+- **THEN** one Warning naming the expiry date and the key identifier is logged, and none on later
+  evaluations while it stays expiring soon

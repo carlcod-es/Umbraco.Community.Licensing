@@ -1,6 +1,6 @@
 # PDR-0068: What the sample product shows each persona
 
-- Status: Decided
+- Status: Amended by PDR-0071
 - Date: 2026-11-13
 - Source: `add-sample-package` design.md Q6, Q8, Q9, Q10, Q15, Q16, Q18
 - Personas: site visitor (never affected); backoffice editor (warned, never shown key details);
@@ -37,7 +37,7 @@ show one sound set of choices for every persona and state, consistent with
   product.
 - **Never the key string**, on any screen or in any response, for any user.
 - **Evaluated on use**: a key changed in configuration takes effect without a restart.
-- **Log**: one warning per state change, naming the state and the identifier; never the key.
+- **Log**: one warning per state change, naming the state and the identifier; never the key. (Amended by PDR-0071: one message per condition change, level by condition.)
 - **Domains** are compared ignoring case, spaces and port; with no `licensed-domains`, any
   domain is covered.
 
