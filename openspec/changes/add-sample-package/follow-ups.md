@@ -98,3 +98,52 @@ Minors and nits from reviews. Read at the start of each apply session.
 - **risk for section 8**: any CI step that starts the site must use the Development
   environment, where the demo administrator lives.
 - **risk for 9.1**: Node 24.13+ needed for `run-demo.mjs` and for the `tools/**` test glob.
+
+## Block 3.1 (reviewer, 2026-11-13, APPROVED)
+
+- **minor**: `samples/Acme.ContactForm.Tests/DemoSigningKeyTests.cs` (~64-75)
+  `NoPrivateKeyInThePackage`: `built` is the test assembly folder while its comment says package
+  output; it overlaps `assemblyFolder`. Rename or drop one check.
+- **minor**: same test, `Assembly.Load("Acme.ContactForm")` fails with a load error, not a clear
+  message, if the project reference is dropped. Acceptable.
+- **nit**: `samples/demo-signing-keys/README.md:1` `//` warning renders as plain text; required.
+- **for section 4**: `SigningPublicKey.Parse` cannot read `*.public.txt` (leading `//` lines).
+  The package holds the bare line as a constant; add a test comparing it to
+  `DemoKeyFiles.LoadPublic("demo.public.txt")` so they cannot drift.
+
+## Block 3.2–3.3 (reviewer, 2026-11-13, APPROVED)
+
+- **nit**: `samples/Acme.ContactForm.Tests/DemoKeyFile.cs` JSON options use
+  `UnsafeRelaxedJsonEscaping` (readable apostrophe in "Another product's key"); safe as JSON
+  data, add a one-line comment saying it must not be inlined into HTML.
+- **nit**: `DemoKeyTests.Not_supported_not_demonstrated` asserts README wording; a rewording
+  fails it. Accepted.
+- **records drift (nit)**: the generator also writes `Demo/demo-keys.json`, design.md and
+  ADR-0028 say "printing". Align by `opsx:update`.
+- **notes**: references are random (the library needs 10 chars from its alphabet), so
+  `DisplayName` carries the entry name; prefix `ACME`. Entries 9 and 10 record the claimed
+  product with `productVerified: false` (field added beyond design.md's list).
+
+## Section 3 (supervisor, 2026-11-13, APPROVED)
+
+- **minor**: `samples/Acme.ContactForm.Tests/DemoKeyFile.cs:82-86` JSON options use the default
+  `NewLine` (CRLF on Windows) while the generator appends `\n`: mixed endings on a Windows
+  regeneration. Set `NewLine = "\n"`. Optional (Architect): `.gitattributes` `eol=lf` for
+  `samples/demo-signing-keys/*` and `demo-keys.json`.
+- **minor**: `DemoKeyTests.cs:310` hard-codes `UntrustedKeyId`; read it from
+  `DemoKeyFiles.LoadPublic("untrusted.public.txt")` so a deliberate rotation does not look like a
+  regression.
+- **minor** (section 6.2): `DemoKeyEntry`/`LoadEmbedded` live in the test project; move them to
+  the package's `Demo/` when `DemoKeySelection` lands so one reader serves both.
+- **nit**: `DemoKeyFile.cs:79` FixedClock comment: "after Expired's expiry, before the others expire".
+- **records drift (nit)**: design.md field list lacks `productVerified` (with the "printing" drift above).
+- **risks for section 4**:
+  - 4.1: test `ContactFormProduct`'s public key constant against
+    `DemoKeyFiles.LoadPublic("demo.public.txt")`; switch `DemoKeyTests` to the product's ID and
+    trusted keys so "evaluated by the sample product" holds literally.
+  - 4.3: fix the expiring-soon day count as whole days rounded down (14 d 11:59:59 → 14) and
+    test 14/30/31 against it.
+  - 5.2: regenerating changes the full-plan key; the README regeneration paragraph must say to
+    update `ContactForm:LicenseKey` in the site's `appsettings.json`.
+  - Section 8 / before push: committed demo PEMs may raise GitHub or gitleaks private-key alerts;
+    dismiss as test data or allowlist `samples/demo-signing-keys/`.

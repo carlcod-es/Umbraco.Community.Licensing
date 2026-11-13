@@ -52,6 +52,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The committed demo key set (ADR-0028), read by the demo picker and the demo key tests -->
+    <EmbeddedResource Include="Demo\demo-keys.json" LogicalName="Acme.ContactForm.Demo.demo-keys.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
 

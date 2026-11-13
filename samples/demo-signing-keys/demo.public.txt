@@ -1,0 +1,3 @@
+// PUBLIC, DEMO-ONLY KEY. It is published in this repository. Never trust it in a real product.
+// Role: Demo signer.
+EA9GWbyG_L8.MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEKSzL0QNIpRE1QeAGJiCLoMG3EoVhJyxLuCuoaEfvxmDwSitTWwWRCfytVMpT9IpZevQPMaQFiosJXTeV--rgCg
