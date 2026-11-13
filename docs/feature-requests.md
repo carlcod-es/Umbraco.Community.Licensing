@@ -9,7 +9,7 @@ Cite as FR-N.
 |---|---|---|---|
 | FR-1 | Vendor-chosen key identifier prefix | Carl, 2026-10-09 | Taken into `add-license-core` (design.md Q20, PDR-0023) |
 | FR-2 | Vendor issuing console tool | Carl, 2026-10-09 | Taken into `add-vendor-tool` (design.md Q1 to Q26; PDR-0030 to PDR-0036, ADR-0011 to ADR-0015). SQL Server dropped (Carl, 2026-10-28); returns as later work in FR-24 and FR-25 (Carl, 2026-11-08). Windows added: design.md Q32, PDR-0038 (Carl, 2026-11-07). Guided mode only; scripted use moved to FR-22: design.md Q33, PDR-0039 (Carl, 2026-11-08) |
-| FR-3 | Example product package | Carl, 2026-10-09 | Open; possible later change |
+| FR-3 | Example product package | Carl, 2026-10-09 | Taken into `add-sample-package` (design.md Q1 to Q22; PDR-0067 to PDR-0069, ADR-0026 to ADR-0028) |
 | FR-4 | Standby signing key | Carl, 2026-10-10 | Taken into `add-vendor-tool` (design.md Q15, Q16; PDR-0032, PDR-0035). Issue 2 answered by the passphrase; storing apart is FR-15 |
 | FR-5 | Responding to a compromised signing key | Carl, 2026-10-10 | Open; after FR-2 |
 | FR-6 | CI and release pipeline | Carl, 2026-10-14 | Closed by `add-release-pipeline` (design.md Q1 to Q10; PDR-0027, PDR-0028, PDR-0029, ADR-0008, ADR-0009); first published version `0.1.0-beta.4`, 2026-10-27 |

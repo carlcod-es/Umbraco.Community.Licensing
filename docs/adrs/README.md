@@ -37,3 +37,6 @@ Deferred. Update this index in the same change as any status line.
 | [ADR-0023](0023-vendor-tool-backup-version-check.md) | Vendor tool backup version check | Decided |
 | [ADR-0024](0024-release-run-skips-performance-tests.md) | Release run skips the performance tests | Decided |
 | [ADR-0025](0025-vendor-tool-rich-console-rendering.md) | Vendor tool rich console rendering | Decided |
+| [ADR-0026](0026-sample-solution-umbraco-and-ci.md) | Sample solution, Umbraco version and CI | Decided |
+| [ADR-0027](0027-sample-backoffice-api-and-client.md) | Sample backoffice API and client | Decided |
+| [ADR-0028](0028-sample-demo-keys-generation-and-clock.md) | Sample demo keys, generation and demo clock | Decided |
