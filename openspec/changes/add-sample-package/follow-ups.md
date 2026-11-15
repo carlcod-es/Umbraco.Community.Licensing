@@ -546,3 +546,81 @@ Baseline for review: `35221e3`. No blockers or majors.
   filter would leave other PRs waiting); demo PEM alerts to dismiss; no NuGet cache (slower, correct);
   9.1: `docs/development.md` gives Node 24.13+ and the local equivalent of `sample.yml`.
 - 8.1 ticked 2026-11-13: Carl reported "Sample / build-test" green on PR #7 (esbuild fine on Ubuntu).
+
+## Block 9.1 (reviewer, 2026-11-13, APPROVED)
+
+- Acceptance met: links in README.md ("What it does", Documentation table), docs/vendor-guide.md,
+  docs/implementor-guide.md, docs/development.md (Node 24.13+, run, CI-equivalent commands,
+  generate-client prerequisite, secret-scanning note); samples/README.md reviewed end to end; every
+  link and anchor resolves (Architect's check); every samples/README.md command run on macOS by the
+  worker (generate-client: no diff; generators run and restored); sample build 0 warnings, tests
+  282 passed / 2 explicit skipped; run-demo tests 9/9; tools tests 148/148 on Node 24 (quoted glob).
+- Folded in (Carl 2026-11-13): run-demo.mjs `spawnPlan` (no `shell: true`, DEP0190; Windows path
+  tested by unit test only); `DemoEntryItem.DemoDate` comment; `AddContactFormDemo` calls
+  `AddContactFormLicensing` first, with test; Controllers/ 401 observed by hand (unauthenticated
+  curl, all four endpoints) and stated as such.
+- **nit**: `samples/README.md` "`Licensing/` itself holds no demo code" sits oddly beside
+  `ContactFormOptions.Demo` (`DemoOptions`, setting only; accepted by Carl). Reword or leave.
+- **nit** (worker): `Demo/ContactFormDemoComposer.cs` doc comment still frames `[ComposeAfter]` as
+  required; with `AddContactFormLicensing` called first it is only the order that makes the demo's
+  `Replace` win. Reword later or leave.
+- **note**: the swagger document carries no doc-comment text, so the comment change needs no client
+  regeneration.
+
+## Section 9 (supervisor, 2026-11-13, APPROVED)
+
+Baseline for review: HEAD. Validation re-run: sample build 0 warnings, 282/2 skipped; root solution
+1673 passed / 2 skipped; run-demo 9/9; tools 148/148 (unquoted glob on Node 20). No records drift
+from this section (design.md:284 still true; `[ComposeAfter]` kept, no longer load-bearing).
+
+- **minor** (vendor persona): secret-scanning advice too broad and inconsistent.
+  `samples/demo-signing-keys/README.md:21` and `docs/development.md:161-164`: dismiss as "used in
+  tests" only for `samples/demo-signing-keys/demo.pem` / `untrusted.pem` after checking the demo
+  warning; any other path is a real leak (revoke, rotate); drop "false positive".
+- **minor (out of scope, rated minor)**: `design.md:112` layout lists `Api/  Management API
+  controllers`; the code has `Controllers/` and `DemoController` in `Demo/`. Next opsx:update.
+- **minor (section 10 readiness)**: `samples/README.md` Controllers/ does not say how to call an
+  endpoint as a given back-office user (Swagger UI at `/umbraco/swagger`, `acme-contact-form`
+  document), nor that the default Editors group has Content but not Settings access (10.3).
+- **nit**: `README.md:33` "every state" and `docs/implementor-guide.md:33` "each state" overclaim
+  (`NotSupported` not demonstrated).
+- **nit**: `docs/implementor-guide.md:32` "Editors see only a short banner" reads as library
+  behaviour; "In the sample, ...".
+- **nit**: `samples/README.md` ~150: mention `ContactForm__Demo__Enabled=false` for 10.4 instead of
+  editing a tracked file.
+- **risks for section 10**: this working copy's gitignored `appsettings.Local.json` overrides the
+  admin login (`sample-admin@example.test`) and `umbraco/Data` is already installed, so the
+  README login works only from a fresh clone; the shell's default Node is 20 (`nvm use 24`);
+  Windows npm path unit-tested only; root README links resolve only after merge to main.
+
+## Section 9 nits block (reviewer, 2026-11-13, APPROVED; folded in at Carl's go-ahead)
+
+- Resolved: secret-scanning advice (both texts agree; only `demo.pem`/`untrusted.pem` with the
+  warning; any other file is a leak: stop trusting, rotate); Controllers/ how to call an endpoint as a
+  user (Swagger UI, Development only) and Editors group without Settings (seeded DB: content, media,
+  forms); "every state but `NotSupported`"; "In the sample, ... editors see a short banner";
+  `ContactForm__Demo__Enabled=false` for one run (POSIX and PowerShell; holds by code reading).
+- **minor (observe in 10.3)**: `samples/README.md:107` Swagger "Authorize and sign in" and "Try it
+  out" steps are described from the UI config, not completed. Carl's 10.3 run exercises them; reword
+  if they differ.
+- **minor/nit**: `samples/README.md` Demo/ PowerShell `$env:` stays set for the terminal session; add
+  `Remove-Item Env:ContactForm__Demo__Enabled`.
+- Not observed: demo off with the env var (unauthenticated is 401 either way); 10.4 observes it.
+
+## Section 9 re-review (supervisor, 2026-11-13, APPROVED)
+
+Reviewed `git diff --cached 6e51a19` (docs only). All supervisor findings resolved; both
+secret-scanning texts agree and match the vendor-guide rotation.
+
+- **nit**: `samples/README.md:109` "Content, Media and Forms": Forms is not installed; say Content and
+  Media.
+- **nit**: `samples/README.md:107` "Swagger UI is served in development only": confirm Umbraco 17's
+  condition in 10.3, or say "in the demo site (Development)".
+- **nit**: `docs/development.md:165`, `samples/demo-signing-keys/README.md:21`: "still starts with the
+  warning" is a weak check; stronger is unchanged in git history or public key matching
+  `demo.public.txt`/`untrusted.public.txt`. Optional.
+- **risk**: in Debug, `appsettings.Local.json` is added after environment variables, so a
+  `ContactForm:Demo:Enabled` there beats the documented env var. Carl's Local.json does not set it.
+  One clause in samples/README.md later.
+- Carried: fresh clone for 10.1; `nvm use 24`; Windows npm path unit-tested only; root README links
+  resolve after merge; 10.3 confirms Swagger Authorize/Try it out; 10.4 observes the env var.

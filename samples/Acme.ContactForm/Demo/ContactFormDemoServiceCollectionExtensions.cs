@@ -1,3 +1,4 @@
+using Acme.ContactForm.Extensions;
 using Acme.ContactForm.Licensing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,8 +11,8 @@ public static class ContactFormDemoServiceCollectionExtensions
 {
     /// <summary>
     /// When <c>ContactForm:Demo:Enabled</c> is true (read now; there is no runtime toggle), registers the picker's selection,
-    /// the demo clock and the demo key source, and replaces the product and licensing so both use the one demo clock. Call it
-    /// after <c>AddContactFormLicensing</c> (<see cref="ContactFormDemoComposer"/> runs after the composer that does). Demo mode
+    /// the demo clock and the demo key source, and replaces the product and licensing so both use the one demo clock. It calls
+    /// <c>AddContactFormLicensing</c> first (a no-op when already registered), so call order does not matter. Demo mode
     /// wraps the configured key source, not a host's own <c>ILicenseKeySource</c>. Does nothing when the setting is off. Safe to call more than once.
     /// </summary>
     public static IServiceCollection AddContactFormDemo(this IServiceCollection services, IConfiguration configuration)
@@ -24,6 +25,9 @@ public static class ContactFormDemoServiceCollectionExtensions
         {
             return services;
         }
+
+        // Idempotent, so the replacements below always have the registrations they depend on
+        services.AddContactFormLicensing(configuration);
 
         services.AddSingleton<DemoKeySelection>();
         services.AddSingleton<DemoClock>();

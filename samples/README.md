@@ -95,7 +95,7 @@ Change these in your copy:
 
 ## Controllers/
 
-The package's back-office API: four endpoints in one OpenAPI document, `acme-contact-form`. In development the site serves it at `http://localhost:15329/umbraco/swagger/acme-contact-form/swagger.json`. Every endpoint needs a signed-in back-office user and answers 401 otherwise.
+The package's back-office API: four endpoints in one OpenAPI document, `acme-contact-form`. In development the site serves it at `http://localhost:15329/umbraco/swagger/acme-contact-form/swagger.json`. Every endpoint needs a signed-in back-office user. With none, each answers 401 (checked by hand against the running site, not by a test). The path prefix is `/umbraco/acme-contact-form/api/v1/`.
 
 | Endpoint | Policy | Returns |
 |---|---|---|
@@ -103,6 +103,10 @@ The package's back-office API: four endpoints in one OpenAPI document, `acme-con
 | `GET submissions` | Content section access | This month's submissions and the editor banner, or no banner when nothing is due. |
 | `GET demo/entries` | Settings section access | The demo picker's list and the selection. Demo only; 404 when the demo is off. |
 | `POST demo/select` | Settings section access | 204 once chosen, 400 for an unknown entry. Demo only; 404 when the demo is off. |
+
+To call an endpoint as a given back-office user, open `http://localhost:15329/umbraco/swagger`, pick "Acme Contact Form Backoffice API" (the `acme-contact-form` document) in the document selector, click Authorize and sign in as that user. The page uses the back-office OAuth client `umbraco-swagger`; try-it-out is off by default, so click "Try it out" on an endpoint first. Swagger UI is served in development only. The dashboards make the same calls, so the browser's devtools Network tab shows them while you use the back office.
+
+Umbraco's default Editors group (seeded in this site's database) has the Content, Media and Forms sections but not Settings. So an editor can read `submissions` but is refused by `license/status` and the demo endpoints; use an administrator, or a group with Settings access, to see the licensing dashboard.
 
 The policy is on each action, never on the class. A class-level `[Authorize]` combines with each action's own, so a user admitted by an action alone (a Content-only editor reading submissions) would be refused by the class policy as well. A test checks each action carries exactly its own policy.
 
@@ -115,7 +119,7 @@ Two dashboards, each fetching on every open:
 - The licensing dashboard, in Settings: `src/dashboards/license-dashboard.element.ts`.
 - The submissions dashboard with the editor banner, in Content: `src/dashboards/submissions-dashboard.element.ts`.
 
-All wording comes from the server. The client only lays it out. The only words it adds are its labels and the tags "unverified", "covered" and "not covered".
+All license wording comes from the server. The client lays it out and adds only its own labels, the tags "unverified", "covered" and "not covered", and the message each dashboard shows when its data cannot be loaded. The demo picker adds its heading, a notice naming the chosen entry, the "Demo date:" label and fallback error messages for when the server gives none.
 
 The licensing dashboard has two add-on points:
 
@@ -143,9 +147,9 @@ What is in it:
 - `DemoKeySelection`: the entry the picker chose, or none. Held in memory only.
 - `DemoKeySource`: wraps the configured key source. While an entry is chosen it supplies that entry's key, and the key source name reads `Demo selection: <entry>`.
 - `DemoClock`: the chosen entry's demo date when it has one (only "Valid: expiring soon" does), the real clock otherwise. It is given to the product only and is never registered as the container's `TimeProvider`, so the monthly submission count always uses the real clock.
-- `DemoController`, `ContactFormDemoServiceCollectionExtensions` (`AddContactFormDemo()`) and `ContactFormDemoComposer`: the `demo/entries` and `demo/select` endpoints, the registration, and the composer that runs it after `ContactFormComposer` so it replaces the licensing that composer registered. The picker element is in `Client/src/demo/`, loaded through its own manifest (see Client/).
+- `DemoController`, `ContactFormDemoServiceCollectionExtensions` (`AddContactFormDemo()`) and `ContactFormDemoComposer`: the `demo/entries` and `demo/select` endpoints, the registration, and the composer that runs it. `AddContactFormDemo()` calls `AddContactFormLicensing()` itself before it replaces the product and licensing, so it works whatever order the composers run in. The picker element is in `Client/src/demo/`, loaded through its own manifest (see Client/).
 
-It is off unless `ContactForm:Demo:Enabled` is true, read once at start-up. With it off nothing in `Demo/` is registered and both demo endpoints answer 404. The demo site's committed `appsettings.json` turns it on. Both endpoints need Settings section access.
+It is off unless `ContactForm:Demo:Enabled` is true, read once at start-up. With it off nothing in `Demo/` is registered and both demo endpoints answer 404. The demo site's committed `appsettings.json` turns it on. To turn it off for one run without changing a tracked file, set the environment variable `ContactForm__Demo__Enabled=false`: `ContactForm__Demo__Enabled=false node samples/run-demo.mjs` in a POSIX shell, or `$env:ContactForm__Demo__Enabled="false"` then `node samples/run-demo.mjs` in PowerShell. Both endpoints need Settings section access.
 
 The picker never writes settings: the choice lives in memory and a restart goes back to the configured key. Choosing "configured" in the same request body (`{ "entry": "configured" }`) also goes back to it. An unknown entry name answers 400 and changes nothing.
 

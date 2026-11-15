@@ -16,6 +16,10 @@ keeping a real private key.
 Each file starts with the warning above as `//` comment lines. The library ignores text before the `-----BEGIN` line of
 a PEM; a public line file needs its `//` lines dropped before the line is passed to the library.
 
+## Secret scanning
+
+GitHub secret scanning may raise alerts for the committed PEM files. They are public by design. Dismiss an alert as "used in tests" only when it is on `demo.pem` or `untrusted.pem` in this folder and the file still starts with the demo-only warning. An alert on any other file is a real leak: stop trusting that key's public key and rotate it (see [Rotate a signing key](../../docs/vendor-guide.md#rotate-a-signing-key)). Never commit a real signing key.
+
 ## Regenerating
 
 Regenerating replaces both pairs with new keys, so every demo key signed with the old ones becomes invalid: regenerate

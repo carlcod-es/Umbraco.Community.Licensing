@@ -26,3 +26,9 @@ first action: [`how-it-works.md`](how-it-works.md#states).
   same license).
 - **Keep keys out of source control** and out of screens shown to editors; whoever holds a key
   can use it.
+- **What a product's licensing screen can show:** the state and its first action, the key
+  identifier, the setting that holds the key and where it was read from, the expiry, each feature
+  and whether it is in effect, usage against a limit, and whether this site's domain is covered.
+  Never the key itself. Each product decides what it shows and to whom. In the
+  [sample](../samples/README.md), only Settings users see this screen and editors see a short
+  banner. Its demo site has a picker that shows every state but `NotSupported` on the screen.

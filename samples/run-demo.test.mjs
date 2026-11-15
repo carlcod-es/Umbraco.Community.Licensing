@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { needsBuild, nodeVersionOk } from './run-demo.mjs';
+import { needsBuild, nodeVersionOk, spawnPlan } from './run-demo.mjs';
 
 const temps = [];
 after(() => {
@@ -75,4 +75,19 @@ test('node version check', () => {
   assert.equal(nodeVersionOk('25.0.0'), true);
   assert.equal(nodeVersionOk('24.12.9'), false);
   assert.equal(nodeVersionOk('22.20.0'), false);
+});
+
+test('npm on Windows starts through cmd.exe with no shell option', () => {
+  const plan = spawnPlan('npm', ['run', 'build'], 'win32', 'C:\\Windows\\System32\\cmd.exe');
+  assert.equal(plan.command, 'C:\\Windows\\System32\\cmd.exe');
+  assert.deepEqual(plan.args, ['/d', '/s', '/c', 'npm run build']);
+  assert.equal(plan.options.shell, undefined);
+  assert.equal(spawnPlan('npm', ['ci'], 'win32', undefined).command, 'cmd.exe');
+});
+
+test('npm on macOS and Linux, and dotnet anywhere, run unchanged', () => {
+  for (const platform of ['darwin', 'linux']) {
+    assert.deepEqual(spawnPlan('npm', ['ci'], platform), { command: 'npm', args: ['ci'], options: {} });
+  }
+  assert.deepEqual(spawnPlan('dotnet', ['run'], 'win32'), { command: 'dotnet', args: ['run'], options: {} });
 });

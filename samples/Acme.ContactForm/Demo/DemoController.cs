@@ -10,7 +10,7 @@ using Umbraco.Cms.Web.Common.Authorization;
 namespace Acme.ContactForm.Controllers;
 
 /// <param name="Name">The entry name; the first entry is the configured key.</param>
-/// <param name="DemoDate">The demo date (yyyy-MM-dd'T'HH:mm:ss'Z', UTC) while the entry is chosen; null when it has none.</param>
+/// <param name="DemoDate">The demo date (yyyy-MM-dd'T'HH:mm:ss'Z', UTC) the entry carries; null when it has none.</param>
 public sealed record DemoEntryItem(string Name, string Description, bool HasDemoDate, string? DemoDate);
 
 /// <param name="Selected">The name of the chosen entry, or the configured key's name when none is chosen.</param>

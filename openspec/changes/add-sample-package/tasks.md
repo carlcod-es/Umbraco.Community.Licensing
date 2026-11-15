@@ -97,7 +97,7 @@ brief). Spec: sample-demo-site (Outside the release). Records: ADR-0026.
 
 Depends on: 4 to 8. Owner: Architect.
 
-- [ ] 9.1 Link the sample from `README.md` (Documentation table and "What it does"), `docs/vendor-guide.md` (a working product), `docs/implementor-guide.md` (what a product's licensing screen can show) and `docs/development.md` (Node 24 for the sample; how to build and run it), and review `samples/README.md` end to end, and verify every link resolves and every command in `samples/README.md` runs as written on macOS
+- [x] 9.1 Link the sample from `README.md` (Documentation table and "What it does"), `docs/vendor-guide.md` (a working product), `docs/implementor-guide.md` (what a product's licensing screen can show) and `docs/development.md` (Node 24 for the sample; how to build and run it), and review `samples/README.md` end to end, and verify every link resolves and every command in `samples/README.md` runs as written on macOS
 
 ## 10. Verification by Carl
 

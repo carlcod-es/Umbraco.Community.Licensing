@@ -355,6 +355,23 @@ public class DemoPickerTests
         Assert.Equal(1, rig.Licensing.Check("localhost").UsedThisMonth);
     }
 
+    // ---- Demo registers the licensing it replaces
+
+    [Fact]
+    public void Demo_alone_registers_the_licensing_it_depends_on()
+    {
+        var config = Config(demo: true, Entry("Valid: full plan").Key);
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddContactFormDemo(config);
+        using var provider = services.BuildServiceProvider();
+
+        var snapshot = provider.GetRequiredService<ContactFormLicensing>().Check("localhost");
+
+        Assert.Equal(LicenseState.Valid, snapshot.State);
+        Assert.NotNull(provider.GetService<DemoKeySelection>());
+    }
+
     // ---- Scenario: Demo setting off
 
     [Fact]

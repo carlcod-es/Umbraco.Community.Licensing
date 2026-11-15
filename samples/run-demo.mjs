@@ -52,9 +52,23 @@ const buildInputs = () => [
   path.join(clientDir, 'tsconfig.json'),
 ];
 
+// What to spawn for `command args` on a platform. npm is npm.cmd on Windows, which only starts through cmd.exe. Spawn
+// cmd.exe directly with one command line instead of `shell: true` plus args (Node's DEP0190). The args are fixed
+// constants, never user input, so the joined line needs no quoting. Other platforms and commands run unchanged.
+export function spawnPlan(command, args, platform = process.platform, comSpec = process.env.ComSpec) {
+  if (platform === 'win32' && command === 'npm') {
+    return {
+      command: comSpec || 'cmd.exe',
+      args: ['/d', '/s', '/c', [command, ...args].join(' ')],
+      options: { windowsVerbatimArguments: true },
+    };
+  }
+  return { command, args, options: {} };
+}
+
 function run(command, args, cwd) {
-  // npm is npm.cmd on Windows, which needs a shell to start.
-  const result = spawnSync(command, args, { cwd, stdio: 'inherit', shell: process.platform === 'win32' && command === 'npm' });
+  const plan = spawnPlan(command, args);
+  const result = spawnSync(plan.command, plan.args, { cwd, stdio: 'inherit', ...plan.options });
   if (result.error || result.status !== 0) {
     console.error(`\n"${command} ${args.join(' ')}" failed${result.error ? `: ${result.error.message}` : ` with exit code ${result.status}`}.`);
     process.exit(result.status || 1);

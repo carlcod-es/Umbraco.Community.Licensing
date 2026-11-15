@@ -118,6 +118,12 @@ if (result.State == LicenseState.Valid && result.License!.Expires is { } expires
 What a site visitor sees when a license fails, such as checkout off or a backoffice warning only,
 is the vendor's decision. The library reports the state and does not act on it.
 
+For a working product built this way, see the [sample](../samples/README.md). Acme Contact Form
+is an Umbraco 17 package that compiles in its product ID and trusted key and reads the key from
+configuration on every use. It gates uploads, a monthly limit and licensed domains, and logs
+state changes by key identifier. Its `Licensing/` folder is laid out for copying into your own
+product.
+
 ## Reissue: add a feature or extend expiry
 
 The site owner sends the key installed on the site. The vendor evaluates it with the vendor's own
