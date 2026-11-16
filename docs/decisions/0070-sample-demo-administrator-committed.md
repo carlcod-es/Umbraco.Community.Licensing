@@ -1,6 +1,6 @@
 # PDR-0070: The sample demo site has a committed demo administrator
 
-- Status: Decided
+- Status: Amended by PDR-0072
 - Date: 2026-11-13
 - Source: `add-sample-package` design.md Q23. Amends PDR-0067.
 - Personas: vendor and implementor (the demo site runs from a clone with one command and no

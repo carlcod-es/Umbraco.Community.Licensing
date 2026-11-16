@@ -58,7 +58,7 @@ submission. A licensing problem SHALL never cause an error page or a refused sub
 - **THEN** the page renders with the form, with no error
 
 ### Requirement: No licensing in public output
-The public page and every response to a visitor SHALL contain no key string, key identifier,
+Every page a visitor can open and every response to a visitor SHALL contain no key string, key identifier,
 license state, expiry, feature name or licensing message, in any license state.
 
 #### Scenario: Visitor page with an expired key

@@ -40,3 +40,4 @@ Deferred. Update this index in the same change as any status line.
 | [ADR-0026](0026-sample-solution-umbraco-and-ci.md) | Sample solution, Umbraco version and CI | Decided |
 | [ADR-0027](0027-sample-backoffice-api-and-client.md) | Sample backoffice API and client | Decided |
 | [ADR-0028](0028-sample-demo-keys-generation-and-clock.md) | Sample demo keys, generation and demo clock | Decided |
+| [ADR-0029](0029-sample-demo-site-https-and-pages.md) | Sample demo site served over HTTPS, with Home and Contact pages | Decided |

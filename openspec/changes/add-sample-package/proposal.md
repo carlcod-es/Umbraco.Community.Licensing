@@ -25,8 +25,13 @@ vendors can read and copy.
 - **Owner warned, visitor not.** Going over the monthly submission limit or running on an
   unlisted domain is reported to administrators and editors; visitors' submissions are still
   accepted.
-- **A demo site** in the repository: a seeded page with the form, and the package installed,
-  that runs from a clone with no setup; the demo administrator login is documented.
+- **A demo site** in the repository, with the package installed, that runs from a clone with one
+  documented setup step (trusting the local development certificate once) at a secure local
+  address; the plain address forwards to it. The demo administrator login is documented.
+- **A simple demo site design**: Home and Contact pages in one plain, neutral layout with a
+  header (site name, navigation) and a footer ("Demo site for Acme Contact Form"). Headings,
+  intro text, site name and footer text are editable in the backoffice. No licensing outside the
+  contact form.
 - **Committed demo keys**: a demo-only signing key pair (labelled never to trust) and one demo
   key for each state the library can produce from public issuing (all except `NotSupported`),
   plus Valid variants for a small plan, another domain and "expiring soon".
@@ -66,7 +71,7 @@ None. The library and the vendor tool are unchanged.
   builds or packs the sample.
 - **Docs**: a sample README; links from `README.md`, `docs/vendor-guide.md`,
   `docs/implementor-guide.md`, `docs/development.md`.
-- **Records**: PDR-0067 to PDR-0070, ADR-0026 to ADR-0028. FR-3 taken into this change.
+- **Records**: PDR-0067 to PDR-0073, ADR-0026 to ADR-0028. FR-3 taken into this change.
 - **Personas**: vendor (a working reference to copy); implementor (sees which key fails, why
   and where to fix it); site owner (sees what they are licensed for, what expires, what is
   missing); backoffice editor (warned without seeing keys); site visitor (unaffected in every

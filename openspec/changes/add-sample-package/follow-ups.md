@@ -579,6 +579,7 @@ from this section (design.md:284 still true; `[ComposeAfter]` kept, no longer lo
   warning; any other path is a real leak (revoke, rotate); drop "false positive".
 - **minor (out of scope, rated minor)**: `design.md:112` layout lists `Api/  Management API
   controllers`; the code has `Controllers/` and `DemoController` in `Demo/`. Next opsx:update.
+  Resolved by opsx:update 2026-11-16: design.md layout tree now lists `Controllers/`.
 - **minor (section 10 readiness)**: `samples/README.md` Controllers/ does not say how to call an
   endpoint as a given back-office user (Swagger UI at `/umbraco/swagger`, `acme-contact-form`
   document), nor that the default Editors group has Content but not Settings access (10.3).

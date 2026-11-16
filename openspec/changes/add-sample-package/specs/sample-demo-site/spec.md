@@ -10,19 +10,77 @@ the sample ever being released.
 
 ### Requirement: Runs from a clone
 The repository SHALL hold a demo site with the sample product installed that starts with one
-documented command after cloning, with no database server and no setup step, creates its first
-administrator from demo credentials committed in the site's settings and documented as
-demo-only, and contains a published page showing the contact form.
+documented command after cloning, with no database server, creates its first administrator from
+demo credentials committed in the site's settings and documented as demo-only, and contains the
+published Home and Contact pages of "Requirement: Demo site pages".
 
 #### Scenario: First run
-- **WHEN** a developer clones the repository and runs the documented start command
-- **THEN** the site starts, the page with the contact form is shown at the site root, and the
-  developer can log in to the backoffice with the documented demo administrator
+- **WHEN** a developer clones the repository, trusts the local development certificate as the
+  sample documentation describes, and runs the documented start command
+- **THEN** the site starts at the documented secure address, the Home page is shown at the site
+  root, the Contact page shows the contact form, and the developer can log in to the backoffice
+  with the documented demo administrator
 
 #### Scenario: Demo administrator documented as demo-only
 - **WHEN** a reader looks up the demo site's administrator login
 - **THEN** the sample documentation gives the email and password and states that they are for
   the local demo only and must be changed in any site built from the sample
+
+### Requirement: Served at a secure local address
+The demo site SHALL be served at a secure (https) local address. The only setup step SHALL be
+trusting the local development certificate once, which the sample documentation describes. The
+plain (http) local address SHALL forward to the secure one.
+
+#### Scenario: Plain address forwards
+- **WHEN** the site is running and the developer opens the plain (http) local address, at the
+  site root or the backoffice
+- **THEN** the browser is sent to the same path at the secure address
+
+#### Scenario: Certificate step documented
+- **WHEN** a reader follows the sample documentation's steps to run the demo
+- **THEN** it names trusting the local development certificate as the one setup step, gives the
+  command for it, and gives the secure address to browse to
+
+### Requirement: Demo site pages
+The demo site SHALL hold two published pages, Home at the site root and Contact, sharing one
+plain, neutral layout with no branding colours. Every page SHALL show a header with the site
+name and a navigation link to each page, and a footer. Home SHALL show a heading, intro text and
+a link to Contact. Contact SHALL show a heading, intro text and the contact form.
+
+#### Scenario: Home page
+- **WHEN** a visitor opens the site root on a fresh clone
+- **THEN** the page shows the header with the site name and links to Home and Contact, a
+  heading, intro text, a link to Contact, and the footer "Demo site for Acme Contact Form"
+
+#### Scenario: Contact page
+- **WHEN** a visitor follows the link to Contact
+- **THEN** the page shows the same header and footer, a heading, intro text and the contact form
+
+#### Scenario: Site that ran an earlier version
+- **WHEN** a developer's demo site already holds data from a version without the Home and
+  Contact pages
+- **THEN** the sample documentation says how to delete the site's local data so the next start
+  creates the pages
+
+### Requirement: Demo site content editable
+The heading and intro text of each page, the site name and the footer text SHALL be editable in
+the backoffice; each navigation link SHALL show its page's name. The footer text SHALL start as
+"Demo site for Acme Contact Form".
+
+#### Scenario: Editor changes the content
+- **WHEN** an editor changes the site name, the footer text, and the Contact page's name,
+  heading and intro text, and publishes
+- **THEN** a visitor sees the new site name and footer on every page, the new heading and intro
+  on Contact, and the navigation link to Contact shows the new name
+
+### Requirement: No licensing in the site layout
+The header, the footer and the Home page SHALL show no licensing information in any license
+state.
+
+#### Scenario: No licensing outside the form
+- **WHEN** the configured key is `Expired` and a visitor opens Home and Contact
+- **THEN** the header, the footer and the Home page hold no key identifier, no state name, no
+  expiry and no text about licensing
 
 ### Requirement: Demo signing keys
 The repository SHALL hold a demo signing key pair, both halves committed, used to sign the demo
@@ -102,13 +160,13 @@ implementor uses.
 ### Requirement: Demo key picker
 When the site's demo setting is on, the licensing dashboard SHALL offer a picker listing
 "Configured key" and every demo key entry. Choosing an entry SHALL make the product evaluate
-that key from the next use, for the dashboard, the banner and the public form, until another
+that key from the next use, for the dashboard, the banner and the form on the Contact page, until another
 entry is chosen or the site restarts.
 
 #### Scenario: Choose Expired
 - **WHEN** an administrator chooses "Expired" in the picker
 - **THEN** the dashboard shows `Expired`, an editor's submissions screen shows its banner, and
-  the public form shows no upload field
+  the Contact page shows no upload field
 
 #### Scenario: Restart
 - **WHEN** an entry other than "Configured key" is chosen and the site restarts
