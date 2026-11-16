@@ -726,3 +726,16 @@ client build passes. Nothing under `src/`, `tests/`, `.github/` changed.
   untrusted dev certificate needs `dotnet dev-certs https --clean` then `--trust` (not in the
   README). The ID2083 fix was checked only by curl; 10.1 is the first real browser sign-in.
   Windows checkout untested.
+
+## Section 11 README fixes (reviewer APPROVED after one rework; supervisor re-review APPROVED, 2026-11-16)
+
+Carl approved fixing the four `samples/README.md` minors before section 10. Resolved: First run
+step list (certificate check, `--launch-profile https`); deleting the data recreates the demo
+administrator (committed settings or `appsettings.Local.json`); Linux link anchor
+`#trust-https-certificate-on-linux-with-linux-dev-certs` with the Ubuntu/Fedora note; a paragraph
+naming the site's files (rework: the seeder reads only the two template views; layout and
+stylesheet are used by the views). No new findings.
+
+Still open: design.md `_ViewStart.cshtml` drift (next opsx:update); nits listed under "Section 11";
+section 10 risks (older untrusted dev certificate needs `dotnet dev-certs https --clean` then
+`--trust`; check `appsettings.Local.json` for `ContactForm:Demo:Enabled` before 10.4).

@@ -15,7 +15,7 @@ The demo site is served over HTTPS at `https://localhost:44365`. The one setup s
 dotnet dev-certs https --trust
 ```
 
-On Windows and macOS this prompts you to confirm. `dotnet dev-certs https --check --trust` tells you whether it is already trusted. On Linux the command does not trust the certificate for every browser and tool; follow Microsoft's guidance: [Trust the certificate on Linux](https://learn.microsoft.com/aspnet/core/security/enforcing-ssl#trust-https-certificate-on-linux).
+On Windows and macOS this prompts you to confirm. `dotnet dev-certs https --check --trust` tells you whether it is already trusted. On Linux the command does not trust the certificate for every browser and tool; follow Microsoft's guidance: [Trust HTTPS certificate on Linux with linux-dev-certs](https://learn.microsoft.com/aspnet/core/security/enforcing-ssl#trust-https-certificate-on-linux-with-linux-dev-certs). Microsoft supports the trust command officially on Ubuntu and Fedora, with manual steps for other distributions.
 
 `run-demo.mjs` runs the check for you. If the certificate is not trusted it prints the command above and starts the site anyway, so the browser will warn until you trust it.
 
@@ -31,7 +31,8 @@ The command does this:
 
 - Runs `npm ci` in `Acme.ContactForm/Client` if `node_modules` is missing.
 - Runs `npm run build` if the client bundle is missing or older than the client sources.
-- Runs `dotnet run --project samples/Acme.ContactForm.Site`.
+- Checks the development certificate with `dotnet dev-certs https --check --trust`; if it is not trusted, prints the trust command and starts anyway.
+- Runs `dotnet run --project samples/Acme.ContactForm.Site --launch-profile https`.
 
 When the site is up, browse to <https://localhost:44365> and log in at <https://localhost:44365/umbraco> with the demo administrator:
 
@@ -55,9 +56,11 @@ Both share one plain layout: a header with the site name and a link to each page
 - each page's heading and intro text,
 - each page's name, which is what the navigation links show.
 
+The site is made of these files in `Acme.ContactForm.Site`: `Composers/DemoContentSeeder.cs`, which creates the document types, templates and pages when the site has started (`Composers/DemoContentComposer.cs` registers it); `Views/home.cshtml` and `Views/contact.cshtml`, which the seeder reads as the two templates; and `Views/_ViewStart.cshtml`, `Views/_Layout.cshtml` and `wwwroot/css/site.css`, the layout and stylesheet those views use. A vendor can copy or remove them.
+
 ### Data from an earlier version
 
-If you ran an earlier version of the sample, its data in `Acme.ContactForm.Site/umbraco/Data` has no Home and Contact content. The site logs "The demo data comes from an earlier version of the sample ... Delete umbraco/Data and start again; nothing was seeded." Stop the site, delete the `Acme.ContactForm.Site/umbraco/Data` folder and start again. Deleting it removes the demo administrator and any content you changed, and the next start reinstalls.
+If you ran an earlier version of the sample, its data in `Acme.ContactForm.Site/umbraco/Data` has no Home and Contact content. The site logs "The demo data comes from an earlier version of the sample ... Delete umbraco/Data and start again; nothing was seeded." Stop the site, delete the `Acme.ContactForm.Site/umbraco/Data` folder and start again. Deleting it removes the installed data and any content you changed. The next start installs again and recreates the demo administrator from the committed settings (or from your `appsettings.Local.json`, if you have one).
 
 ## Notes
 
