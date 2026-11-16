@@ -66,6 +66,30 @@ export function spawnPlan(command, args, platform = process.platform, comSpec = 
   return { command, args, options: {} };
 }
 
+export const LAUNCH_PROFILE = 'https';
+export const TRUST_COMMAND = 'dotnet dev-certs https --trust';
+export const README_SECTION = 'Trust the development certificate';
+
+// Arguments for starting the site: the https launch profile serves https://localhost:44365.
+export function siteStartArgs(project = siteDir) {
+  return ['run', '--project', project, '--launch-profile', LAUNCH_PROFILE];
+}
+
+// Arguments for the certificate check; non-zero exit means the certificate is missing or untrusted.
+export function certCheckArgs() {
+  return ['dev-certs', 'https', '--check', '--trust'];
+}
+
+// The message printed when the certificate check fails, or null when it passed (exit status 0).
+export function certFailureMessage(status) {
+  if (status === 0) return null;
+  return [
+    'The .NET development certificate is not trusted, so the browser may warn about https://localhost:44365.',
+    `Trust it once with: ${TRUST_COMMAND}`,
+    `See "${README_SECTION}" in samples/README.md. Starting the site anyway.`,
+  ].join('\n');
+}
+
 function run(command, args, cwd) {
   const plan = spawnPlan(command, args);
   const result = spawnSync(plan.command, plan.args, { cwd, stdio: 'inherit', ...plan.options });
@@ -93,8 +117,12 @@ function main() {
     console.log('Backoffice client bundle is up to date.');
   }
 
+  const check = spawnSync('dotnet', certCheckArgs(), { stdio: 'ignore' });
+  const warning = certFailureMessage(check.error ? 1 : check.status);
+  if (warning) console.warn(warning);
+
   console.log('Starting the demo site (dotnet run)...');
-  const site = spawn('dotnet', ['run', '--project', siteDir], { stdio: 'inherit' });
+  const site = spawn('dotnet', siteStartArgs(), { stdio: 'inherit' });
   // Ctrl+C reaches the dotnet child through the terminal too; forward it for other senders.
   for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => site.kill(signal));
   site.on('error', (error) => {

@@ -625,3 +625,104 @@ secret-scanning texts agree and match the vendor-guide rotation.
   One clause in samples/README.md later.
 - Carried: fresh clone for 10.1; `nvm use 24`; Windows npm path unit-tested only; root README links
   resolve after merge; 10.3 confirms Swagger Authorize/Try it out; 10.4 observes the env var.
+
+## Block 11.1 (reviewer, 2026-11-16, APPROVED)
+
+Acceptance met. Forwarding (307 on `/` and `/umbraco`) and the authorize request (302 to login,
+no ID2083) observed by the worker with `curl`, using the standard `umbraco-back-office` client
+query rather than one captured from the login page; Carl's 10.1 exercises the real sign-in.
+README heading printed by `run-demo.mjs`: "Trust the development certificate" (task 11.4 adds it).
+
+- **nit**: `samples/run-demo.mjs` main: the `spawnSync` of the certificate check and
+  `check.error ? 1 : check.status` are untested (thin; mapping covered by `certFailureMessage`).
+- **nit**: `samples/run-demo.mjs` `certFailureMessage`: hard-codes `https://localhost:44365`,
+  duplicating `launchSettings.json`.
+- **nit**: `samples/Acme.ContactForm.Site/Program.cs` ~19: doubled blank line before
+  `UseHttpsRedirection`.
+- **note**: `UseHttpsRedirection` knows the https port only under a launch profile or
+  `ASPNETCORE_URLS`; `dotnet run --no-launch-profile` would not redirect. The script always passes
+  the profile.
+
+## Block 11.2 (reviewer, 2026-11-16, APPROVED)
+
+Acceptance met: worker ran two starts from empty data, the Expired check via `POST demo/select`
+and the old-data warning; reviewer repeated the two starts and found the views byte-identical
+after seeding (`git status` unchanged). Carl's `umbraco/Data` moved aside and restored, identical.
+
+- **deviation (accepted, minor)**: the layout is set in `Views/_ViewStart.cshtml`, not inside the
+  templates: Umbraco's template service reads `Layout = "..."` in a template as a master template
+  (`MasterTemplateNotFound`). Matches design.md "plain Razor layout, not an Umbraco template".
+  design.md "Home and Contact pages" could name `_ViewStart.cshtml` at the next opsx:update.
+- **note**: `Views/home.cshtml` and `contact.cshtml` are committed with a UTF-8 BOM, LF, no
+  trailing newline, matching what Umbraco writes when it creates the templates. Do not strip the
+  BOM. (The worker's report said it stripped it; the files show it did not.)
+- **minor**: `Views/_Layout.cshtml:12` `<title>`: an empty heading gives " - Acme".
+- **nit**: `Views/_ViewImports.cshtml`: mixed line endings (HEAD CRLF, four added `@inject` lines LF).
+- **nit (out of block, Architect)**: `.gitattributes` has no `eol` rule for the site's `Views/*.cshtml`;
+  on Windows with `core.autocrlf=true` the checkout gives CRLF and Umbraco may rewrite as LF,
+  dirtying `git status`. Untested. Candidate: `samples/Acme.ContactForm.Site/Views/*.cshtml text eol=lf`.
+
+## Block 11.3 (reviewer, 2026-11-16, APPROVED)
+
+Acceptance met: `generate-client` reads the https address; build passes; the worker's
+`generate-client` run against the site changed only `baseUrl` in `src/api/client.gen.ts` and
+`types.gen.ts`. No `15329` left in the client.
+
+- **nit**: git warns `Client/package.json` has CRLF in the working copy, normalised to LF on the
+  next touch; diff is one line.
+
+## Block 11.4 (reviewer, 2026-11-16, APPROVED)
+
+Acceptance met by reading and by the worker's run on macOS (`--check --trust` rc 0; site, `/umbraco`,
+Swagger JSON 200; plain address 307; `generate-client` no new diff). Not run: `--trust` (password
+prompt), deleting `umbraco/Data`, PowerShell. Folded in the Section 9 README nits (Content and
+Media; Swagger in the demo site's Development environment; `Remove-Item Env:...`; Local.json
+overrides the env var).
+
+- **minor**: `samples/README.md:60` "removes the demo administrator": the next start recreates it
+  from the committed unattended settings (or `appsettings.Local.json`). Reword: "...and any content
+  you changed. The next start installs again and recreates the demo administrator from the
+  committed settings (or from your `appsettings.Local.json`, if you have one)."
+- **minor (Architect check)**: `samples/README.md:18` links
+  `enforcing-ssl#trust-https-certificate-on-linux`; the page exists but on the .NET 10 view the
+  confirmed anchor is `#trust-https-certificate-on-linux-with-linux-dev-certs` (headings are
+  version-gated). The page also says `dotnet dev-certs https --trust` is official on Ubuntu and
+  Fedora only; SLES/openSUSE/RHEL need manual `certutil` steps.
+- **nit**: `samples/README.md:52-54`: say the site name and footer text are edited on the Home page.
+- **nit**: worker addition beyond the brief: the "Data from an earlier version" consequence
+  sentence (see the minor above).
+- **minor (Architect, after review)**: `samples/README.md` "First run" step list says `run-demo.mjs`
+  "Runs `dotnet run --project samples/Acme.ContactForm.Site`"; it now first runs
+  `dotnet dev-certs https --check --trust` and starts with `--launch-profile https`.
+
+## Section 11 (supervisor, 2026-11-16, APPROVED)
+
+Baseline: HEAD. Validation re-run: sample build 0 warnings; 282 passed / 2 skipped; run-demo 13/13;
+client build passes. Nothing under `src/`, `tests/`, `.github/` changed.
+
+- **minor (fix before 10.1 recommended)**: `samples/README.md:30-34` "First run" step list: add
+  "Checks the development certificate with `dotnet dev-certs https --check --trust`; if it is not
+  trusted, prints the trust command and starts anyway." and "Runs `dotnet run --project
+  samples/Acme.ContactForm.Site --launch-profile https`." (same as the Block 11.4 entry).
+- **minor**: `samples/README.md:60` admin-recreated wording (Block 11.4 entry).
+- **minor**: `samples/README.md:18` Linux anchor: use
+  `#trust-https-certificate-on-linux-with-linux-dev-certs` or link the page without an anchor.
+- **minor (PDR-0073, vendor/implementor)**: `samples/README.md` "Home and Contact" does not name the
+  files that make up the site (`Composers/DemoContentSeeder.cs`, `DemoContentComposer.cs`,
+  `Views/_ViewStart.cshtml`, `_Layout.cshtml`, `home.cshtml`, `contact.cshtml`,
+  `wwwroot/css/site.css`); add one sentence.
+- **minor (record drift, next opsx:update)**: design.md "Home and Contact pages" (~343): add that
+  the layout is applied through `Views/_ViewStart.cshtml`, because Umbraco reads `Layout =` in a
+  template as a master template. No ADR amendment.
+- **nits** (already recorded): `_Layout.cshtml:12` title; `_ViewImports.cshtml` mixed endings
+  (make all CRLF); `Program.cs:17-18` blank line; `run-demo.mjs:87` hard-coded address.
+- **out-of-scope triage, rated minor, folded in by the Architect**: `.gitattributes` gains
+  `text eol=lf` for `samples/Acme.ContactForm.Site/Views/home.cshtml` and `contact.cshtml` only
+  (both already LF in the index; BOM kept). A wildcard was avoided: `_ViewImports.cshtml` is mixed
+  and `Views/Partials/**` are CRLF in the index.
+- **risks for section 10**: 10.4: check `appsettings.Local.json` does not set
+  `ContactForm:Demo:Enabled` before using the env var. 10.5: after deleting the data, the admin is
+  recreated from `appsettings.Local.json` if it sets one, not the documented login. 10.1: an older
+  untrusted dev certificate needs `dotnet dev-certs https --clean` then `--trust` (not in the
+  README). The ID2083 fix was checked only by curl; 10.1 is the first real browser sign-in.
+  Windows checkout untested.

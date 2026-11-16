@@ -1,14 +1,10 @@
 ﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @{
-    Layout = null;
+    var contact = Model.Children(Navigation, StatusFilter).FirstOrDefault();
 }
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <title>Contact</title>
-</head>
-<body>
-    @await Component.InvokeAsync("ContactForm")
-</body>
-</html>
+<h1>@Model.Value(ValueFallback, "heading")</h1>
+<p>@Model.Value(ValueFallback, "intro")</p>
+@if (contact is not null)
+{
+    <p><a href="@contact.Url(UrlProvider)">@contact.Name</a></p>
+}

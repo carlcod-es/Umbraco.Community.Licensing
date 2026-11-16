@@ -1,0 +1,32 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    var root = Model.Root(Navigation, StatusFilter);
+    var pages = new List<IPublishedContent> { root };
+    pages.AddRange(root.Children(Navigation, StatusFilter));
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@Model.Value(ValueFallback, "heading") - @root.Value(ValueFallback, "siteName")</title>
+    <link rel="stylesheet" href="/css/site.css" />
+</head>
+<body>
+    <header>
+        <p class="site-name">@root.Value(ValueFallback, "siteName")</p>
+        <nav>
+            @foreach (var item in pages)
+            {
+                <a href="@item.Url(UrlProvider)">@item.Name</a>
+            }
+        </nav>
+    </header>
+    <main>
+        @RenderBody()
+    </main>
+    <footer>
+        <p>@root.Value(ValueFallback, "footerText")</p>
+    </footer>
+</body>
+</html>

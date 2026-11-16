@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { needsBuild, nodeVersionOk, spawnPlan } from './run-demo.mjs';
+import { certCheckArgs, certFailureMessage, needsBuild, nodeVersionOk, siteStartArgs, spawnPlan } from './run-demo.mjs';
 
 const temps = [];
 after(() => {
@@ -90,4 +90,23 @@ test('npm on macOS and Linux, and dotnet anywhere, run unchanged', () => {
     assert.deepEqual(spawnPlan('npm', ['ci'], platform), { command: 'npm', args: ['ci'], options: {} });
   }
   assert.deepEqual(spawnPlan('dotnet', ['run'], 'win32'), { command: 'dotnet', args: ['run'], options: {} });
+});
+
+test('the site starts with the https launch profile', () => {
+  assert.deepEqual(siteStartArgs('/site'), ['run', '--project', '/site', '--launch-profile', 'https']);
+});
+
+test('the certificate check asks dotnet to check and trust', () => {
+  assert.deepEqual(certCheckArgs(), ['dev-certs', 'https', '--check', '--trust']);
+});
+
+test('certificate check passing prints nothing', () => {
+  assert.equal(certFailureMessage(0), null);
+});
+
+test('certificate check failing prints the trust command and the README section', () => {
+  const message = certFailureMessage(1);
+  assert.match(message, /dotnet dev-certs https --trust/);
+  assert.match(message, /Trust the development certificate/);
+  assert.match(message, /Starting the site anyway/);
 });

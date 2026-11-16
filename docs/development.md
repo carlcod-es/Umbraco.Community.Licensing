@@ -113,14 +113,24 @@ manager, switch to 24 before running these commands.
 
 ### Run the demo site
 
-From the repository root:
+The demo site is served over HTTPS. Once per machine, trust the .NET development certificate:
+
+```
+dotnet dev-certs https --trust
+```
+
+On Linux this does not cover every browser and tool; see
+[`samples/README.md`](../samples/README.md#trust-the-development-certificate). Then, from the
+repository root:
 
 ```
 node samples/run-demo.mjs
 ```
 
-It installs and builds the client when needed, then starts the site on
-<http://localhost:15329>. The demo administrator login and what to try are in
+It installs and builds the client when needed, checks the certificate (if it is not trusted, it
+prints the trust command and starts anyway), then starts the site on its `https` launch profile
+at <https://localhost:44365>. The plain address <http://localhost:15329> forwards there. The demo
+administrator login and what to try are in
 [`samples/README.md`](../samples/README.md#first-run).
 
 ### Build and test, as CI does
@@ -148,13 +158,14 @@ the demo signing keys ([`samples/README.md`](../samples/README.md#demo-keys)).
 committed. CI does not regenerate it, so regenerate it after any change to a sample controller or
 response type:
 
-1. Start the site on its `http` profile, which serves <http://localhost:15329>:
-   `dotnet run --project samples/Acme.ContactForm.Site --launch-profile http`.
+1. Start the site on its `https` profile, which serves <https://localhost:44365>:
+   `node samples/run-demo.mjs`, or
+   `dotnet run --project samples/Acme.ContactForm.Site --launch-profile https`.
 2. In another terminal, in `samples/Acme.ContactForm/Client`, run `npm run generate-client`.
 
 The generator reads
-`http://localhost:15329/umbraco/swagger/acme-contact-form/swagger.json`, so it fails if the site
-is not running or is on another port.
+`https://localhost:44365/umbraco/swagger/acme-contact-form/swagger.json`, so it fails if the site
+is not running or is on another port. It accepts the local development certificate.
 
 ### Demo signing keys and secret scanning
 

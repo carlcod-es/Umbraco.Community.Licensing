@@ -4,7 +4,7 @@ using Umbraco.Cms.Core.Notifications;
 
 namespace Acme.ContactForm.Site.Composers;
 
-/// <summary>Seeds the demo home page when the site has started.</summary>
+/// <summary>Seeds the demo Home and Contact pages when the site has started.</summary>
 public sealed class DemoContentComposer : IComposer
 {
     public void Compose(IUmbracoBuilder builder) =>

@@ -1,0 +1,4 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+<h1>@Model.Value(ValueFallback, "heading")</h1>
+<p>@Model.Value(ValueFallback, "intro")</p>
+@await Component.InvokeAsync("ContactForm")
