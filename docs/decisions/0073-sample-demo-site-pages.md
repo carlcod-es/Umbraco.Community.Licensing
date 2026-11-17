@@ -1,6 +1,6 @@
 # PDR-0073: The sample demo site has Home and Contact pages in a simple layout
 
-- Status: Decided
+- Status: Amended by PDR-0075
 - Date: 2026-11-16
 - Source: `add-sample-package` design.md Q26. Amends PDR-0067. Raised by Carl's run of task
   10.1: the demo site was a bare page with only the form.

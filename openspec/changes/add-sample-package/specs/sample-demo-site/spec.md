@@ -44,13 +44,17 @@ plain (http) local address SHALL forward to the secure one.
 ### Requirement: Demo site pages
 The demo site SHALL hold two published pages, Home at the site root and Contact, sharing one
 plain, neutral layout with no branding colours. Every page SHALL show a header with the site
-name and a navigation link to each page, and a footer. Home SHALL show a heading, intro text and
-a link to Contact. Contact SHALL show a heading, intro text and the contact form.
+name and a navigation link to each page, and a footer with the footer text and a link to the
+project's repository. Home SHALL show
+a heading, intro text, an About text saying what the demo is, and a link to Contact. Contact
+SHALL show a heading, intro text and the contact form.
 
 #### Scenario: Home page
 - **WHEN** a visitor opens the site root on a fresh clone
 - **THEN** the page shows the header with the site name and links to Home and Contact, a
-  heading, intro text, a link to Contact, and the footer "Demo site for Acme Contact Form"
+  heading, intro text, the About text, a link to Contact, and the footer "Demo site for Acme
+  Contact Form" with the link "Umbraco.Community.Licensing on GitHub" to
+  https://github.com/carlcod-es/Umbraco.Community.Licensing
 
 #### Scenario: Contact page
 - **WHEN** a visitor follows the link to Contact
@@ -58,29 +62,41 @@ a link to Contact. Contact SHALL show a heading, intro text and the contact form
 
 #### Scenario: Site that ran an earlier version
 - **WHEN** a developer's demo site already holds data from a version without the Home and
-  Contact pages
+  Contact pages, or without the About text
 - **THEN** the sample documentation says how to delete the site's local data so the next start
   creates the pages
 
 ### Requirement: Demo site content editable
-The heading and intro text of each page, the site name and the footer text SHALL be editable in
-the backoffice; each navigation link SHALL show its page's name. The footer text SHALL start as
-"Demo site for Acme Contact Form".
+The heading and intro text of each page, Home's About text, the site name and the footer text
+SHALL be editable in the backoffice; each navigation link SHALL show its page's name. The footer
+text SHALL start as "Demo site for Acme Contact Form". The About text SHALL start as
+the text in the scenario "About text on a fresh clone".
+
+#### Scenario: About text on a fresh clone
+- **WHEN** a visitor opens Home on a fresh clone
+- **THEN** the About text reads "Acme Contact Form is a fictional Umbraco package: a contact form
+  whose features are switched on by a license key. It is the sample for
+  Umbraco.Community.Licensing, an open-source .NET library for offline license keys. Send a
+  message from the Contact page, then sign in to the back office to see what the license gives
+  you."
 
 #### Scenario: Editor changes the content
-- **WHEN** an editor changes the site name, the footer text, and the Contact page's name,
-  heading and intro text, and publishes
-- **THEN** a visitor sees the new site name and footer on every page, the new heading and intro
-  on Contact, and the navigation link to Contact shows the new name
+- **WHEN** an editor changes the site name, the footer text, Home's About text, and the Contact
+  page's name, heading and intro text, and publishes
+- **THEN** a visitor sees the new site name and footer on every page, the new About text on Home,
+  the new heading and intro on Contact, and the navigation link to Contact shows the new name
 
 ### Requirement: No licensing in the site layout
-The header, the footer and the Home page SHALL show no licensing information in any license
-state.
+The header, the footer and the Home page SHALL show no information about this site's license
+in any license state: no key identifier, state name, expiry, or text about the license or its
+problems. Describing the product and the library, as the About text and the repository link
+do, is allowed.
 
 #### Scenario: No licensing outside the form
 - **WHEN** the configured key is `Expired` and a visitor opens Home and Contact
 - **THEN** the header, the footer and the Home page hold no key identifier, no state name, no
-  expiry and no text about licensing
+  expiry and no text about this site's license, and show the same About text and repository
+  link as with a valid key
 
 ### Requirement: Demo signing keys
 The repository SHALL hold a demo signing key pair, both halves committed, used to sign the demo
@@ -108,7 +124,7 @@ not demonstrated.
 
 | Entry | Shows |
 |---|---|
-| Valid: full plan | `Valid`, perpetual; uploads; 1000 a month; `localhost` |
+| Valid: full plan | `Valid`, perpetual; uploads; 5 a month; `localhost` |
 | Valid: small plan | `Valid`, expires 2099-12-31; no uploads; 3 a month; `localhost` |
 | Valid: another domain | `Valid`; domain `www.example.com` only |
 | Valid: expiring soon | `Valid`, expiring soon at its demo date |

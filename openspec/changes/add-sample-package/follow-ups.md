@@ -739,3 +739,12 @@ stylesheet are used by the views). No new findings.
 Still open: design.md `_ViewStart.cshtml` drift (next opsx:update); nits listed under "Section 11";
 section 10 risks (older untrusted dev certificate needs `dotnet dev-certs https --clean` then
 `--trust`; check `appsettings.Local.json` for `ContactForm:Demo:Enabled` before 10.4).
+
+## opsx:update (2026-11-17, Carl's answers)
+
+Section 10 partial run recorded (valid key works, invalid key blocks access); the rest deferred
+to PO, sign-off needed before release. New: PDR-0074 (hidden submissions, masked email), PDR-0075
+(About text, footer repository link; "no licensing outside the form" narrowed to license state),
+PDR-0076 (default key 5 a month); design.md Q28 to Q31, R15, R16; tasks.md 10.6 and section 12.
+Resolved here: design.md now names `Views/_ViewStart.cshtml` (Section 11 drift). The
+`DemoKeyGenerator` filter also matching `DemoSigningKeyGenerator` is handled in task 12.3.

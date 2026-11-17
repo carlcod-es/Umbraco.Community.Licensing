@@ -1,6 +1,6 @@
 # PDR-0068: What the sample product shows each persona
 
-- Status: Amended by PDR-0071
+- Status: Amended by PDR-0071, PDR-0074
 - Date: 2026-11-13
 - Source: `add-sample-package` design.md Q6, Q8, Q9, Q10, Q15, Q16, Q18
 - Personas: site visitor (never affected); backoffice editor (warned, never shown key details);

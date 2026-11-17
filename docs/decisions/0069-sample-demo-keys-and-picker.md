@@ -1,6 +1,6 @@
 # PDR-0069: Sample demo keys and the demo key picker
 
-- Status: Decided
+- Status: Amended by PDR-0076
 - Date: 2026-11-13
 - Source: `add-sample-package` design.md Q3, Q7, Q11, Q12, Q13
 - Personas: vendor and implementor (every state can be seen in a minute, with no tool or key

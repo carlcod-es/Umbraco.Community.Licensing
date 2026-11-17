@@ -1,12 +1,13 @@
 Owners per CLAUDE.md and design.md (Layout and ownership): section 1 Architect; sections 2 to 6
-and 8 worker-backend; section 7 worker-frontend; section 9 Architect; section 10 Carl.
+and 8 worker-backend; section 7 worker-frontend; section 9 Architect; section 10 Carl;
+sections 11 and 12 per task.
 Validation for every worker block: `dotnet build samples/Acme.ContactForm.slnx` and
 `dotnet test --solution samples/Acme.ContactForm.slnx`; client blocks also `npm ci` and
 `npm run build` in `samples/Acme.ContactForm/Client`; blocks touching CI or `.gitignore` also
 `dotnet build Umbraco.Community.Licensing.slnx` and `node --test "tools/**/*.test.mjs"`. Bar:
 prototype, licensing code at production care (design.md Bar). Test names follow spec scenario
 names. Specs: `specs/sample-package/spec.md`, `specs/sample-demo-site/spec.md`. Records:
-PDR-0067 to PDR-0070, ADR-0026 to ADR-0028. The library (`src/Umbraco.Community.Licensing`)
+PDR-0067 to PDR-0076, ADR-0026 to ADR-0029. The library (`src/Umbraco.Community.Licensing`)
 and `release.yml` are not changed by any task.
 
 ## 1. Ownership
@@ -101,14 +102,18 @@ Depends on: 4 to 8. Owner: Architect.
 
 ## 10. Verification by Carl
 
-Depends on: 9, 11. Owner: Carl. Run again from a fresh clone after section 11.
+Depends on: 9, 11, 12. Owner: Carl. Run again from a fresh clone after sections 11 and 12.
 
-- [ ] 10.1 From a fresh clone: trust the development certificate as `samples/README.md` describes, run `node samples/run-demo.mjs`, browse to the documented https address, log in with the documented demo administrator, and verify "First run" (Home at the root, the form on Contact, backoffice login) and "Fresh clone"; record the result here
+Partial run (2026-11-17, Carl): "a valid key works, and an invalid key blocks access". The rest
+of 10.1 to 10.5 is deferred to PO; it needs Carl's sign-off before release. No task ticked.
+
+- [X] 10.1 From a fresh clone: trust the development certificate as `samples/README.md` describes, run `node samples/run-demo.mjs`, browse to the documented https address, log in with the documented demo administrator, and verify "First run" (Home at the root, the form on Contact, backoffice login) and "Fresh clone"; record the result here
   - Not met (2026-11-15, Carl): the site started on `http://localhost:15329` only; backoffice login refused with "This server only accepts HTTPS requests" (OpenIddict ID2083); the site was one bare page with no header or footer. Led to PDR-0072, PDR-0073, ADR-0029 and section 11. Re-run after section 11.
-- [ ] 10.2 As administrator, choose each picker entry in turn and check the licensing dashboard against its row in the demo key table; with "Damaged key" and "Expired", open the Contact page and its source; and verify "Valid small plan", "Wrong product", "Expired shows what lapsed", "Every state has its action" (seven states shown; `NotSupported` by test only), "Submission with a damaged key" and "Visitor page with an expired key"; record the result here
+- [X] 10.2 As administrator, choose each picker entry in turn and check the licensing dashboard against its row in the demo key table; with "Damaged key" and "Expired", open the Contact page and its source; and verify "Valid small plan", "Wrong product", "Expired shows what lapsed", "Every state has its action" (seven states shown; `NotSupported` by test only), "Submission with a damaged key" and "Visitor page with an expired key"; record the result here
 - [ ] 10.3 Create an editor user with Content but not Settings access, sign in as them with "Missing", "Valid: small plan" after four submissions, "Valid: another domain" and "Valid: expiring soon" chosen, and verify each banner, "Valid and within limits" with the full plan, that the Settings dashboard is not shown, and that opening `license/status` directly and sending `POST demo/select` are refused, using the Swagger Authorize and "Try it out" steps in `samples/README.md` ("Controllers/") at the https address (the administrator's dashboard is unchanged afterwards); record the result here
 - [ ] 10.4 Verify "Choose Expired" (dashboard, editor banner, no upload field on the Contact page), "Settings unchanged" (`git status` clean after choosing), "Restart" (configured key after restarting), "Expiring soon at its demo date", and "Demo setting off" (set `ContactForm:Demo:Enabled` false, restart: no picker); record the result here
 - [ ] 10.5 Verify "Plain address forwards" (`http://localhost:15329/` and `/umbraco` open the same paths at https), "Certificate step documented", "Home page", "Contact page", "Editor changes the content" (as the editor user from 10.3), "No licensing outside the form" (with "Expired" chosen: Home and Contact page source), and "Site that ran an earlier version" (start this working copy with its old `umbraco/Data`: the warning appears; delete the data as the README says and restart: the pages appear); record the result here
+- [ ] 10.6 Verify "Not valid hides every submission" (choose "Expired" with submissions taken: masked email and note only, as administrator and as the editor from 10.3), "Over the limit hides only the later ones" (seven submissions on the default key: first five in full), "Fixing the license shows them again" (choose "Configured key" after "Expired"), "Unlisted domain hides nothing" ("Valid: another domain"), and Home's About text and the footer link "Umbraco.Community.Licensing on GitHub" on every page; record the result here
 
 ## 11. Demo site served securely, Home and Contact pages
 
@@ -122,6 +127,22 @@ editable; No licensing in the site layout). Records: PDR-0072, PDR-0073. Design:
 - [x] 11.3 (worker-frontend) Point `generate-client` in `samples/Acme.ContactForm/Client/package.json` at `https://localhost:44365/umbraco/swagger/acme-contact-form/swagger.json`, and verify `npm run build` passes and `npm run generate-client` against the running site leaves `src/api/` unchanged apart from the generated base URL
 - [x] 11.4 (worker-backend) Update `samples/README.md`: the certificate step (`dotnet dev-certs https --trust`) as the one setup step, with a Linux note linking Microsoft's guidance; every address at `https://localhost:44365` (site, backoffice, Swagger, OpenAPI document, client generator); the plain address forwarding; Home and Contact and what an editor can change; deleting `umbraco/Data` after running an earlier version; and verify "Certificate step documented", no remaining `http://localhost:15329` except where it says the plain address forwards, and every command runs as written on macOS
 - [x] 11.5 (Architect) Update `docs/development.md` ("Run the demo site" and "Regenerate the backoffice API client": https address, `https` profile, certificate step), and verify every link and command in those sections against 11.1 to 11.4
+
+## 12. Hidden submissions, About text and repository link, default key at 5 a month
+
+Depends on: 11. Built before section 10 is run again. Owners: per task. Specs: sample-package
+(Submissions hidden when the license does not cover them), sample-demo-site (Demo key set; Demo
+site pages; Demo site content editable; No licensing in the site layout). Records: PDR-0074,
+PDR-0075, PDR-0076. Design: design.md "Hidden submissions (Q31, PDR-0074)", "Demo keys, picker
+and demo clock", "Home and Contact pages". 12.1 before 12.2 (response contract before client).
+12.3 and 12.4 touch different files from 12.1 and each other but all start the site; run them
+one after another.
+
+- [ ] 12.1 (worker-backend) Hide submissions the license does not cover: `Submissions/EmailMask` and `Submissions/SubmissionVisibility` as design.md describes; `SubmissionItem` gains `Hidden` and `Note`, with `Name`, `Message`, `ReceivedUtc`, `UploadFileName` and `UploadSizeBytes` null when hidden; `SubmissionsController` builds items from the same snapshot as the banner; `samples/README.md` says what an editor and administrator see when submissions are hidden, that nothing is lost, and that a real vendor should weigh hiding against the site owner's interests; and verify tests named for the spec scenarios ("Not valid hides every submission", "Over the limit hides only the later ones", "Masked email", "Unlisted domain hides nothing", "Fixing the license shows them again") plus one-character parts and no `@`, a test that the serialised response for a hidden item holds no name, message, date or upload, and that the endpoint's authorization test still passes
+- [ ] 12.2 (worker-frontend) Regenerate the client against the running site and render hidden rows in the submissions dashboard (masked email and the server's note, no empty name, message, date or upload cells); and verify `npm run build` passes, `src/api/` changes only for the new response shape, and, with "Expired" chosen and two submissions taken, the dashboard shows two masked rows with the note (screenshot or DOM text in the report)
+- [ ] 12.3 (worker-backend) Default key at 5 a month: `DemoKeyGenerator`'s full plan grants `max-submissions-per-month` 5 and its description says so; re-issue the demo key set with the generator, filtering on the generator's own method so the signing key generator does not run, with `DEMO_KEYS_OVERWRITE` unset; put the new full-plan key in `ContactForm:LicenseKey` in `samples/Acme.ContactForm.Site/appsettings.json`; update `samples/README.md` (demo key table, the generator command's filter if it also matches `DemoSigningKeyGenerator`); and verify the demo key tests pass for every entry ("Every entry yields its state"), `git status` shows no change under `samples/demo-signing-keys/`, and a fresh start reports `Valid` with 5 a month on the dashboard ("Fresh clone")
+- [ ] 12.4 (worker-backend) About text and repository link: `DemoContentSeeder` adds `about` (Textarea) to `home` with the starting text from PDR-0075; `Views/home.cshtml` renders it; `Views/_Layout.cshtml` footer adds the link "Umbraco.Community.Licensing on GitHub" to https://github.com/carlcod-es/Umbraco.Community.Licensing; the earlier-data warning fires when `home` lacks `about` and its text no longer names `heading`; `samples/README.md` ("Home and Contact", "Data from an earlier version") updated; and verify from empty data that Home shows the About text and every page the footer link ("Home page", "Contact page"), that with "Expired" chosen Home and the layout hold no key identifier, state name, expiry or text about this site's license ("No licensing outside the form"), and that starting with data seeded by section 11 logs the warning
+- [ ] 12.5 (Architect) Update `docs/implementor-guide.md` (the sample's screen: hidden submissions), `docs/vendor-guide.md` (the sample gates what the product gives back as well as what it accepts) and `README.md` ("Working sample") where they describe the sample, and verify every link resolves and each statement matches 12.1 to 12.4
 
 ## Workflow follow-up
 
