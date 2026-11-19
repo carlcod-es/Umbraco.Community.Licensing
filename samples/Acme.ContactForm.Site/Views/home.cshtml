@@ -1,0 +1,11 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    var contact = Model.Children(Navigation, StatusFilter).FirstOrDefault();
+}
+<h1>@Model.Value(ValueFallback, "heading")</h1>
+<p>@Model.Value(ValueFallback, "intro")</p>
+<p class="about">@Model.Value(ValueFallback, "about")</p>
+@if (contact is not null)
+{
+    <p><a href="@contact.Url(UrlProvider)">@contact.Name</a></p>
+}

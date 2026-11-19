@@ -10,19 +10,93 @@ the sample ever being released.
 
 ### Requirement: Runs from a clone
 The repository SHALL hold a demo site with the sample product installed that starts with one
-documented command after cloning, with no database server, creates its first administrator
-from a local settings file the developer copies from a committed example, and contains a
-published page showing the contact form.
+documented command after cloning, with no database server, creates its first administrator from
+demo credentials committed in the site's settings and documented as demo-only, and contains the
+published Home and Contact pages of "Requirement: Demo site pages".
 
 #### Scenario: First run
-- **WHEN** a developer clones the repository, copies the example local settings file, fills in
-  an administrator email and password, and runs the documented start command
-- **THEN** the site starts, the page with the contact form is shown at the site root, and the
-  developer can log in to the backoffice with those details
+- **WHEN** a developer clones the repository, trusts the local development certificate as the
+  sample documentation describes, and runs the documented start command
+- **THEN** the site starts at the documented secure address, the Home page is shown at the site
+  root, the Contact page shows the contact form, and the developer can log in to the backoffice
+  with the documented demo administrator
 
-#### Scenario: No administrator password committed
-- **WHEN** the repository is searched for the demo site's administrator password
-- **THEN** only placeholders are found, in the committed example file
+#### Scenario: Demo administrator documented as demo-only
+- **WHEN** a reader looks up the demo site's administrator login
+- **THEN** the sample documentation gives the email and password and states that they are for
+  the local demo only and must be changed in any site built from the sample
+
+### Requirement: Served at a secure local address
+The demo site SHALL be served at a secure (https) local address. The only setup step SHALL be
+trusting the local development certificate once, which the sample documentation describes. The
+plain (http) local address SHALL forward to the secure one.
+
+#### Scenario: Plain address forwards
+- **WHEN** the site is running and the developer opens the plain (http) local address, at the
+  site root or the backoffice
+- **THEN** the browser is sent to the same path at the secure address
+
+#### Scenario: Certificate step documented
+- **WHEN** a reader follows the sample documentation's steps to run the demo
+- **THEN** it names trusting the local development certificate as the one setup step, gives the
+  command for it, and gives the secure address to browse to
+
+### Requirement: Demo site pages
+The demo site SHALL hold two published pages, Home at the site root and Contact, sharing one
+plain, neutral layout with no branding colours. Every page SHALL show a header with the site
+name and a navigation link to each page, and a footer with the footer text and a link to the
+project's repository. Home SHALL show
+a heading, intro text, an About text saying what the demo is, and a link to Contact. Contact
+SHALL show a heading, intro text and the contact form.
+
+#### Scenario: Home page
+- **WHEN** a visitor opens the site root on a fresh clone
+- **THEN** the page shows the header with the site name and links to Home and Contact, a
+  heading, intro text, the About text, a link to Contact, and the footer "Demo site for Acme
+  Contact Form" with the link "Umbraco.Community.Licensing on GitHub" to
+  https://github.com/carlcod-es/Umbraco.Community.Licensing
+
+#### Scenario: Contact page
+- **WHEN** a visitor follows the link to Contact
+- **THEN** the page shows the same header and footer, a heading, intro text and the contact form
+
+#### Scenario: Site that ran an earlier version
+- **WHEN** a developer's demo site already holds data from a version without the Home and
+  Contact pages, or without the About text
+- **THEN** the sample documentation says how to delete the site's local data so the next start
+  creates the pages
+
+### Requirement: Demo site content editable
+The heading and intro text of each page, Home's About text, the site name and the footer text
+SHALL be editable in the backoffice; each navigation link SHALL show its page's name. The footer
+text SHALL start as "Demo site for Acme Contact Form". The About text SHALL start as
+the text in the scenario "About text on a fresh clone".
+
+#### Scenario: About text on a fresh clone
+- **WHEN** a visitor opens Home on a fresh clone
+- **THEN** the About text reads "Acme Contact Form is a fictional Umbraco package: a contact form
+  whose features are switched on by a license key. It is the sample for
+  Umbraco.Community.Licensing, an open-source .NET library for offline license keys. Send a
+  message from the Contact page, then sign in to the back office to see what the license gives
+  you."
+
+#### Scenario: Editor changes the content
+- **WHEN** an editor changes the site name, the footer text, Home's About text, and the Contact
+  page's name, heading and intro text, and publishes
+- **THEN** a visitor sees the new site name and footer on every page, the new About text on Home,
+  the new heading and intro on Contact, and the navigation link to Contact shows the new name
+
+### Requirement: No licensing in the site layout
+The header, the footer and the Home page SHALL show no information about this site's license
+in any license state: no key identifier, state name, expiry, or text about the license or its
+problems. Describing the product and the library, as the About text and the repository link
+do, is allowed.
+
+#### Scenario: No licensing outside the form
+- **WHEN** the configured key is `Expired` and a visitor opens Home and Contact
+- **THEN** the header, the footer and the Home page hold no key identifier, no state name, no
+  expiry and no text about this site's license, and show the same About text and repository
+  link as with a valid key
 
 ### Requirement: Demo signing keys
 The repository SHALL hold a demo signing key pair, both halves committed, used to sign the demo
@@ -50,7 +124,7 @@ not demonstrated.
 
 | Entry | Shows |
 |---|---|
-| Valid: full plan | `Valid`, perpetual; uploads; 1000 a month; `localhost` |
+| Valid: full plan | `Valid`, perpetual; uploads; 5 a month; `localhost` |
 | Valid: small plan | `Valid`, expires 2099-12-31; no uploads; 3 a month; `localhost` |
 | Valid: another domain | `Valid`; domain `www.example.com` only |
 | Valid: expiring soon | `Valid`, expiring soon at its demo date |
@@ -102,13 +176,13 @@ implementor uses.
 ### Requirement: Demo key picker
 When the site's demo setting is on, the licensing dashboard SHALL offer a picker listing
 "Configured key" and every demo key entry. Choosing an entry SHALL make the product evaluate
-that key from the next use, for the dashboard, the banner and the public form, until another
+that key from the next use, for the dashboard, the banner and the form on the Contact page, until another
 entry is chosen or the site restarts.
 
 #### Scenario: Choose Expired
 - **WHEN** an administrator chooses "Expired" in the picker
 - **THEN** the dashboard shows `Expired`, an editor's submissions screen shows its banner, and
-  the public form shows no upload field
+  the Contact page shows no upload field
 
 #### Scenario: Restart
 - **WHEN** an entry other than "Configured key" is chosen and the site restarts

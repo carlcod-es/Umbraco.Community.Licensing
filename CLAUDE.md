@@ -45,6 +45,12 @@ Each folder or file below is created with the first record that needs it.
   `docs/license-examples.md` (schema and examples) in the same change, and its
   "Last checked against" line.
 
+## Referring to documents
+When you point Carl at a section, task, check or entry in a document, give the file's
+repo-relative path and the heading or ID, so he can open it. For example, "section 10
+(10.1–10.4) in `openspec/changes/add-sample-package/tasks.md`", not "section 10". This applies
+to every message, report and question.
+
 ## Temp folder
 Ignore anything in the .temp folder - that's where I keep my temporary notes
 

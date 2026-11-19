@@ -1,0 +1,135 @@
+// One command to run the Acme Contact Form demo site from a clone:
+//   node samples/run-demo.mjs
+// Installs and builds the backoffice client when needed, then starts the Umbraco site.
+// Node built-ins only.
+import { spawn, spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const samplesDir = path.dirname(fileURLToPath(import.meta.url));
+const clientDir = path.join(samplesDir, 'Acme.ContactForm', 'Client');
+const bundleDir = path.join(samplesDir, 'Acme.ContactForm', 'wwwroot', 'App_Plugins', 'AcmeContactForm');
+const siteDir = path.join(samplesDir, 'Acme.ContactForm.Site');
+
+export const MIN_NODE = [24, 13];
+
+// True when the running Node is at least MIN_NODE. `version` is a string like "24.13.0".
+export function nodeVersionOk(version = process.versions.node, min = MIN_NODE) {
+  const [major = 0, minor = 0] = version.split('.').map(Number);
+  return major > min[0] || (major === min[0] && minor >= min[1]);
+}
+
+// Newest mtime (ms) of the file, or of every file under the directory. 0 when nothing exists.
+function newestMtime(target) {
+  let stat;
+  try {
+    stat = fs.statSync(target);
+  } catch {
+    return 0;
+  }
+  if (!stat.isDirectory()) return stat.mtimeMs;
+  let newest = 0;
+  for (const entry of fs.readdirSync(target)) {
+    newest = Math.max(newest, newestMtime(path.join(target, entry)));
+  }
+  return newest;
+}
+
+// Rule: build when the bundle has no files, or when the newest build input is newer than the
+// newest bundle file. `inputs` are files or directories (searched recursively).
+export function needsBuild({ bundleDir, inputs }) {
+  const bundleNewest = newestMtime(bundleDir);
+  if (bundleNewest === 0) return true;
+  return inputs.some((input) => newestMtime(input) > bundleNewest);
+}
+
+const buildInputs = () => [
+  path.join(clientDir, 'src'),
+  path.join(clientDir, 'public'),
+  path.join(clientDir, 'package.json'),
+  path.join(clientDir, 'vite.config.ts'),
+  path.join(clientDir, 'tsconfig.json'),
+];
+
+// What to spawn for `command args` on a platform. npm is npm.cmd on Windows, which only starts through cmd.exe. Spawn
+// cmd.exe directly with one command line instead of `shell: true` plus args (Node's DEP0190). The args are fixed
+// constants, never user input, so the joined line needs no quoting. Other platforms and commands run unchanged.
+export function spawnPlan(command, args, platform = process.platform, comSpec = process.env.ComSpec) {
+  if (platform === 'win32' && command === 'npm') {
+    return {
+      command: comSpec || 'cmd.exe',
+      args: ['/d', '/s', '/c', [command, ...args].join(' ')],
+      options: { windowsVerbatimArguments: true },
+    };
+  }
+  return { command, args, options: {} };
+}
+
+export const LAUNCH_PROFILE = 'https';
+export const TRUST_COMMAND = 'dotnet dev-certs https --trust';
+export const README_SECTION = 'Trust the development certificate';
+
+// Arguments for starting the site: the https launch profile serves https://localhost:44365.
+export function siteStartArgs(project = siteDir) {
+  return ['run', '--project', project, '--launch-profile', LAUNCH_PROFILE];
+}
+
+// Arguments for the certificate check; non-zero exit means the certificate is missing or untrusted.
+export function certCheckArgs() {
+  return ['dev-certs', 'https', '--check', '--trust'];
+}
+
+// The message printed when the certificate check fails, or null when it passed (exit status 0).
+export function certFailureMessage(status) {
+  if (status === 0) return null;
+  return [
+    'The .NET development certificate is not trusted, so the browser may warn about https://localhost:44365.',
+    `Trust it once with: ${TRUST_COMMAND}`,
+    `See "${README_SECTION}" in samples/README.md. Starting the site anyway.`,
+  ].join('\n');
+}
+
+function run(command, args, cwd) {
+  const plan = spawnPlan(command, args);
+  const result = spawnSync(plan.command, plan.args, { cwd, stdio: 'inherit', ...plan.options });
+  if (result.error || result.status !== 0) {
+    console.error(`\n"${command} ${args.join(' ')}" failed${result.error ? `: ${result.error.message}` : ` with exit code ${result.status}`}.`);
+    process.exit(result.status || 1);
+  }
+}
+
+function main() {
+  if (!nodeVersionOk()) {
+    console.error(`Node ${MIN_NODE.join('.')} or newer is required (this is ${process.versions.node}).`);
+    process.exit(1);
+  }
+
+  if (!fs.existsSync(path.join(clientDir, 'node_modules'))) {
+    console.log('Installing client packages (npm ci)...');
+    run('npm', ['ci'], clientDir);
+  }
+
+  if (needsBuild({ bundleDir, inputs: buildInputs() })) {
+    console.log('Building the backoffice client (npm run build)...');
+    run('npm', ['run', 'build'], clientDir);
+  } else {
+    console.log('Backoffice client bundle is up to date.');
+  }
+
+  const check = spawnSync('dotnet', certCheckArgs(), { stdio: 'ignore' });
+  const warning = certFailureMessage(check.error ? 1 : check.status);
+  if (warning) console.warn(warning);
+
+  console.log('Starting the demo site (dotnet run)...');
+  const site = spawn('dotnet', siteStartArgs(), { stdio: 'inherit' });
+  // Ctrl+C reaches the dotnet child through the terminal too; forward it for other senders.
+  for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => site.kill(signal));
+  site.on('error', (error) => {
+    console.error(`Could not start dotnet: ${error.message}`);
+    process.exit(1);
+  });
+  site.on('exit', (code, signal) => process.exit(code ?? (signal ? 130 : 1)));
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) main();

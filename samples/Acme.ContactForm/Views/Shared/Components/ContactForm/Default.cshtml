@@ -1,0 +1,35 @@
+@using Acme.ContactForm.Form
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using Umbraco.Extensions
+@model ContactFormViewModel
+@if (TempData[ContactFormSurfaceController.ThankYouKey] is string thanks)
+{
+    <p>@thanks</p>
+    return;
+}
+@using (Html.BeginUmbracoForm<ContactFormSurfaceController>(nameof(ContactFormSurfaceController.Submit), FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    <div>
+        <label for="Name">Name</label>
+        <input id="Name" name="Name" type="text" required />
+        <span>@Html.ValidationMessage("Name")</span>
+    </div>
+    <div>
+        <label for="Email">Email</label>
+        <input id="Email" name="Email" type="email" required />
+        <span>@Html.ValidationMessage("Email")</span>
+    </div>
+    <div>
+        <label for="Message">Message</label>
+        <textarea id="Message" name="Message" required></textarea>
+        <span>@Html.ValidationMessage("Message")</span>
+    </div>
+    @if (Model.ShowUploads)
+    {
+        <div>
+            <label for="upload">Attachment</label>
+            <input id="upload" name="upload" type="file" />
+        </div>
+    }
+    <button type="submit">Send</button>
+}

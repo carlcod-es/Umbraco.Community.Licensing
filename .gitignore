@@ -482,3 +482,11 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Sample (samples/): client bundle and Umbraco site runtime state (bin, obj, node_modules are covered above)
+/samples/Acme.ContactForm/wwwroot/App_Plugins/
+/samples/Acme.ContactForm.Site/umbraco/
+/samples/Acme.ContactForm.Site/wwwroot/media/
+/samples/Acme.ContactForm.Site/appsettings.Local.json
+/samples/Acme.ContactForm.Site/appsettings-schema*.json
+/samples/Acme.ContactForm.Site/umbraco-package-schema.json

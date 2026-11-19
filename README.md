@@ -30,6 +30,11 @@ Every release and what changed:
   working.
 - **Vendor tool.** `ucl` issues and keeps records of keys from a terminal menu
   ([guide](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/vendor-tool.md)).
+- **Working sample.** Acme Contact Form, a fictional Umbraco 17 package, checks its key, gates
+  features, hides the details of submissions its license does not cover, and shows its license
+  state on a backoffice licensing dashboard. Its demo site runs
+  from a clone with one command and has a demo key for every state but `NotSupported`
+  ([sample](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/samples/README.md)).
 
 No Umbraco or host dependency: the package is named for its audience, Umbraco package vendors,
 and uses only the .NET base class library.
@@ -42,6 +47,7 @@ and uses only the .NET base class library.
 | [Vendor guide](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/vendor-guide.md) | Code to create signing keys, issue, check, reissue and rotate; field rules; vendor notes |
 | [Vendor tool](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/vendor-tool.md) | Installing and using `ucl`, the vendor tool |
 | [Implementor guide](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/implementor-guide.md) | Installing keys and acting on each state |
+| [Sample](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/samples/README.md) | A working Umbraco product and demo site: what to copy, the demo keys, running it |
 | [Key format](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/key-format.md) | The key string byte for byte, with a decoded example |
 | [License examples](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/license-examples.md) | Key schema and worked examples with real key strings |
 | [Personas](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/personas.md) | Who the library serves, in priority order |

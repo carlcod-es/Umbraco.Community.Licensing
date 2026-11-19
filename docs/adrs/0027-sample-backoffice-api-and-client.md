@@ -24,7 +24,8 @@ the `umbraco-extension` template.
 - **Wording on the server.** First actions and banner messages are produced by the package's
   C# and sent as text; the client lays them out with UUI elements.
 - **Template patches**: the hey-api peer minimum and the 17 generator and `hey-api.ts` fixes
-  recorded in Carl's package scaffold notes, listed in the sample README.
+  recorded in Carl's package scaffold notes were checked at scaffold; none occurs on 17.8.1, so
+  none is patched.
 
 ## Alternatives Considered
 

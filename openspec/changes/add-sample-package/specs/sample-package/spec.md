@@ -58,7 +58,7 @@ submission. A licensing problem SHALL never cause an error page or a refused sub
 - **THEN** the page renders with the form, with no error
 
 ### Requirement: No licensing in public output
-The public page and every response to a visitor SHALL contain no key string, key identifier,
+Every page a visitor can open and every response to a visitor SHALL contain no key string, key identifier,
 license state, expiry, feature name or licensing message, in any license state.
 
 #### Scenario: Visitor page with an expired key
@@ -209,17 +209,76 @@ numbers.
 - **WHEN** the configured key is `WrongProduct` and an editor opens the submissions screen
 - **THEN** the banner and its data contain neither the claimed product nor the key identifier
 
+### Requirement: Submissions hidden when the license does not cover them
+The submissions screen SHALL hide every submission when the license is not `Valid`, and, when
+it is `Valid` but over its monthly limit, this month's submissions after the limit in arrival
+order. A hidden submission SHALL show only its masked email and a note; nothing else of it SHALL
+be shown or sent, to any user. An uncovered domain SHALL hide nothing. Submissions SHALL be kept
+and show in full once covered.
+
+#### Scenario: Not valid hides every submission
+- **WHEN** the license is `Expired` and two submissions were taken this month
+- **THEN** the submissions screen shows each as its masked email and the note "Details hidden
+  until the license covers this submission.", with no name,
+  message, date or upload, and the data behind the screen holds none of them
+
+#### Scenario: Over the limit hides only the later ones
+- **WHEN** the license is `Valid`, grants `max-submissions-per-month` 5, and seven submissions
+  were taken this month
+- **THEN** the first five show in full, and the sixth and seventh show only their masked email
+  and the note
+
+
+#### Scenario: Unlisted domain hides nothing
+- **WHEN** the license is `Valid`, within its limit, and does not cover the request's domain
+- **THEN** every submission shows in full
+
+#### Scenario: Fixing the license shows them again
+- **WHEN** submissions were hidden under `Expired` and the configured key becomes the Valid
+  full-plan key, within its limit
+- **THEN** the submissions screen shows them in full
+
+### Requirement: Masked email
+A masked email SHALL keep the first character of each part and replace every other character
+with `*`, one per character. The part before `@` SHALL be one part; the part after it SHALL be
+split at each `.`. A one-character part SHALL stay as it is; a value with no `@` SHALL keep its
+first character.
+
+#### Scenario: Masked email
+- **WHEN** a hidden submission's email is `carl@sargunar.com`, or `first.last@example.co.uk`
+- **THEN** it shows as `c***@s*******.c**`, or `f*********@e******.c*.u*`
+
+#### Scenario: Short parts and no at sign
+- **WHEN** a hidden submission's email is `a@b.io`, or `nobody`
+- **THEN** it shows as `a@b.i*`, or `n*****`
+
 ### Requirement: Licensing changes logged
-The product SHALL write one warning to the site log when the license state it evaluates differs
-from the last state it logged, naming the new state and the key identifier (or claimed
-identifier, or none). The log SHALL never contain the key string. A repeat of the same state
-SHALL not be logged again.
+The product SHALL write one message to the site log when the license condition (the state and,
+for a `Valid` license, whether it is expiring soon) differs from the last one logged, including
+at startup, naming the state, the key identifier (or claimed identifier, or none) and, when
+expiring soon, the expiry date. The log SHALL never contain the key string. A repeated
+condition SHALL not be logged again.
 
 #### Scenario: Key expires
 - **WHEN** the state changes from `Valid` to `Expired`
-- **THEN** one warning naming `Expired` and the key identifier is logged, and none on later
+- **THEN** one Error naming `Expired` and the key identifier is logged, and none on later
   evaluations while it stays `Expired`
 
 #### Scenario: Log holds no key
-- **WHEN** any state change is logged
+- **WHEN** any change is logged
 - **THEN** the log entry does not contain the key string
+
+### Requirement: Log level follows the license condition
+Each licensing log message SHALL be Information for a `Valid` license not expiring soon, Warning
+for a `Valid` license expiring soon, and Error for any other state, at startup and on every
+later change.
+
+#### Scenario: Good license at startup
+- **WHEN** the first evaluation after the site starts is `Valid` and not expiring soon
+- **THEN** one Information message naming `Valid` and the key identifier is logged
+
+#### Scenario: Expiring soon logged
+- **WHEN** a `Valid` license comes within 30 days of its expiry, at startup or while the site
+  runs
+- **THEN** one Warning naming the expiry date and the key identifier is logged, and none on later
+  evaluations while it stays expiring soon

@@ -1,0 +1,131 @@
+[
+  {
+    "name": "Valid: full plan",
+    "description": "A perpetual license with every feature: uploads, 5 submissions a month, localhost.",
+    "key": "ACME-7Q8DQ-G7NUK-TTMJ.eyJrIjoiRUE5R1dieUdfTDgiLCJwIjoiYWNtZS5jb250YWN0LWZvcm0iLCJpIjoxNzYxOTU1MjAwLCJuIjoiVmFsaWQ6IGZ1bGwgcGxhbiIsImYiOnsiZmlsZS11cGxvYWRzIjp0cnVlLCJtYXgtc3VibWlzc2lvbnMtcGVyLW1vbnRoIjo1LCJsaWNlbnNlZC1kb21haW5zIjoibG9jYWxob3N0In19.hWfoTybh0Gn_ZSq9Dc-reLfWZQUjAT4uTBlkSnj-KtdUtj9GHJwaMaWEodpNjeJiVsaGH3gLUYCLAcUCO3EaJg",
+    "demoDate": null,
+    "state": "Valid",
+    "product": "acme.contact-form",
+    "productVerified": true,
+    "expires": null,
+    "features": {
+      "file-uploads": true,
+      "max-submissions-per-month": 5,
+      "licensed-domains": "localhost"
+    }
+  },
+  {
+    "name": "Valid: small plan",
+    "description": "A license that expires on 2099-12-31 with no uploads and 3 submissions a month, for localhost.",
+    "key": "ACME-7AN3D-PZ2C3-FV2D.eyJrIjoiRUE5R1dieUdfTDgiLCJwIjoiYWNtZS5jb250YWN0LWZvcm0iLCJpIjoxNzYxOTU1MjAwLCJlIjo0MTAyNDQ0Nzk5LCJuIjoiVmFsaWQ6IHNtYWxsIHBsYW4iLCJmIjp7Im1heC1zdWJtaXNzaW9ucy1wZXItbW9udGgiOjMsImxpY2Vuc2VkLWRvbWFpbnMiOiJsb2NhbGhvc3QifX0.46jWB63Tbau-EtQqzXsnXrlF2rHTnmk-pn0sQ70BUsFs3nmMlDD-TvLiLSHCN1P8fdqhj_m5jWY1Idpg9iICxw",
+    "demoDate": null,
+    "state": "Valid",
+    "product": "acme.contact-form",
+    "productVerified": true,
+    "expires": "2099-12-31T23:59:59Z",
+    "features": {
+      "max-submissions-per-month": 3,
+      "licensed-domains": "localhost"
+    }
+  },
+  {
+    "name": "Valid: another domain",
+    "description": "A perpetual license with every feature, but for www.example.com only.",
+    "key": "ACME-8H73J-B5BMN-QWCN.eyJrIjoiRUE5R1dieUdfTDgiLCJwIjoiYWNtZS5jb250YWN0LWZvcm0iLCJpIjoxNzYxOTU1MjAwLCJuIjoiVmFsaWQ6IGFub3RoZXIgZG9tYWluIiwiZiI6eyJmaWxlLXVwbG9hZHMiOnRydWUsIm1heC1zdWJtaXNzaW9ucy1wZXItbW9udGgiOjUsImxpY2Vuc2VkLWRvbWFpbnMiOiJ3d3cuZXhhbXBsZS5jb20ifX0.EqO3hwbweaFV_Er_EzsAqUdVjNiebgSiy84y7eb8AaoDMjW2WDSvSpvlYTBPu1GJ4I6Tus8stIs8P3H-SQR41w",
+    "demoDate": null,
+    "state": "Valid",
+    "product": "acme.contact-form",
+    "productVerified": true,
+    "expires": null,
+    "features": {
+      "file-uploads": true,
+      "max-submissions-per-month": 5,
+      "licensed-domains": "www.example.com"
+    }
+  },
+  {
+    "name": "Valid: expiring soon",
+    "description": "A valid license that is 14 days from expiry at its demo date, so the expiring-soon warning shows.",
+    "key": "ACME-DNEK5-82HQW-PRVF.eyJrIjoiRUE5R1dieUdfTDgiLCJwIjoiYWNtZS5jb250YWN0LWZvcm0iLCJpIjoxNzYxOTU1MjAwLCJlIjoxODk2MTM0Mzk5LCJuIjoiVmFsaWQ6IGV4cGlyaW5nIHNvb24iLCJmIjp7ImZpbGUtdXBsb2FkcyI6dHJ1ZSwibWF4LXN1Ym1pc3Npb25zLXBlci1tb250aCI6NSwibGljZW5zZWQtZG9tYWlucyI6ImxvY2FsaG9zdCJ9fQ.wDolO_SNEUmv-pQvuApTwF9UfgxeG7tEjGe1jk_8Qft1fLFuaf50Mce33jcSZAh15tX1R0A9OodHa8eq_rV5UQ",
+    "demoDate": "2030-01-17T12:00:00Z",
+    "state": "Valid",
+    "product": "acme.contact-form",
+    "productVerified": true,
+    "expires": "2030-01-31T23:59:59Z",
+    "features": {
+      "file-uploads": true,
+      "max-submissions-per-month": 5,
+      "licensed-domains": "localhost"
+    }
+  },
+  {
+    "name": "Expired",
+    "description": "A license whose expiry, 2026-01-31, has passed.",
+    "key": "ACME-E77SZ-ZJQKR-KRXZ.eyJrIjoiRUE5R1dieUdfTDgiLCJwIjoiYWNtZS5jb250YWN0LWZvcm0iLCJpIjoxNzYxOTU1MjAwLCJlIjoxNzY5OTAzOTk5LCJuIjoiRXhwaXJlZCIsImYiOnsiZmlsZS11cGxvYWRzIjp0cnVlLCJtYXgtc3VibWlzc2lvbnMtcGVyLW1vbnRoIjo1LCJsaWNlbnNlZC1kb21haW5zIjoibG9jYWxob3N0In19.1BVoTRc9l2WtFGK5AH9galhaAPEd4VfI81dj21pPsJsBVA-h2z5tro-2J26uTALdSuP2U2tiYe1keTtZx8TOsw",
+    "demoDate": null,
+    "state": "Expired",
+    "product": "acme.contact-form",
+    "productVerified": true,
+    "expires": "2026-01-31T23:59:59Z",
+    "features": {
+      "file-uploads": true,
+      "max-submissions-per-month": 5,
+      "licensed-domains": "localhost"
+    }
+  },
+  {
+    "name": "No key",
+    "description": "No key is configured at all.",
+    "key": null,
+    "demoDate": null,
+    "state": "Missing",
+    "product": null,
+    "productVerified": false,
+    "expires": null,
+    "features": {}
+  },
+  {
+    "name": "Damaged key",
+    "description": "Text that is not a license key, as from a bad copy and paste.",
+    "key": "not-a-license-key",
+    "demoDate": null,
+    "state": "Unreadable",
+    "product": null,
+    "productVerified": false,
+    "expires": null,
+    "features": {}
+  },
+  {
+    "name": "Another product's key",
+    "description": "A genuine license, signed by the trusted signer, for a different product (acme.commerce).",
+    "key": "ACME-7GTWF-4GXAN-76EW.eyJrIjoiRUE5R1dieUdfTDgiLCJwIjoiYWNtZS5jb21tZXJjZSIsImkiOjE3NjE5NTUyMDAsIm4iOiJBbm90aGVyIHByb2R1Y3QncyBrZXkifQ.beHO1U5CdzVQQLzNwVaL5Lq_pGZGspij8E-o_vVZSvo2kE1y__3VtlYaVG4MAyHS4ug65rO9jR5BI26gH29_5g",
+    "demoDate": null,
+    "state": "WrongProduct",
+    "product": "acme.commerce",
+    "productVerified": false,
+    "expires": null,
+    "features": {}
+  },
+  {
+    "name": "Untrusted signer",
+    "description": "A well-formed license signed by a key the product does not trust.",
+    "key": "ACME-BSDSH-XUYMC-ZK3E.eyJrIjoiM2dwamZtNkRLTlUiLCJwIjoiYWNtZS5jb250YWN0LWZvcm0iLCJpIjoxNzYxOTU1MjAwLCJuIjoiVW50cnVzdGVkIHNpZ25lciIsImYiOnsiZmlsZS11cGxvYWRzIjp0cnVlLCJtYXgtc3VibWlzc2lvbnMtcGVyLW1vbnRoIjo1LCJsaWNlbnNlZC1kb21haW5zIjoibG9jYWxob3N0In19.q8CJpo-EzAOROEVgBe5kxd3ogXP_5Ub6N8e82Pl_Ed_5LnIl6FxYHs7TEsBO52nu1tRY2JiMtugmQQVvlI_Qig",
+    "demoDate": null,
+    "state": "SigningKeyNotRecognised",
+    "product": "acme.contact-form",
+    "productVerified": false,
+    "expires": null,
+    "features": {}
+  },
+  {
+    "name": "Edited key",
+    "description": "The full-plan key with one character of its signature changed, so it no longer verifies.",
+    "key": "ACME-7Q8DQ-G7NUK-TTMJ.eyJrIjoiRUE5R1dieUdfTDgiLCJwIjoiYWNtZS5jb250YWN0LWZvcm0iLCJpIjoxNzYxOTU1MjAwLCJuIjoiVmFsaWQ6IGZ1bGwgcGxhbiIsImYiOnsiZmlsZS11cGxvYWRzIjp0cnVlLCJtYXgtc3VibWlzc2lvbnMtcGVyLW1vbnRoIjo1LCJsaWNlbnNlZC1kb21haW5zIjoibG9jYWxob3N0In19.hWfoTybh0GA_ZSq9Dc-reLfWZQUjAT4uTBlkSnj-KtdUtj9GHJwaMaWEodpNjeJiVsaGH3gLUYCLAcUCO3EaJg",
+    "demoDate": null,
+    "state": "NotVerified",
+    "product": "acme.contact-form",
+    "productVerified": false,
+    "expires": null,
+    "features": {}
+  }
+]

@@ -1,0 +1,51 @@
+name: Sample
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'samples/**'
+      - 'src/Umbraco.Community.Licensing/**'
+      - 'global.json'
+      - 'Directory.Build.props'
+      - '.github/workflows/sample.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'samples/**'
+      - 'src/Umbraco.Community.Licensing/**'
+      - 'global.json'
+      - 'Directory.Build.props'
+      - '.github/workflows/sample.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: samples/Acme.ContactForm/Client/package-lock.json
+      - name: Client install
+        working-directory: samples/Acme.ContactForm/Client
+        run: npm ci
+      - name: Client build
+        working-directory: samples/Acme.ContactForm/Client
+        run: npm run build
+      - name: Demo runner tests
+        run: node --test samples/run-demo.test.mjs
+      - name: Build
+        run: dotnet build samples/Acme.ContactForm.slnx -c Release
+      - name: Test
+        run: dotnet test --solution samples/Acme.ContactForm.slnx -c Release --no-build

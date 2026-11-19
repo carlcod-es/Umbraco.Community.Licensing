@@ -1,7 +1,8 @@
 # Development
 
 How to build, test and run this repository on your own machine: the library
-`Umbraco.Community.Licensing` and the vendor tool `ucl` (`Umbraco.Community.Licensing.Tool`).
+`Umbraco.Community.Licensing`, the vendor tool `ucl` (`Umbraco.Community.Licensing.Tool`) and the
+sample in `samples/`.
 Releasing is in [Releasing](releasing.md); using the published tool is in
 [Vendor tool](vendor-tool.md).
 
@@ -13,7 +14,8 @@ from a site of your own.
 - The [.NET 10 SDK](https://dotnet.microsoft.com/download). `global.json` pins 10.0.100 and rolls
   forward to a later feature band.
 - [Node.js](https://nodejs.org) 20 or later, for the release tooling and its tests in
-  `tools/release/`.
+  `tools/release/`. The sample needs 24.13 or later (see [Sample](#sample)). With 24.13 or later
+  installed, every command in this page works.
 - Windows, macOS or Linux. Every command below works in any shell on each of them.
 
 ## Build and test
@@ -29,8 +31,9 @@ node --test tools/release/*.test.mjs
 - Tests run on Microsoft.Testing.Platform (`global.json`), so `dotnet test` takes `--solution`.
 - Warnings are errors (`Directory.Build.props`): a build with a warning fails.
 - **Node.js glob.** Node.js 22 and later expand a quoted pattern themselves, so
-  `node --test "tools/**/*.test.mjs"` (every test under `tools/`, as CI runs it) works there. Node.js
-  20 does not: leave the pattern unquoted so the shell expands it, as above.
+  `node --test "tools/**/*.test.mjs"` (every test under `tools/`, as CI runs it) works there, and
+  so with the Node.js 24 the sample needs. Node.js 20 does not: leave the pattern unquoted so the
+  shell expands it, as above.
 
 ## Run the tool from source
 
@@ -96,3 +99,80 @@ Delete the folder to start again.
 
 How to issue and check keys from code: [Vendor guide](vendor-guide.md) and
 [Implementor guide](implementor-guide.md).
+
+## Sample
+
+`samples/` holds Acme Contact Form, a fictional Umbraco 17 package, and a demo site for it. It
+has its own solution, `samples/Acme.ContactForm.slnx`, and the root solution does not include it.
+It references the library as a project, so a library change that breaks it shows up at once.
+It is never released. What it shows and what to copy: [`samples/README.md`](../samples/README.md).
+
+It needs Node.js **24.13 or later** for its backoffice client and `samples/run-demo.mjs`, as well
+as the .NET 10 SDK. Check with `node --version`. If you manage Node.js versions with a version
+manager, switch to 24 before running these commands.
+
+### Run the demo site
+
+The demo site is served over HTTPS. Once per machine, trust the .NET development certificate:
+
+```
+dotnet dev-certs https --trust
+```
+
+On Linux this does not cover every browser and tool; see
+[`samples/README.md`](../samples/README.md#trust-the-development-certificate). Then, from the
+repository root:
+
+```
+node samples/run-demo.mjs
+```
+
+It installs and builds the client when needed, checks the certificate (if it is not trusted, it
+prints the trust command and starts anyway), then starts the site on its `https` launch profile
+at <https://localhost:44365>. The plain address <http://localhost:15329> forwards there. The demo
+administrator login and what to try are in
+[`samples/README.md`](../samples/README.md#first-run).
+
+### Build and test, as CI does
+
+`.github/workflows/sample.yml` runs these on Ubuntu for any change under `samples/`, the library
+project, `global.json` or `Directory.Build.props`. To run the same checks locally, from the
+repository root:
+
+```
+cd samples/Acme.ContactForm/Client
+npm ci
+npm run build
+cd ../../..
+node --test samples/run-demo.test.mjs
+dotnet build samples/Acme.ContactForm.slnx -c Release
+dotnet test --solution samples/Acme.ContactForm.slnx -c Release --no-build
+```
+
+Two tests are skipped in a normal run. They are the explicit generators for the demo keys and
+the demo signing keys ([`samples/README.md`](../samples/README.md#demo-keys)).
+
+### Regenerate the backoffice API client
+
+`samples/Acme.ContactForm/Client/src/api/` is generated from the site's OpenAPI document and
+committed. CI does not regenerate it, so regenerate it after any change to a sample controller or
+response type:
+
+1. Start the site on its `https` profile, which serves <https://localhost:44365>:
+   `node samples/run-demo.mjs`, or
+   `dotnet run --project samples/Acme.ContactForm.Site --launch-profile https`.
+2. In another terminal, in `samples/Acme.ContactForm/Client`, run `npm run generate-client`.
+
+The generator reads
+`https://localhost:44365/umbraco/swagger/acme-contact-form/swagger.json`, so it fails if the site
+is not running or is on another port. It accepts the local development certificate.
+
+### Demo signing keys and secret scanning
+
+`samples/demo-signing-keys/` commits two private keys on purpose. They are public and demo-only
+([`samples/demo-signing-keys/README.md`](../samples/demo-signing-keys/README.md)). GitHub secret
+scanning may raise alerts for them. Dismiss an alert as "used in tests" only when it is on
+`samples/demo-signing-keys/demo.pem` or `samples/demo-signing-keys/untrusted.pem` and the file
+still starts with the demo-only warning. Treat an alert on any other file as a real leak: stop
+trusting that key's public key and rotate it ([Vendor guide](vendor-guide.md#rotate-a-signing-key)).
+Never commit a real signing key.

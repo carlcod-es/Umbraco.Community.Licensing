@@ -78,9 +78,16 @@ Deferred. Update this index in the same change as any status line.
 | [PDR-0064](0064-switch-features-chosen-together.md) | Switch features are chosen together | Decided |
 | [PDR-0065](0065-review-before-signing.md) | Review before signing: Sign, Change answers or Cancel | Decided |
 | [PDR-0066](0066-vendor-tool-screen-presentation.md) | Vendor tool screen presentation | Decided |
-| [PDR-0067](0067-sample-product-package.md) | A sample product package shows the library in use | Decided |
-| [PDR-0068](0068-sample-shows-each-persona.md) | What the sample product shows each persona | Decided |
-| [PDR-0069](0069-sample-demo-keys-and-picker.md) | Sample demo keys and the demo key picker | Decided |
+| [PDR-0067](0067-sample-product-package.md) | A sample product package shows the library in use | Amended by PDR-0070, PDR-0073 |
+| [PDR-0068](0068-sample-shows-each-persona.md) | What the sample product shows each persona | Amended by PDR-0071, PDR-0074 |
+| [PDR-0069](0069-sample-demo-keys-and-picker.md) | Sample demo keys and the demo key picker | Amended by PDR-0076 |
+| [PDR-0070](0070-sample-demo-administrator-committed.md) | The sample demo site has a committed demo administrator | Amended by PDR-0072 |
+| [PDR-0071](0071-sample-log-level-follows-condition.md) | The sample's log level follows the license condition | Decided |
+| [PDR-0072](0072-sample-demo-site-served-securely.md) | The sample demo site is served at a secure local address | Decided |
+| [PDR-0073](0073-sample-demo-site-pages.md) | The sample demo site has Home and Contact pages in a simple layout | Amended by PDR-0075 |
+| [PDR-0074](0074-sample-submissions-hidden-when-not-covered.md) | The sample hides submissions the license does not cover | Decided |
+| [PDR-0075](0075-sample-demo-site-about-and-repo-link.md) | The sample demo site says what it is and links to the project | Decided |
+| [PDR-0076](0076-sample-default-key-five-a-month.md) | The sample's default demo key allows five submissions a month | Decided |
 
 ## Template
 
