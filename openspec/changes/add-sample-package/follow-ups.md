@@ -748,3 +748,103 @@ to PO, sign-off needed before release. New: PDR-0074 (hidden submissions, masked
 PDR-0076 (default key 5 a month); design.md Q28 to Q31, R15, R16; tasks.md 10.6 and section 12.
 Resolved here: design.md now names `Views/_ViewStart.cshtml` (Section 11 drift). The
 `DemoKeyGenerator` filter also matching `DemoSigningKeyGenerator` is handled in task 12.3.
+
+## Block 12.1 (reviewer, 2026-11-17, APPROVED)
+
+Acceptance met. Build 0 warnings; 297 passed / 2 skipped (generators). Visibility uses the count
+of this month's listed submissions (real clock), agreeing with the spec; one `Check` per request.
+
+- **minor**: `samples/Acme.ContactForm.Tests/ApiControllerTests.cs` `Over_the_limit_hides_only_the_later_ones`
+  checks only `Name` on the hidden fourth item; add `Null` asserts on `Message` and `ReceivedUtc`
+  (the serialisation test covers all five fields for an `Expired` item only).
+- **nit**: same file, `Fixing_the_license_shows_them_again`: shown items not checked for
+  `ReceivedUtc` or `Note == null`.
+- **nit**: same file declares its own `HiddenNote` constant rather than `SubmissionItem.HiddenNote`;
+  deliberate (pins the spec wording). Leave.
+- **for 12.2**: `SubmissionItem` positional order changed (`Hidden` first); the regenerated client follows.
+
+## Block 12.2 (reviewer, 2026-11-17, APPROVED)
+
+Acceptance met. `src/api/` diff limited to `SubmissionItem`. Worker verified in a signed-in
+headless Chrome (built-in Node WebSocket, no dependency): "Expired" chosen, two submissions, two
+masked lines with the server's note under the banner; site left on "Configured key". Hidden
+items render as a list after the shown-rows table (`uui-table-cell` has no colspan).
+
+- **nit**: `submissions-dashboard.element.ts`: a hidden item with a null `note` would show only
+  the email. Acceptable.
+- **nit**: the list-after-table layout relies on the server ordering hidden items after shown
+  ones (true by the rule); documented in a code comment.
+- **note**: Carl's working copy was installed with `appsettings.Local.json`, so its admin is the
+  one set there, not the demo login (known; README says so). 10.x runs use a fresh clone.
+
+## Block 12.3 (reviewer, 2026-11-17, APPROVED)
+
+Acceptance met; no findings. Set re-issued with the unchanged README filter `*DemoKeyGenerator*`:
+it cannot match `DemoSigningKeyGenerator.WriteDemoSigningKeys` (reviewer confirmed), so only
+`DemoKeyGenerator.WriteDemoKeys` ran. New full-plan key `ACME-7Q8DQ-G7NUK-TTMJ` in the site's
+`appsettings.json`; old identifier gone from the repo; `samples/demo-signing-keys/` unchanged.
+Fresh start from a scratch copy (worker): `Valid`, "0 of 5 submissions used this month".
+
+- **records note**: the follow-up in "opsx:update (2026-11-17)" that the filter also matches
+  `DemoSigningKeyGenerator` was wrong; 12.3's conditional README change was not needed.
+
+## Block 12.4 (reviewer, 2026-11-17, APPROVED)
+
+Acceptance met (start-ups from empty data, Expired check and section-11 data warning on the
+worker's scratch-copy evidence; code reading agrees). About text verbatim from PDR-0075;
+`home.cshtml` keeps BOM, LF, no trailing newline.
+
+- **note (accepted)**: `wwwroot/css/site.css` gains `.about { white-space: pre-line; }` so the
+  Textarea's line breaks show; not named by the task.
+- **tooling note**: the `umbraco-swagger` authorize request answers 400 `invalid_request` with
+  `scope=offline_access`; omit `scope`.
+
+## Block 12.5 (reviewer, 2026-11-17, APPROVED)
+
+Acceptance met; links resolve; statements match 12.1 to 12.4.
+
+- **nit (kept)**: `docs/vendor-guide.md` "Weigh this against the site owner's interests" is new
+  advice; follows PDR-0074's persona note.
+
+## Section 12 (supervisor, 2026-11-17, CHANGES REQUESTED → rework)
+
+Baseline: HEAD. Validation: sample build 0 warnings; 297 passed / 2 skipped; client build; run-demo
+13/13; library solution builds. Nothing under `src/`, `tests/`, `.github/`,
+`samples/demo-signing-keys/` changed.
+
+- **F1 major** (sent back to worker-backend): hidden-submission tests short of design.md "Test
+  strategy" (every non-`Valid` state; full plan 5 of 5 and 7 of 5; "Short parts and no at sign";
+  "Fixing the license shows them again" on the full plan).
+- **F2 minor (for Carl)**: `samples/README.md:134` "or wait for a new month ... shows them all in
+  full" is half true: a new month helps only over the limit, and the screen lists only this
+  month. Suggested: "Fix the license and the next request shows this month's submissions in full.
+  Over the limit, a new month starts the count again for new submissions; the screen lists only
+  the current month."
+- **F3 minor (for Carl, Architect via opsx:update)**: tasks.md 10.3 and 10.6 depend on this month's
+  in-memory count, which carries across picker changes and earlier steps; with the default key at
+  5, 10.3's "Valid and within limits" and 10.6's "first five in full" need a restart first (or
+  the earlier submissions counted in).
+- **F4 nit**: hidden items render as a list after the table, not "rows" (no colspan in
+  `uui-table-cell`); behaviour matches the spec.
+- **risks**: 12.2 layout relies on hidden items following shown ones; section 10 uses a fresh clone
+  (Carl's working copy has a different admin from `appsettings.Local.json`); Node 24 for CI/docs.
+
+## Section 12 rework (reviewer, 2026-11-17, APPROVED)
+
+F1 resolved: not-valid theory over the six non-`Valid` demo entries (guarded by
+`Not_valid_covers_six_states`), full plan at 5 of 5 and 7 of 5, `Short_parts_and_no_at_sign`,
+"Fixing the license shows them again" on the full plan with shown-item checks. F2 resolved
+(Carl approved folding in): README sentence reworded. 307 passed / 2 skipped. No findings above nit.
+
+## Section 12 re-review (supervisor, 2026-11-17, APPROVED)
+
+F1 and F2 resolved; no regressions. Validation: sample build 0 warnings; 307 passed / 2 skipped;
+client build (Node 24); run-demo 13/13; library solution builds. Nits only (test's own copy of the
+note text, kept deliberately; F4 list vs rows). F3 (tasks.md 10.3/10.6 count dependence) to
+`opsx:update` at Carl's choice.
+
+## opsx:update (2026-11-17, Carl's answer to section 12 F3)
+
+tasks.md 10.3 ("Valid and within limits") and 10.6 ("Over the limit hides only the later ones")
+now say to restart the site first, so this month's in-memory count starts at 0. tasks.md only;
+design.md and PDR-0076 already say a restart clears the count.

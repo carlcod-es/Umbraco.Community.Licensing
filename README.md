@@ -31,7 +31,8 @@ Every release and what changed:
 - **Vendor tool.** `ucl` issues and keeps records of keys from a terminal menu
   ([guide](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/docs/vendor-tool.md)).
 - **Working sample.** Acme Contact Form, a fictional Umbraco 17 package, checks its key, gates
-  features and shows its license state on a backoffice licensing dashboard. Its demo site runs
+  features, hides the details of submissions its license does not cover, and shows its license
+  state on a backoffice licensing dashboard. Its demo site runs
   from a clone with one command and has a demo key for every state but `NotSupported`
   ([sample](https://github.com/carlcod-es/Umbraco.Community.Licensing/blob/main/samples/README.md)).
 

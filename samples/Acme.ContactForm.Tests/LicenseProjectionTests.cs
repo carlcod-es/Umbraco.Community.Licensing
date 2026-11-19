@@ -139,7 +139,7 @@ public class LicenseProjectionTests
         Assert.Equal("2026-01-31", status.ExpiryDate);
         Assert.Equal("Expired 2026-01-31", status.Expiry);
         Assert.True(status.KeyIdentifierVerified);
-        Assert.Equal(["on", "1000", "localhost"], status.Features.Select(f => f.Grants.Replace(" (no longer in effect)", "")));
+        Assert.Equal(["on", "5", "localhost"], status.Features.Select(f => f.Grants.Replace(" (no longer in effect)", "")));
         Assert.All(status.Features, f =>
         {
             Assert.True(f.Included);

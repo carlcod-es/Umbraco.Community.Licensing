@@ -8,14 +8,28 @@ using Umbraco.Cms.Web.Common.Authorization;
 
 namespace Acme.ContactForm.Controllers;
 
-/// <summary>One submission as the Submissions dashboard shows it. An upload is its file name and size only.</summary>
+/// <summary>
+/// One submission as the Submissions dashboard shows it. An upload is its file name and size only. When <paramref name="Hidden"/>
+/// the license does not cover it: the email is masked, <paramref name="Note"/> says why and every other detail is null.
+/// </summary>
 public sealed record SubmissionItem(
-    string Name,
+    bool Hidden,
+    string? Name,
     string Email,
-    string Message,
+    string? Message,
     string? UploadFileName,
     long? UploadSizeBytes,
-    DateTimeOffset ReceivedUtc);
+    DateTimeOffset? ReceivedUtc,
+    string? Note)
+{
+    public const string HiddenNote = "Details hidden until the license covers this submission.";
+
+    public static SubmissionItem Shown(Submission s) =>
+        new(false, s.Name, s.Email, s.Message, s.UploadFileName, s.UploadSizeBytes, s.ReceivedUtc, null);
+
+    public static SubmissionItem Covered(Submission s) =>
+        new(true, null, EmailMask.Mask(s.Email), null, null, null, null, HiddenNote);
+}
 
 /// <summary>This month's submissions and the editor's banner data (null when no banner is due).</summary>
 public sealed record SubmissionsResponse(IReadOnlyList<SubmissionItem> Submissions, EditorLicenseBanner? Banner);
@@ -29,10 +43,12 @@ public class SubmissionsController(ContactFormLicensing licensing, ISubmissionSt
     [ProducesResponseType<SubmissionsResponse>(StatusCodes.Status200OK)]
     public SubmissionsResponse List()
     {
-        // Check before listing so the banner and the list describe the same month
+        // One snapshot for the banner and the visibility, so both describe the same month
         var snapshot = licensing.Check(Request.Host.Value ?? "");
-        var items = submissions.ListThisMonth()
-            .Select(s => new SubmissionItem(s.Name, s.Email, s.Message, s.UploadFileName, s.UploadSizeBytes, s.ReceivedUtc))
+        var all = submissions.ListThisMonth();
+        var hidden = SubmissionVisibility.HiddenFlags(snapshot, all.Count);
+        var items = all
+            .Select((s, i) => hidden[i] ? SubmissionItem.Covered(s) : SubmissionItem.Shown(s))
             .ToList();
         return new SubmissionsResponse(items, EditorLicenseBanner.From(snapshot));
     }

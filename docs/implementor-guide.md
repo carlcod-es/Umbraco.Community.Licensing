@@ -31,4 +31,6 @@ first action: [`how-it-works.md`](how-it-works.md#states).
   and whether it is in effect, usage against a limit, and whether this site's domain is covered.
   Never the key itself. Each product decides what it shows and to whom. In the
   [sample](../samples/README.md), only Settings users see this screen and editors see a short
-  banner. Its demo site has a picker that shows every state but `NotSupported` on the screen.
+  banner. Its submissions screen shows only a masked email and a note for each submission the
+  license does not cover, and shows them in full again once it does. Its demo site has a picker
+  that shows every state but `NotSupported` on the screen.

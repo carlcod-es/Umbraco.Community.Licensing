@@ -121,8 +121,11 @@ is the vendor's decision. The library reports the state and does not act on it.
 For a working product built this way, see the [sample](../samples/README.md). Acme Contact Form
 is an Umbraco 17 package that compiles in its product ID and trusted key and reads the key from
 configuration on every use. It gates uploads, a monthly limit and licensed domains, and logs
-state changes by key identifier. Its `Licensing/` folder is laid out for copying into your own
-product.
+state changes by key identifier. It gates what the product gives back as well as what it
+accepts: the contact form takes every submission, but the backoffice hides the details of those
+the license does not cover (any state other than `Valid`, or beyond the monthly limit) until it
+does. Weigh this against the site owner's interests: hidden submissions are their own enquiries.
+Its `Licensing/` folder is laid out for copying into your own product.
 
 ## Reissue: add a feature or extend expiry
 

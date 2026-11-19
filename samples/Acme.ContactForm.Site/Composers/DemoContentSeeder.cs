@@ -40,9 +40,9 @@ public sealed class DemoContentSeeder(
         }
 
         var existingHome = await contentTypes.GetAsync(HomeTypeKey);
-        if (existingHome is not null && !existingHome.PropertyTypes.Any(p => p.Alias == "heading"))
+        if (existingHome is not null && !existingHome.PropertyTypes.Any(p => p.Alias == "about"))
         {
-            logger.LogWarning("The demo data comes from an earlier version of the sample: the 'home' document type has no 'heading'. Delete umbraco/Data and start again; nothing was seeded.");
+            logger.LogWarning("The demo data comes from an earlier version of the sample: the 'home' document type has no 'about' (About text). Delete umbraco/Data and start again; nothing was seeded.");
             return;
         }
 
@@ -71,7 +71,7 @@ public sealed class DemoContentSeeder(
 
         var homeType = await EnsureTypeAsync(
             HomeTypeKey, HomeAlias, "Home", homeTemplate, allowedAtRoot: true, childType: contactType,
-            [("siteName", "Site name", textstring), ("heading", "Heading", textstring), ("intro", "Intro", textarea), ("footerText", "Footer text", textarea)]);
+            [("siteName", "Site name", textstring), ("heading", "Heading", textstring), ("intro", "Intro", textarea), ("about", "About", textarea), ("footerText", "Footer text", textarea)]);
         if (homeType is null)
         {
             return;
@@ -85,6 +85,7 @@ public sealed class DemoContentSeeder(
             home.SetValue("siteName", "Acme");
             home.SetValue("heading", "Acme Contact Form");
             home.SetValue("intro", "A demo site for the Acme Contact Form package. Use the contact page to try the form.");
+            home.SetValue("about", "Acme Contact Form is a fictional Umbraco package: a contact form whose features are switched on by a license key. It is the sample for Umbraco.Community.Licensing, an open-source .NET library for offline license keys. Send a message from the Contact page, then sign in to the back office to see what the license gives you.");
             home.SetValue("footerText", "Demo site for Acme Contact Form");
             contentService.Save(home);
             contentService.Publish(home, ["*"]);

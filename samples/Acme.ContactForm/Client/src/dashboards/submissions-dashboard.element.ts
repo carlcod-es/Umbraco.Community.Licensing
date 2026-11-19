@@ -47,30 +47,42 @@ export class AcmeContactFormSubmissionsDashboardElement extends UmbElementMixin(
     if (r.submissions.length === 0) {
       return html`<uui-box headline="This month"><p>No submissions this month.</p></uui-box>`;
     }
+    // Hidden items follow the shown ones, so the two lists keep the server's order.
+    const shown = r.submissions.filter((s) => !s.hidden);
+    const hidden = r.submissions.filter((s) => s.hidden);
     return html`
       <uui-box headline="This month">
-        <uui-table>
-          <uui-table-head>
-            <uui-table-head-cell>Name</uui-table-head-cell>
-            <uui-table-head-cell>Email</uui-table-head-cell>
-            <uui-table-head-cell>Message</uui-table-head-cell>
-            <uui-table-head-cell>Upload</uui-table-head-cell>
-            <uui-table-head-cell>Received</uui-table-head-cell>
-          </uui-table-head>
-          ${r.submissions.map(
-            (s) => html`<uui-table-row>
-              <uui-table-cell>${s.name}</uui-table-cell>
-              <uui-table-cell>${s.email}</uui-table-cell>
-              <uui-table-cell>${s.message}</uui-table-cell>
-              <uui-table-cell>
-                ${s.uploadFileName
-                  ? `${s.uploadFileName}${s.uploadSizeBytes != null ? ` (${formatSize(s.uploadSizeBytes)})` : ""}`
-                  : ""}
-              </uui-table-cell>
-              <uui-table-cell>${new Date(s.receivedUtc).toLocaleString()}</uui-table-cell>
-            </uui-table-row>`,
-          )}
-        </uui-table>
+        ${shown.length > 0
+          ? html`<uui-table>
+              <uui-table-head>
+                <uui-table-head-cell>Name</uui-table-head-cell>
+                <uui-table-head-cell>Email</uui-table-head-cell>
+                <uui-table-head-cell>Message</uui-table-head-cell>
+                <uui-table-head-cell>Upload</uui-table-head-cell>
+                <uui-table-head-cell>Received</uui-table-head-cell>
+              </uui-table-head>
+              ${shown.map(
+                (s) => html`<uui-table-row>
+                  <uui-table-cell>${s.name}</uui-table-cell>
+                  <uui-table-cell>${s.email}</uui-table-cell>
+                  <uui-table-cell>${s.message}</uui-table-cell>
+                  <uui-table-cell>
+                    ${s.uploadFileName
+                      ? `${s.uploadFileName}${s.uploadSizeBytes != null ? ` (${formatSize(s.uploadSizeBytes)})` : ""}`
+                      : ""}
+                  </uui-table-cell>
+                  <uui-table-cell>${s.receivedUtc ? new Date(s.receivedUtc).toLocaleString() : ""}</uui-table-cell>
+                </uui-table-row>`,
+              )}
+            </uui-table>`
+          : nothing}
+        ${hidden.length > 0
+          ? html`<ul class="hidden-list">
+              ${hidden.map(
+                (s) => html`<li><strong>${s.email}</strong> ${s.note}</li>`,
+              )}
+            </ul>`
+          : nothing}
       </uui-box>
     `;
   }
@@ -100,6 +112,14 @@ export class AcmeContactFormSubmissionsDashboardElement extends UmbElementMixin(
         background: var(--uui-color-warning);
         color: var(--uui-color-warning-contrast);
         border-radius: var(--uui-border-radius);
+      }
+      .hidden-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .hidden-list li {
+        padding: var(--uui-size-space-3) 0;
       }
       .error {
         color: var(--uui-color-danger);

@@ -47,20 +47,20 @@ The plain address `http://localhost:15329` still answers, but only to forward: i
 
 ### Home and Contact
 
-- Home is the site root (`/`). It shows a heading, intro text and a link to Contact.
+- Home is the site root (`/`). It shows a heading, intro text, an About text and a link to Contact. The About text says what the sample is and starts with a short description of the package and this library.
 - Contact (`/contact/`) shows a heading, intro text and the contact form.
 
-Both share one plain layout: a header with the site name and a link to each page, and a footer. In the back office, under Content, an editor can change:
+Both share one plain layout: a header with the site name and a link to each page, and a footer. The footer shows the editable footer text and, on every page, a fixed link "Umbraco.Community.Licensing on GitHub" to https://github.com/carlcod-es/Umbraco.Community.Licensing (it is in `Views/_Layout.cshtml`, not content). In the back office, under Content, an editor can change:
 
 - the site name and the footer text (the footer starts "Demo site for Acme Contact Form"),
-- each page's heading and intro text,
+- each page's heading and intro text, and Home's About text,
 - each page's name, which is what the navigation links show.
 
 The site is made of these files in `Acme.ContactForm.Site`: `Composers/DemoContentSeeder.cs`, which creates the document types, templates and pages when the site has started (`Composers/DemoContentComposer.cs` registers it); `Views/home.cshtml` and `Views/contact.cshtml`, which the seeder reads as the two templates; and `Views/_ViewStart.cshtml`, `Views/_Layout.cshtml` and `wwwroot/css/site.css`, the layout and stylesheet those views use. A vendor can copy or remove them.
 
 ### Data from an earlier version
 
-If you ran an earlier version of the sample, its data in `Acme.ContactForm.Site/umbraco/Data` has no Home and Contact content. The site logs "The demo data comes from an earlier version of the sample ... Delete umbraco/Data and start again; nothing was seeded." Stop the site, delete the `Acme.ContactForm.Site/umbraco/Data` folder and start again. Deleting it removes the installed data and any content you changed. The next start installs again and recreates the demo administrator from the committed settings (or from your `appsettings.Local.json`, if you have one).
+If you ran an earlier version of the sample, its data in `Acme.ContactForm.Site/umbraco/Data` has no Home and Contact content, or has a Home without the About text. The site logs "The demo data comes from an earlier version of the sample: the 'home' document type has no 'about' (About text). Delete umbraco/Data and start again; nothing was seeded." Stop the site, delete the `Acme.ContactForm.Site/umbraco/Data` folder and start again. Deleting it removes the installed data and any content you changed. The next start installs again and recreates the demo administrator from the committed settings (or from your `appsettings.Local.json`, if you have one).
 
 ## Notes
 
@@ -73,7 +73,7 @@ The demo keys are ten ready-made license keys, one for each situation the produc
 
 | Entry | What it shows |
 |---|---|
-| Valid: full plan | `Valid`, perpetual, with uploads, 1000 submissions a month and `localhost`. |
+| Valid: full plan | `Valid`, perpetual, with uploads, 5 submissions a month and `localhost`. |
 | Valid: small plan | `Valid`, expires on 2099-12-31, with no uploads, 3 submissions a month and `localhost`. |
 | Valid: another domain | `Valid`, for `www.example.com` only. |
 | Valid: expiring soon | `Valid`, 14 days from expiry at its demo date (2030-01-17), so the warning shows. |
@@ -125,6 +125,16 @@ Change these in your copy:
 
 `Submissions/` is an in-memory stand-in for real storage behind `ISubmissionStore`. Replace it. `Demo/` is described next.
 
+### Hidden submissions
+
+A submission the license does not cover is still recorded, but the Submissions screen hides its details. A license that is not `Valid` hides every submission this month. A `Valid` license with a monthly limit of N hides the (N+1)th submission onwards, in the order they arrived; the first N stay visible. The domain list does not hide anything: a host the license does not name shows the banner only.
+
+An editor and an administrator see the same thing, because both read the one `submissions` endpoint. A hidden row shows the email with all but the first character of each part replaced by `*` (`carl@sargunar.com` becomes `c***@s*******.c**`) and the note "Details hidden until the license covers this submission." The name, message, date and upload are not in the response at all, so they cannot be read from the browser's devtools. The masked email is the only part of a hidden submission that leaves the server.
+
+Nothing is lost. The store keeps every submission in full and hiding only changes what the endpoint returns. Fix the license and the next request shows this month's submissions in full. Over the limit, a new month starts the count again for new submissions; the screen lists only the current month.
+
+A real vendor should weigh this against the site owner's interests. The site owner's own enquiries are in those submissions, and hiding them can cost the owner real customers. This sample hides them to show a license state having a visible effect; a real product may prefer to show everything and warn.
+
 ## Controllers/
 
 The package's back-office API: four endpoints in one OpenAPI document, `acme-contact-form`. In the demo site (Development environment) it is served at `https://localhost:44365/umbraco/swagger/acme-contact-form/swagger.json`. Every endpoint needs a signed-in back-office user. With none, each answers 401 (checked by hand against the running site, not by a test). The path prefix is `/umbraco/acme-contact-form/api/v1/`.
@@ -132,7 +142,7 @@ The package's back-office API: four endpoints in one OpenAPI document, `acme-con
 | Endpoint | Policy | Returns |
 |---|---|---|
 | `GET license/status` | Settings section access | `AdminLicenseStatus`: the dashboard's data for the request host. |
-| `GET submissions` | Content section access | This month's submissions and the editor banner, or no banner when nothing is due. |
+| `GET submissions` | Content section access | This month's submissions (some hidden, see below) and the editor banner, or no banner when nothing is due. |
 | `GET demo/entries` | Settings section access | The demo picker's list and the selection. Demo only; 404 when the demo is off. |
 | `POST demo/select` | Settings section access | 204 once chosen, 400 for an unknown entry. Demo only; 404 when the demo is off. |
 

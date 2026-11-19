@@ -265,6 +265,180 @@ public class ApiControllerTests
         Assert.Contains(BannerCases.DomainNotCovered, banner.Cases);
     }
 
+    // ---- Hidden submissions
+
+    private const string HiddenNote = "Details hidden until the license covers this submission.";
+
+    /// <summary>Every demo entry whose license state, as evaluated here, is not Valid.</summary>
+    public static TheoryData<string> NotValidEntryNames =>
+        [.. Entries.Select(e => e.Name).Where(n => RigFor(n).Status.Status().State != nameof(LicenseState.Valid))];
+
+    [Theory]
+    [MemberData(nameof(NotValidEntryNames))]
+    public void Not_valid_hides_every_submission_in_every_not_valid_state(string name)
+    {
+        var rig = RigFor(name);
+        rig.Add(3);
+
+        var items = rig.Submissions.List().Submissions;
+
+        Assert.Equal(3, items.Count);
+        Assert.All(items, i =>
+        {
+            Assert.True(i.Hidden);
+            Assert.Null(i.Name);
+            Assert.Null(i.Message);
+            Assert.Null(i.ReceivedUtc);
+            Assert.Equal(HiddenNote, i.Note);
+        });
+    }
+
+    [Fact]
+    public void Not_valid_covers_six_states()
+    {
+        var states = Entries.Select(e => e.Name).Select(n => RigFor(n).Status.Status().State).Where(s => s != nameof(LicenseState.Valid)).Distinct();
+        Assert.Equal(6, states.Count());
+    }
+
+    [Fact]
+    public void Not_valid_hides_every_submission()
+    {
+        var rig = RigFor("Expired");
+        rig.Store.Add("Ada", "carl@sargunar.com", "Hello", "cv.pdf", 2048);
+        rig.Add(2);
+
+        var items = rig.Submissions.List().Submissions;
+
+        Assert.Equal(3, items.Count);
+        Assert.All(items, i => Assert.True(i.Hidden));
+        Assert.All(items, i => Assert.Equal(HiddenNote, i.Note));
+        Assert.Equal("c***@s*******.c**", items[0].Email);
+    }
+
+    [Fact]
+    public void Over_the_limit_hides_only_the_later_ones()
+    {
+        var rig = RigFor("Valid: small plan");
+        rig.Add(3);
+        Assert.All(rig.Submissions.List().Submissions, i => Assert.False(i.Hidden));
+
+        rig.Clock.Advance(TimeSpan.FromMinutes(1));
+        rig.Store.Add("Last", "last@example.com", "Late");
+
+        var items = rig.Submissions.List().Submissions;
+        Assert.Equal([false, false, false, true], items.Select(i => i.Hidden));
+        Assert.Equal("n", items[2].Name);
+        Assert.Null(items[3].Name);
+        Assert.Equal("l***@e******.c**", items[3].Email);
+    }
+
+    [Fact]
+    public void Over_the_limit_hides_only_the_later_ones_at_five_of_five_and_seven_of_five()
+    {
+        var rig = RigFor("Valid: full plan");
+        rig.Add(5);
+        var five = rig.Submissions.List().Submissions;
+        Assert.Equal(5, five.Count);
+        Assert.All(five, i => Assert.False(i.Hidden));
+
+        rig.Add(2);
+        var seven = rig.Submissions.List().Submissions;
+        Assert.Equal([false, false, false, false, false, true, true], seven.Select(i => i.Hidden));
+        Assert.All(seven.Skip(5), i =>
+        {
+            Assert.Null(i.Name);
+            Assert.Null(i.Message);
+            Assert.Null(i.ReceivedUtc);
+        });
+        Assert.All(seven.Take(5), i => Assert.NotNull(i.Name));
+    }
+
+    [Fact]
+    public void Masked_email_is_the_only_email_a_hidden_item_holds()
+    {
+        var rig = RigFor("No key");
+        rig.Store.Add("Ada", "first.last@example.co.uk", "Hello");
+
+        var item = Assert.Single(rig.Submissions.List().Submissions);
+
+        Assert.Equal("f*********@e******.c*.u*", item.Email);
+    }
+
+    [Fact]
+    public void Unlisted_domain_hides_nothing()
+    {
+        var rig = RigFor("Valid: small plan", "www.example.com");
+        rig.Add(2);
+
+        var response = rig.Submissions.List();
+
+        Assert.Contains(BannerCases.DomainNotCovered, response.Banner!.Cases);
+        Assert.All(response.Submissions, i =>
+        {
+            Assert.False(i.Hidden);
+            Assert.Null(i.Note);
+            Assert.Equal("n", i.Name);
+        });
+    }
+
+    [Fact]
+    public void Fixing_the_license_shows_them_again()
+    {
+        var entries = Entries.ToDictionary(e => e.Name);
+        var clock = new TestClock(DemoKeyFile.FixedClock);
+        var store = new InMemorySubmissionStore(clock);
+        store.Add("Ada", "ada@example.com", "Hello", "cv.pdf", 2048);
+        store.Add("Bo", "bo@example.com", "Hi");
+
+        SubmissionsController For(string key)
+        {
+            var licensing = new ContactFormLicensing(new ContactFormProduct(clock), new FixedSource(entries[key].Key), store, new LicenseStateLog(NullLogger<LicenseStateLog>.Instance));
+            var context = new DefaultHttpContext();
+            context.Request.Host = new HostString("localhost");
+            return new SubmissionsController(licensing, store) { ControllerContext = new ControllerContext { HttpContext = context } };
+        }
+
+        var broken = For("Expired").List().Submissions;
+        Assert.All(broken, i => Assert.True(i.Hidden));
+
+        var fixedList = For("Valid: full plan").List().Submissions;
+        Assert.All(fixedList, i =>
+        {
+            Assert.False(i.Hidden);
+            Assert.NotNull(i.ReceivedUtc);
+            Assert.Null(i.Note);
+        });
+        Assert.Equal(["Ada", "Bo"], fixedList.Select(i => i.Name));
+        Assert.Equal("Hello", fixedList[0].Message);
+        Assert.Equal(("cv.pdf", 2048L), (fixedList[0].UploadFileName, fixedList[0].UploadSizeBytes));
+        Assert.Equal(2, store.ListThisMonth().Count);
+    }
+
+    [Fact]
+    public void A_hidden_item_serialises_with_no_name_message_date_or_upload()
+    {
+        var rig = RigFor("Expired", now: new DateTimeOffset(2026, 6, 10, 12, 34, 56, TimeSpan.Zero));
+        rig.Store.Add("Ada Lovelace", "ada@example.com", "Secret message text", "cv-private.pdf", 123457);
+
+        var json = JsonSerializer.Serialize(rig.Submissions.List().Submissions[0], BackOfficeJson);
+
+        foreach (var value in new[] { "Ada Lovelace", "Secret message text", "cv-private.pdf", "123457", "2026", "12:34", "ada@example.com" })
+        {
+            Assert.DoesNotContain(value, json, StringComparison.Ordinal);
+        }
+
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        foreach (var field in new[] { "name", "message", "receivedUtc", "uploadFileName", "uploadSizeBytes" })
+        {
+            Assert.Equal(JsonValueKind.Null, root.GetProperty(field).ValueKind);
+        }
+
+        Assert.True(root.GetProperty("hidden").GetBoolean());
+        Assert.Equal(HiddenNote, root.GetProperty("note").GetString());
+        Assert.Equal("a**@e******.c**", root.GetProperty("email").GetString());
+    }
+
     // ---- Serialised with the Management API's options, every demo key
 
     [Fact]

@@ -78,12 +78,14 @@ export type ProblemDetails = {
 };
 
 export type SubmissionItem = {
-    name: string;
+    hidden: boolean;
+    name?: string | null;
     email: string;
-    message: string;
+    message?: string | null;
     uploadFileName?: string | null;
     uploadSizeBytes?: number | null;
-    receivedUtc: string;
+    receivedUtc?: string | null;
+    note?: string | null;
 };
 
 export type SubmissionsResponse = {

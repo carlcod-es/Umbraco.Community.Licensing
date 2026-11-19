@@ -23,7 +23,7 @@ public class DemoKeyGenerator(ITestOutputHelper output)
         .Switch(UploadsFeature).Number(LimitFeature).Text(DomainsFeature);
 
     private static FeatureList FullPlan(string domains = "localhost") => FeatureList.Empty
-        .With(UploadsFeature, true).With(LimitFeature, 1000m).With(DomainsFeature, domains);
+        .With(UploadsFeature, true).With(LimitFeature, 5m).With(DomainsFeature, domains);
 
     [Fact(Explicit = true)]
     public void WriteDemoKeys()
@@ -47,7 +47,7 @@ public class DemoKeyGenerator(ITestOutputHelper output)
         // (name, description, key, demo date, intended state, intended expiry)
         var specs = new (string Name, string Description, string? Key, DateTimeOffset? DemoDate, LicenseState State, DateTimeOffset? Expires)[]
         {
-            ("Valid: full plan", "A perpetual license with every feature: uploads, 1000 submissions a month, localhost.",
+            ("Valid: full plan", "A perpetual license with every feature: uploads, 5 submissions a month, localhost.",
                 fullPlanKey, null, LicenseState.Valid, null),
             ("Valid: small plan", "A license that expires on 2099-12-31 with no uploads and 3 submissions a month, for localhost.",
                 Issue("Valid: small plan", Product, LicenseExpiry.On(new DateOnly(2099, 12, 31)),
